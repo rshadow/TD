@@ -64,6 +64,15 @@ sub _init
 #    $font->use();
 
     $self->{event} = new SDL::Event();
+
+    # Counters
+    $self->{counter}{frame} = 0;
+    $self->{counter}{time}  = 0;
+    $self->{counter}{fps}   = 0;
+    $self->{counter}{delta} =
+        (config->param('fps')) ?int( 1000 / config->param('fps') ) :0;
+    $self->{counter}{ticks} = 0;
+
 }
 
 sub run
@@ -72,11 +81,12 @@ sub run
 
     notify 'Run';
 
-    $self->{counter}{frame} = $self->{counter}{fps} =
-    $self->{counter}{last}  = $self->{counter}{trottle} = 1;
+    $self->{counter}{time} = $self->{app}->ticks;
 
     while (1)
     {
+        $self->{counter}{ticks} = $self->{app}->ticks;
+
         # Process event queue
         $self->{event}->pump;
         $self->{event}->poll;
@@ -86,49 +96,43 @@ sub run
         last if ($etype eq SDL_QUIT );
         last if (SDL::GetKeyState(SDLK_ESCAPE));
 
+        # Start draw
+        $self->{app}->lock() if $self->{app}->lockp();
 
-
-
-#
-#        #$app->lock() if $app->lockp();
-#
-#        # page flip
-#
-#        # __draw gfx
-#
         $self->{app}->fill($self->{rect}, $SDL::Color::black);
-#
-#        foreach (1..$settings{numsprites})
-#        {
-#          put_sprite( $_*8, $y + (sin(($i+$_)*0.2)*($settings{screen_height}/3)));
-#        }
-#        $i+=30;
 
-        $self->show_fps;
+        # Count FPS
+        $self->{counter}{frame}++;
+        if($self->{app}->ticks - $self->{counter}{time} >= 1000)
+        {
+            $self->{counter}{fps}   = $self->{counter}{frame};
+            $self->{counter}{frame} = 0;
+            $self->{counter}{time}  = $self->{app}->ticks;
+        }
 
-        # __graw gfx end
-        #$app->unlock();
+        # Show FPS
+        $self->{font}->print(
+            $self->{app},
+            2, 2,
+            sprintf '%d fps',$self->{counter}{fps} )
+                if config->param('showfps');
+
+        # End draw
+        $self->{app}->unlock();
         $self->{app}->flip;
+
+        # Limit FPS
+        if( config->param('fps') )
+        {
+            my $tick = $self->{app}->ticks;
+            my $delta = int( $self->{app}->ticks - $self->{counter}{ticks} );
+            if($delta < $self->{counter}{delta})
+            {
+                $self->{app}->delay( $self->{counter}{delta} - $delta );
+
+            }
+        }
     }
-}
-
-sub show_fps
-{
-    my $self = shift;
-
-    $self->{counter}{frame} ++;
-    my $sec = int( $self->{app}->ticks / 1000 );
-
-    if($sec > $self->{counter}{last})
-    {
-        $self->{counter}{fps}   = $self->{counter}{frame};
-        $self->{counter}{last}  = $sec;
-        $self->{counter}{frame} = 0;
-    }
-
-    my $fps = $self->{counter}{fps};
-    $self->{font}->print( $self->{app}, 2, 2, "$fps fps" )
-        if config->param('fps');
 }
 
 DESTROY
