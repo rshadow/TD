@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+use utf8;
+use open qw(:std :utf8);
+use lib qw(lib ../lib);
+
+use Test::More tests    => 4;
+
+BEGIN {
+    # utf-8
+    my $builder = Test::More->builder;
+    binmode $builder->output,         ":utf8";
+    binmode $builder->failure_output, ":utf8";
+    binmode $builder->todo_output,    ":utf8";
+
+    note "************* Game::TD::Player *************";
+
+    use_ok 'Game::TD::Player';
+}
+
+
+my $player = Game::TD::Player->new;
+ok $player, 'Player created';
+ok defined $player->score && defined $player->name && defined $player->level &&
+   defined $player->money && defined $player->difficult,
+    'All init params looks good';
+
+my $level = $player->level;
+ok $player->levelup == $level + 1, 'Level up work';
