@@ -5,11 +5,15 @@ use strict;
 use utf8;
 
 use base qw(Exporter);
-our @EXPORT = qw(config);
+our @EXPORT = qw(config FRAMES_PER_SECOND WINDOW_WIDTH WINDOW_HEIGHT);
 
 use File::Basename;
 use File::Spec;
 use Config::Tiny;
+
+use constant FRAMES_PER_SECOND  => 40;
+use constant WINDOW_WIDTH       => 1024;
+use constant WINDOW_HEIGHT      => 800;
 
 =head1 NAME
 
@@ -57,6 +61,12 @@ sub new
     $opts{dir}{img}         = $opts{dir}{base} . '/data/img';
     $opts{dir}{po}          = $opts{dir}{base} . '/po';
     $opts{dir}{config}      = $opts{dir}{base} . '/data';
+
+    $opts{dir}{intro}       = $opts{dir}{base} . '/data/img/intro';
+    $opts{dir}{game}        = $opts{dir}{base} . '/data/img/game';
+    $opts{dir}{level}       = $opts{dir}{base} . '/data/img/level';
+    $opts{dir}{menu}        = $opts{dir}{base} . '/data/img/menu';
+    $opts{dir}{score}       = $opts{dir}{base} . '/data/img/score';
 
     $opts{param} = Config::Tiny->read( $opts{dir}{config}.'/td.conf' );
 

@@ -47,7 +47,7 @@ sub up
 sub down
 {
     my $self = shift;
-    $self->{current}++ if $self->{current} < $#{$self->{items}};
+    $self->{current}++ if $self->{current} < $#{$self->items};
     return 1;
 }
 
@@ -55,6 +55,12 @@ sub current
 {
     my $self = shift;
     return $self->{current};
+}
+
+sub items
+{
+    my $self = shift;
+    return (wantarray) ?@{$self->{items}} :$self->{items};
 }
 
 1;

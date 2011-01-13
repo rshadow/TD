@@ -19,7 +19,7 @@ use Data::Dumper;
 
 use Game::TD::Notify;
 use Game::TD::Config;
-use Game::TD::Model;
+use Game::TD::Controller;
 
 sub new
 {
@@ -43,18 +43,18 @@ sub _init
     notify 'Init';
 
     $self->{app} = new SDL::App (
-        -width  => 800,
-        -height => 600,
+        -width  => WINDOW_WIDTH,
+        -height => WINDOW_HEIGHT,
         -title  => "TD",
 #       -icon  => "data/icon.bmp",
         -flags  => SDL_HWACCEL | SDL_DOUBLEBUF,
     );
     $self->{rect} = new SDL::Rect(
-        -width  => 800,
-        -height => 600,
+        -width  => WINDOW_WIDTH,
+        -height => WINDOW_HEIGHT,
     );
 
-    $self->{app}->fill($self->{rect}, $SDL::Color::black);
+    $self->app->fill($self->{rect}, $SDL::Color::black);
 
     $self->{font} = SDL::TTFont->new(
         -name => "/usr/share/fonts/truetype/msttcorefonts/Verdana.ttf",
@@ -70,11 +70,9 @@ sub _init
     $self->{counter}{frame} = 0;
     $self->{counter}{time}  = 0;
     $self->{counter}{fps}   = undef;
-    $self->{counter}{delta} =
-        (config->param('fps')) ?int( 1000 / config->param('fps') ) :0;
+    $self->{counter}{delta} = int( 1000 / FRAMES_PER_SECOND );
 
-    $self->{model} = Game::TD::Model->new;
-
+    $self->{ctrl} = Game::TD::Controller->new( app => $self->app );
 }
 
 sub run
@@ -83,11 +81,11 @@ sub run
 
     notify 'Run';
 
-    $self->{counter}{time} = $self->{app}->ticks;
+    $self->{counter}{time} = $self->app->ticks;
 
     while (1)
     {
-        my $ticks = $self->{app}->ticks;
+        my $ticks = $self->app->ticks;
 
         # Process event queue
         $self->{event}->pump;
@@ -99,61 +97,70 @@ sub run
         last if (SDL::GetKeyState(SDLK_ESCAPE));
         if ($etype eq SDL_KEYDOWN)
         {
-            if( $self->{event}->key_sym == SDLK_UP )
+            my $key_sym = $self->{event}->key_sym;
+            if( $key_sym == SDLK_UP )
             {
-                $self->{model}->key_up;
+                $self->{ctrl}->key_up;
             }
-            elsif( $self->{event}->key_sym == SDLK_DOWN )
+            elsif( $key_sym == SDLK_DOWN )
             {
-                $self->{model}->key_down;
+                $self->{ctrl}->key_down;
+            }
+            elsif( $key_sym == SDLK_RETURN or $key_sym == SDLK_SPACE)
+            {
+                $self->{ctrl}->key_any;
             }
         }
 
         # Update Model
-        $self->{model}->update;
+        $self->ctrl->update;
 
         # Start draw
-        $self->{app}->lock() if $self->{app}->lockp();
+        $self->app->lock() if $self->app->lockp();
 
-        $self->{app}->fill($self->{rect}, $SDL::Color::black);
+        $self->app->fill($self->{rect}, $SDL::Color::black);
+
+        $self->ctrl->draw;
 
         # Count FPS
         $self->{counter}{frame}++;
-        if($self->{app}->ticks - $self->{counter}{time} >= 1000)
+        if($self->app->ticks - $self->{counter}{time} >= 1000)
         {
             $self->{counter}{fps}   = $self->{counter}{frame};
             $self->{counter}{frame} = 0;
-            $self->{counter}{time}  = $self->{app}->ticks;
+            $self->{counter}{time}  = $self->app->ticks;
         }
 
         # Show FPS
-        $self->{font}->print(
-            $self->{app},
-            2, 2,
-            sprintf '%d fps', $self->{counter}{fps} )
-                if config->param('showfps') and defined $self->{counter}{fps};
+        $self->ctrl->draw_fps( $self->{counter}{fps} );
 
         # End draw
-        $self->{app}->unlock();
-        $self->{app}->flip;
+        $self->app->unlock();
+        $self->app->flip;
 
         # Limit FPS
-        if( config->param('fps') )
+        my $tick = $self->app->ticks;
+        my $delta = int( $self->app->ticks - $ticks );
+        if($delta < $self->{counter}{delta})
         {
-            my $tick = $self->{app}->ticks;
-            my $delta = int( $self->{app}->ticks - $ticks );
-            if($delta < $self->{counter}{delta})
-            {
-                $self->{app}->delay( $self->{counter}{delta} - $delta );
+            $self->app->delay( $self->{counter}{delta} - $delta );
 
-            }
         }
     }
 }
 
+sub app     {return shift()->{app}}
+sub ctrl    {return shift()->{ctrl}}
+
 DESTROY
 {
+    my $self = shift;
+
     notify 'Stop';
+
+    delete $self->{app};
+    delete $self->{ctrl};
+
     notify 'Bye!';
 }
 1;

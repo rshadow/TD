@@ -1,11 +1,11 @@
-package Game::TD::Map;
+package Game::TD::Model::Map;
 
 use warnings;
 use strict;
 use utf8;
 
 use Game::TD::Config;
-use Game::TD::MapNode;
+use Game::TD::Model::MapNode;
 
 =head1 NAME
 
@@ -102,7 +102,8 @@ sub _load
                 ($letter eq 'W')    ?'water'
                                     : die "Unknown map node type: $letter";
 
-            $node = Game::TD::MapNode->new(type => $type, index => $index);
+            $node = Game::TD::Model::MapNode->new(
+                type => $type, index => $index);
         }
     }
 

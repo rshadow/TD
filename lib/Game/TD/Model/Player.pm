@@ -1,4 +1,4 @@
-package Game::TD::Player;
+package Game::TD::Model::Player;
 
 use warnings;
 use strict;

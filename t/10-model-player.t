@@ -15,13 +15,13 @@ BEGIN {
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    note "************* Game::TD::Player *************";
+    note "************* Game::TD::Model::Player *************";
 
-    use_ok 'Game::TD::Player';
+    use_ok 'Game::TD::Model::Player';
 }
 
 
-my $player = Game::TD::Player->new;
+my $player = Game::TD::Model::Player->new;
 ok $player, 'Player created';
 ok defined $player->score && defined $player->name && defined $player->level &&
    defined $player->money && defined $player->difficult,

@@ -15,7 +15,7 @@ BEGIN {
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    note "************* Game::TD::Map *************";
+    note "************* Game::TD::Notify *************";
 
     use_ok 'Game::TD::Notify';
 }

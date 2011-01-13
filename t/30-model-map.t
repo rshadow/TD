@@ -15,13 +15,13 @@ BEGIN {
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    note "************* Game::TD::Map *************";
+    note "************* Game::TD::Model::Map *************";
 
-    use_ok 'Game::TD::Map';
+    use_ok 'Game::TD::Model::Map';
 }
 
 
-my $map = Game::TD::Map->new(name => 1);
+my $map = Game::TD::Model::Map->new(name => 1);
 ok $map, 'Map loaded';
 
 #note explain $map;

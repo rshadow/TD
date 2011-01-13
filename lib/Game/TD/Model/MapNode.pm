@@ -1,4 +1,4 @@
-package Game::TD::MapNode;
+package Game::TD::Model::MapNode;
 
 use warnings;
 use strict;

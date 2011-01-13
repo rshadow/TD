@@ -15,11 +15,11 @@ BEGIN {
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    note "************* Game::TD::MapNode *************";
+    note "************* Game::TD::Model::MapNode *************";
 
-    use_ok 'Game::TD::MapNode';
+    use_ok 'Game::TD::Model::MapNode';
 }
 
 
-my $node = Game::TD::MapNode->new(type => 'glade');
+my $node = Game::TD::Model::MapNode->new(type => 'glade');
 ok $node, 'Node loaded';
