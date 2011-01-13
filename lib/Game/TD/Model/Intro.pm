@@ -7,7 +7,7 @@ package Game::TD::Model::Intro;
 use Game::TD::Config;
 
  # Show intro in 3 sec.
-use constant SHOW_SECONDS => 7;
+use constant SHOW_SECONDS => 5;
 
 =head1 Game::TD::Model::Intro
 
@@ -35,8 +35,12 @@ sub new
 
     my $self = bless \%opts, $class;
 
+    # Current frame
     $self->{frame}{current} = 0;
+    # Total frames for animation
     $self->{frame}{last}    = FRAMES_PER_SECOND * SHOW_SECONDS;
+    # Delta frames for up alpha (alpha in 0 .. 255)
+    $self->{frame}{delta}   = int( $self->last / 255 ) || 1;
 
     return $self;
 }
@@ -53,5 +57,6 @@ sub update
 
 sub current {return shift()->{frame}{current}}
 sub last    {return shift()->{frame}{last}}
+sub delta   {return shift()->{frame}{delta}}
 
 1;

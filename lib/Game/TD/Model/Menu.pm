@@ -32,7 +32,17 @@ sub new
 
     my $self = bless \%opts, $class;
 
-    $self->{items} = ['start', 'score', 'exit'];
+    $self->{items} = [
+        {name => 'play',    title => 'Play'},
+        {name => 'score',   title => 'Score'},
+        {name => 'exit',    title => 'Exit'},];
+
+    # Get current version
+    {{
+        eval 'require Game::TD';
+        die $@ if $@;
+        $self->{version} = $Game::TD::VERSION;
+    }}
 
     return $self;
 }
@@ -51,11 +61,8 @@ sub down
     return 1;
 }
 
-sub current
-{
-    my $self = shift;
-    return $self->{current};
-}
+sub current {return shift()->{current}}
+sub version {return shift()->{version}}
 
 sub items
 {

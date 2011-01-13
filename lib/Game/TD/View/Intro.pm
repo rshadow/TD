@@ -11,6 +11,11 @@ use SDL::Rect;
 
 use Game::TD::Config;
 
+# Step for alpha blending
+use constant ALPHA_STEP => 5;
+# Logo file
+use constant FILE_LOGO => 'lmwg.png';
+
 =head1 Game::TD::View::Intro
 
 Display intro
@@ -42,16 +47,19 @@ sub new
 
     # Load image from file
     $self->{img} = SDL::Surface->new(
-        -name   => config->dir('intro').'/lmwg.png',
+        -name   => sprintf('%s/%s', config->dir('intro'), FILE_LOGO),
         -flags  => SDL_HWSURFACE);
-    $self->{img}->display_format;
+    $self->img->display_format;
     # Image size
-    $self->{size} = SDL::Rect->new(-height => 150, -width => 150);
+    $self->{size} = SDL::Rect->new(
+        -width  => $self->img->width,
+        -height => $self->img->height);
     # Draw destination - center of window
-    $self->{rect} = SDL::Rect->new(
-        -left   => int(WINDOW_WIDTH  / 2 - 150 / 2),
-        -top    => int(WINDOW_HEIGHT / 2 - 150 / 2),
-        -height => 150, -width => 150 );
+    $self->{dest} = SDL::Rect->new(
+        -left   => int(WINDOW_WIDTH  / 2 - $self->img->width / 2),
+        -top    => int(WINDOW_HEIGHT / 2 - $self->img->height / 2),
+        -width  => $self->img->width,
+        -height => $self->img->height);
 
     # Alpha value for image animation
     $self->{alpha} = 0;
@@ -59,26 +67,25 @@ sub new
     return $self;
 }
 
+=head2
+
+Draw intro: display image in center of window
+
+=cut
+
 sub draw
 {
     my $self = shift;
-#    use Data::Dumper;
-#    die Dumper $self->model;
-    # Count current alpha value and set it
-    unless( $self->model->current % int( $self->model->last / 255 ) )
-    {
-        $self->{alpha}+=5 if $self->{alpha} < 255;
-    }
+    # Count current alpha value for each frame and set it
+    $self->{alpha} += ALPHA_STEP if $self->{alpha} < 255 and
+        !($self->model->current % $self->model->delta);
     $self->img->set_alpha(SDL_SRCALPHA, $self->{alpha});
     # Draw image
-    $self->img->blit($self->size, $self->app, $self->rect);
-    $self->font_debug->print( $self->app, 200, 2, $self->{alpha} );
+    $self->img->blit($self->size, $self->app, $self->dest);
 }
 
-sub app     {return shift()->{app}}
-sub model    {return shift()->{model}}
 sub img     {return shift()->{img}}
 sub size    {return shift()->{size}}
-sub rect    {return shift()->{rect}}
+sub dest    {return shift()->{dest}}
 
 1;

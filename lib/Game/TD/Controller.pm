@@ -34,7 +34,8 @@ sub new
 
     $self->{view}{intro}   = Game::TD::View::Intro->new(
         app => $self->app, model => $self->model_intro );
-    $self->{view}{menu}    = Game::TD::View::Menu->new(  app => $self->app );
+    $self->{view}{menu}    = Game::TD::View::Menu->new(
+        app => $self->app, model => $self->model_menu );
 
     return $self;
 }
@@ -58,7 +59,13 @@ sub update
 
     if($self->state eq 'intro')
     {
-        $self->model_intro->update or $self->state('menu');
+        unless( $self->model_intro->update )
+        {
+            # Goto Menu
+            $self->state('menu');
+            # Free memory
+            delete $self->{model}{intro};
+        }
     }
     elsif($self->state eq 'menu')
     {
@@ -92,11 +99,11 @@ sub draw
 
     if($self->state eq 'intro')
     {
-        $self->view_intro->draw(  );
+        $self->view_intro->draw;
     }
     elsif($self->state eq 'menu')
     {
-        $self->view_menu->draw( $self->model_menu );
+        $self->view_menu->draw;
     }
     elsif($self->state eq 'level')
     {

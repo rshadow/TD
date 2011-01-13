@@ -33,6 +33,7 @@ sub new
     my ($class, %opts) = @_;
 
     die 'Missing required param "app"' unless defined $opts{app};
+    die 'Missing required param "model"' unless defined $opts{model};
 
     my $self = bless \%opts, $class;
 
@@ -76,12 +77,8 @@ sub draw_fps
     $self->font_fps->print( $self->app, 2, 2, sprintf '%d fps', $fps );
 }
 
-sub draw
-{
-    die 'Parent class draw can`t bee used';
-}
-
 sub app         {return shift()->{app}}
+sub model       {return shift()->{model}}
 sub font_fps    {return shift()->{font}{fps}}
 sub font_debug  {return shift()->{font}{debug}}
 sub intro       {return shift()->{draw}{intro}}

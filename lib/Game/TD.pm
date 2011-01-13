@@ -5,6 +5,7 @@ use utf8;
 package Game::TD;
 
 use 5.10.0;
+our $VERSION = 0.1;
 
 use SDL;
 use SDL::App;
