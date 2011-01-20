@@ -46,19 +46,19 @@ sub _init
 {
     my $self = shift;
 
-    $self->{font}{fps} = SDL::TTFont->new(
+    $self->font(fps => SDL::TTFont->new(
         -name => "/usr/share/fonts/truetype/msttcorefonts/Verdana.ttf",
         -size => '12',
         -mode => SDL::UTF8_SOLID,
         -fg     => $SDL::Color::red,
-    );
+    ));
 
-    $self->{font}{debug} = SDL::TTFont->new(
+    $self->font(debug => SDL::TTFont->new(
         -name => "/usr/share/fonts/truetype/msttcorefonts/Verdana.ttf",
         -size => '12',
         -mode => SDL::UTF8_SOLID,
         -fg     => $SDL::Color::yellow,
-    );
+    ));
 }
 
 =head2
@@ -74,13 +74,45 @@ sub draw_fps
     return unless defined $fps;
     return unless config->param('showfps');
 
-    $self->font_fps->print( $self->app, 2, 2, sprintf '%d fps', $fps );
+    $self->font('fps')->print( $self->app, 2, 2, sprintf '%d fps', $fps );
 }
 
 sub app         {return shift()->{app}}
 sub model       {return shift()->{model}}
-sub font_fps    {return shift()->{font}{fps}}
-sub font_debug  {return shift()->{font}{debug}}
-sub intro       {return shift()->{draw}{intro}}
 
+sub font
+{
+    my ($self, $name, $value) = @_;
+
+    die 'Name required'             unless defined $name;
+    $self->{font}{$name} = $value   if defined $value;
+    return $self->{font}{$name};
+}
+
+sub img
+{
+    my ($self, $name, $value) = @_;
+
+    die 'Name required'             unless defined $name;
+    $self->{img}{$name} = $value    if defined $value;
+    return $self->{img}{$name};
+}
+
+sub size
+{
+    my ($self, $name, $value) = @_;
+
+    die 'Name required'             unless defined $name;
+    $self->{size}{$name} = $value   if defined $value;
+    return $self->{size}{$name};
+}
+
+sub dest
+{
+    my ($self, $name, $value) = @_;
+
+    die 'Name required'             unless defined $name;
+    $self->{dest}{$name} = $value   if defined $value;
+    return $self->{dest}{$name};
+}
 1;

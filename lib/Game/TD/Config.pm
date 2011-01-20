@@ -70,6 +70,8 @@ sub new
 
     $opts{param} = Config::Tiny->read( $opts{dir}{config}.'/td.conf' );
 
+    $opts{font} = '/usr/share/fonts/truetype/msttcorefonts/Verdana.ttf';
+
     my $self = bless \%opts, $class;
 
     return $self;
@@ -88,6 +90,12 @@ sub param
     die "Unknown param name '$name'"
         unless exists $self->{param}{options}{$name};
     return $self->{param}{options}{$name};
+}
+
+sub font
+{
+    my ($self, $name) = @_;
+    return $self->{font};
 }
 
 1;

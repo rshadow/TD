@@ -46,20 +46,31 @@ sub new
     my $self = $class->SUPER::new(%opts);
 
     # Load image from file
-    $self->{img} = SDL::Surface->new(
+    $self->img(logo => SDL::Surface->new(
         -name   => sprintf('%s/%s', config->dir('intro'), FILE_LOGO),
-        -flags  => SDL_HWSURFACE);
-    $self->img->display_format;
+        -flags  => SDL_HWSURFACE
+    ));
+    $self->img('logo')->display_format;
     # Image size
-    $self->{size} = SDL::Rect->new(
-        -width  => $self->img->width,
-        -height => $self->img->height);
+    $self->size(logo => SDL::Rect->new(
+        -width  => $self->img('logo')->width,
+        -height => $self->img('logo')->height
+    ));
     # Draw destination - center of window
-    $self->{dest} = SDL::Rect->new(
-        -left   => int(WINDOW_WIDTH  / 2 - $self->img->width / 2),
-        -top    => int(WINDOW_HEIGHT / 2 - $self->img->height / 2),
-        -width  => $self->img->width,
-        -height => $self->img->height);
+    $self->dest(logo => SDL::Rect->new(
+        -left   => int(WINDOW_WIDTH  / 2 - $self->img('logo')->width / 2),
+        -top    => int(WINDOW_HEIGHT / 2 - $self->img('logo')->height / 2),
+        -width  => $self->img('logo')->width,
+        -height => $self->img('logo')->height
+    ));
+
+    # Draw destination - all window
+    $self->dest(background => SDL::Rect->new(
+        -left   => 0,
+        -top    => 0,
+        -width  => WINDOW_WIDTH,
+        -height => WINDOW_HEIGHT
+    ));
 
     # Alpha value for image animation
     $self->{alpha} = 0;
@@ -79,13 +90,11 @@ sub draw
     # Count current alpha value for each frame and set it
     $self->{alpha} += ALPHA_STEP if $self->{alpha} < 255 and
         !($self->model->current % $self->model->delta);
-    $self->img->set_alpha(SDL_SRCALPHA, $self->{alpha});
+    $self->img('logo')->set_alpha(SDL_SRCALPHA, $self->{alpha});
     # Draw image
-    $self->img->blit($self->size, $self->app, $self->dest);
+    $self->app->fill($self->dest('background'), $SDL::Color::black);
+    $self->img('logo')->blit(
+        $self->size('logo'), $self->app, $self->dest('logo'));
 }
-
-sub img     {return shift()->{img}}
-sub size    {return shift()->{size}}
-sub dest    {return shift()->{dest}}
 
 1;

@@ -10,17 +10,16 @@ our $VERSION = 0.1;
 use SDL;
 use SDL::App;
 use SDL::Event;
-use SDL::Surface;
-use SDL::Color;
-use SDL::Rect;
-
-use SDL::TTFont;
-
-use Data::Dumper;
 
 use Game::TD::Notify;
 use Game::TD::Config;
 use Game::TD::Controller;
+
+=head CONSTRUCTOR
+
+Init application
+
+=cut
 
 sub new
 {
@@ -28,42 +27,15 @@ sub new
 
     my $self = bless \%opts, $class;
 
-    $self->_init;
-
-    return $self;
-}
-
-=head2 _init
-
-=cut
-
-sub _init
-{
-    my ($self) = @_;
-
     notify 'Init';
 
     $self->{app} = new SDL::App (
         -width  => WINDOW_WIDTH,
         -height => WINDOW_HEIGHT,
-        -title  => "TD",
-#       -icon  => "data/icon.bmp",
+        -title  => 'TD',
+        -icon   => config->dir('img').'/icon.png',
         -flags  => SDL_HWACCEL | SDL_DOUBLEBUF,
     );
-    $self->{rect} = new SDL::Rect(
-        -width  => WINDOW_WIDTH,
-        -height => WINDOW_HEIGHT,
-    );
-
-    $self->app->fill($self->{rect}, $SDL::Color::black);
-
-    $self->{font} = SDL::TTFont->new(
-        -name => "/usr/share/fonts/truetype/msttcorefonts/Verdana.ttf",
-        -size => '12',
-        -mode => SDL::UTF8_SOLID,
-        -fg     => $SDL::Color::red,
-    );
-#    $font->use();
 
     $self->{event} = new SDL::Event();
 
@@ -74,7 +46,15 @@ sub _init
     $self->{counter}{delta} = int( 1000 / FRAMES_PER_SECOND );
 
     $self->{ctrl} = Game::TD::Controller->new( app => $self->app );
+
+    return $self;
 }
+
+=head2 run
+
+Main game loop
+
+=cut
 
 sub run
 {
@@ -89,28 +69,33 @@ sub run
         my $ticks = $self->app->ticks;
 
         # Process event queue
-        $self->{event}->pump;
-        $self->{event}->poll;
-        my $etype = $self->{event}->type;
+        $self->event->pump;
+        $self->event->poll;
+        my $etype = $self->event->type;
 
         # Handle user events
         last if ($etype eq SDL_QUIT );
         last if (SDL::GetKeyState(SDLK_ESCAPE));
+
         if ($etype eq SDL_KEYDOWN)
         {
-            my $key_sym = $self->{event}->key_sym;
-            if( $key_sym == SDLK_UP )
-            {
-                $self->{ctrl}->key_up;
-            }
-            elsif( $key_sym == SDLK_DOWN )
-            {
-                $self->{ctrl}->key_down;
-            }
-            elsif( $key_sym == SDLK_RETURN or $key_sym == SDLK_SPACE)
-            {
-                $self->{ctrl}->key_any;
-            }
+            $self->ctrl->key_down( $self->event->key_sym );
+        }
+        elsif ($etype eq SDL_KEYUP)
+        {
+            $self->ctrl->key_up( $self->event->key_sym );
+        }
+        elsif($etype eq SDL_MOUSEMOTION)
+        {
+            $self->ctrl->mouse_motion();
+        }
+        elsif($etype eq SDL_MOUSEBUTTONDOWN)
+        {
+            $self->ctrl->mouse_button_down( $self->event->button );
+        }
+        elsif($etype eq SDL_MOUSEBUTTONUP)
+        {
+            $self->ctrl->mouse_button_up( $self->event->button );
         }
 
         # Update Model
@@ -118,8 +103,6 @@ sub run
 
         # Start draw
         $self->app->lock() if $self->app->lockp();
-
-        $self->app->fill($self->{rect}, $SDL::Color::black);
 
         $self->ctrl->draw;
 
@@ -152,6 +135,7 @@ sub run
 
 sub app     {return shift()->{app}}
 sub ctrl    {return shift()->{ctrl}}
+sub event   {return shift()->{event}}
 
 DESTROY
 {
@@ -159,8 +143,9 @@ DESTROY
 
     notify 'Stop';
 
-    delete $self->{app};
     delete $self->{ctrl};
+    delete $self->{event};
+    delete $self->{app};
 
     notify 'Bye!';
 }
