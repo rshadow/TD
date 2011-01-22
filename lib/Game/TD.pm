@@ -13,7 +13,7 @@ use SDL::Event;
 
 use Game::TD::Notify;
 use Game::TD::Config;
-use Game::TD::Controller;
+use Game::TD::Core;
 
 =head CONSTRUCTOR
 
@@ -30,10 +30,10 @@ sub new
     notify 'Init';
 
     $self->{app} = new SDL::App (
-        -width  => WINDOW_WIDTH,
-        -height => WINDOW_HEIGHT,
+        -width  => config->param('common'=>'window'=>'width'),
+        -height => config->param('common'=>'window'=>'height'),
         -title  => 'TD',
-        -icon   => config->dir('img').'/icon.png',
+        -icon   => config->param('common'=>'window'=>'icon'),
         -flags  => SDL_HWACCEL | SDL_DOUBLEBUF,
     );
 
@@ -43,9 +43,10 @@ sub new
     $self->{counter}{frame} = 0;
     $self->{counter}{time}  = 0;
     $self->{counter}{fps}   = undef;
-    $self->{counter}{delta} = int( 1000 / FRAMES_PER_SECOND );
+    $self->{counter}{delta} =
+        int( 1000 / config->param('common'=>'fps'=>'value') );
 
-    $self->{ctrl} = Game::TD::Controller->new( app => $self->app );
+    $self->{core} = Game::TD::Core->new( app => $self->app );
 
     return $self;
 }
@@ -63,6 +64,7 @@ sub run
     notify 'Run';
 
     $self->{counter}{time} = $self->app->ticks;
+    my $quit = 0;
 
     while (1)
     {
@@ -70,41 +72,22 @@ sub run
 
         # Process event queue
         $self->event->pump;
-        $self->event->poll;
-        my $etype = $self->event->type;
-
-        # Handle user events
-        last if ($etype eq SDL_QUIT );
-        last if (SDL::GetKeyState(SDLK_ESCAPE));
-
-        if ($etype eq SDL_KEYDOWN)
+        while( $self->event->poll )
         {
-            $self->ctrl->key_down( $self->event->key_sym );
+            # Quit if event handler return false
+            $quit = 1 unless $self->core->event( $self->event );
+            # Quit on SDL_QUIT event
+            $quit = 1 if $self->event->type eq SDL_QUIT;
         }
-        elsif ($etype eq SDL_KEYUP)
-        {
-            $self->ctrl->key_up( $self->event->key_sym );
-        }
-        elsif($etype eq SDL_MOUSEMOTION)
-        {
-            $self->ctrl->mouse_motion();
-        }
-        elsif($etype eq SDL_MOUSEBUTTONDOWN)
-        {
-            $self->ctrl->mouse_button_down( $self->event->button );
-        }
-        elsif($etype eq SDL_MOUSEBUTTONUP)
-        {
-            $self->ctrl->mouse_button_up( $self->event->button );
-        }
+        last if $quit;
 
         # Update Model
-        $self->ctrl->update;
+        $self->core->update;
 
         # Start draw
         $self->app->lock() if $self->app->lockp();
 
-        $self->ctrl->draw;
+        $self->core->draw;
 
         # Count FPS
         $self->{counter}{frame}++;
@@ -116,7 +99,7 @@ sub run
         }
 
         # Show FPS
-        $self->ctrl->draw_fps( $self->{counter}{fps} );
+        $self->core->draw_fps( $self->{counter}{fps} );
 
         # End draw
         $self->app->unlock();
@@ -134,7 +117,7 @@ sub run
 }
 
 sub app     {return shift()->{app}}
-sub ctrl    {return shift()->{ctrl}}
+sub core    {return shift()->{core}}
 sub event   {return shift()->{event}}
 
 DESTROY
@@ -143,7 +126,7 @@ DESTROY
 
     notify 'Stop';
 
-    delete $self->{ctrl};
+    delete $self->{core};
     delete $self->{event};
     delete $self->{app};
 

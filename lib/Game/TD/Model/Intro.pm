@@ -6,9 +6,6 @@ package Game::TD::Model::Intro;
 
 use Game::TD::Config;
 
- # Show intro in 3 sec.
-use constant SHOW_SECONDS => 5;
-
 =head1 Game::TD::Model::Intro
 
 Model for intro state
@@ -38,7 +35,9 @@ sub new
     # Current frame
     $self->{frame}{current} = 0;
     # Total frames for animation
-    $self->{frame}{last}    = FRAMES_PER_SECOND * SHOW_SECONDS;
+    $self->{frame}{last}    =
+        config->param('common'=>'fps'=>'value') *
+        config->param('intro'=>'duration');
     # Delta frames for up alpha (alpha in 0 .. 255)
     $self->{frame}{delta}   = int( $self->last / 255 ) || 1;
 

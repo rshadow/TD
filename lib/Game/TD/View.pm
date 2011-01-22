@@ -47,17 +47,10 @@ sub _init
     my $self = shift;
 
     $self->font(fps => SDL::TTFont->new(
-        -name => "/usr/share/fonts/truetype/msttcorefonts/Verdana.ttf",
-        -size => '12',
+        -name => config->param('common'=>'fps'=>'font'),
+        -size => config->param('common'=>'fps'=>'size'),
         -mode => SDL::UTF8_SOLID,
-        -fg     => $SDL::Color::red,
-    ));
-
-    $self->font(debug => SDL::TTFont->new(
-        -name => "/usr/share/fonts/truetype/msttcorefonts/Verdana.ttf",
-        -size => '12',
-        -mode => SDL::UTF8_SOLID,
-        -fg     => $SDL::Color::yellow,
+        -fg   => SDL::Color->new( config->color('common'=>'fps'=>'color') ),
     ));
 }
 
@@ -72,9 +65,13 @@ sub draw_fps
     my ($self, $fps) = @_;
 
     return unless defined $fps;
-    return unless config->param('showfps');
+    return unless config->param(user => 'showfps');
 
-    $self->font('fps')->print( $self->app, 2, 2, sprintf '%d fps', $fps );
+    $self->font('fps')->print(
+        $self->app,
+        config->param('common'=>'fps'=>'left'),
+        config->param('common'=>'fps'=>'top'),
+        sprintf '%d fps', $fps );
 }
 
 sub app         {return shift()->{app}}
@@ -115,4 +112,5 @@ sub dest
     $self->{dest}{$name} = $value   if defined $value;
     return $self->{dest}{$name};
 }
+
 1;

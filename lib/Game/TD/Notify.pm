@@ -37,7 +37,7 @@ sub notify
 
 sub debug
 {
-    notify @_ if config->param('debug');
+    notify @_ if config->param(user => 'debug');
 }
 
 1;

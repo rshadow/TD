@@ -11,11 +11,6 @@ use SDL::Rect;
 
 use Game::TD::Config;
 
-# Step for alpha blending
-use constant ALPHA_STEP => 5;
-# Logo file
-use constant FILE_LOGO => 'lmwg.png';
-
 =head1 Game::TD::View::Intro
 
 Display intro
@@ -47,7 +42,7 @@ sub new
 
     # Load image from file
     $self->img(logo => SDL::Surface->new(
-        -name   => sprintf('%s/%s', config->dir('intro'), FILE_LOGO),
+        -name   => config->param('intro'=>'logo'=>'name'),
         -flags  => SDL_HWSURFACE
     ));
     $self->img('logo')->display_format;
@@ -58,8 +53,10 @@ sub new
     ));
     # Draw destination - center of window
     $self->dest(logo => SDL::Rect->new(
-        -left   => int(WINDOW_WIDTH  / 2 - $self->img('logo')->width / 2),
-        -top    => int(WINDOW_HEIGHT / 2 - $self->img('logo')->height / 2),
+        -left   => int(config->param('intro'=>'logo'=>'left') -
+                     $self->img('logo')->width / 2),
+        -top    => int(config->param('intro'=>'logo'=>'top') -
+                     $self->img('logo')->height / 2),
         -width  => $self->img('logo')->width,
         -height => $self->img('logo')->height
     ));
@@ -68,8 +65,8 @@ sub new
     $self->dest(background => SDL::Rect->new(
         -left   => 0,
         -top    => 0,
-        -width  => WINDOW_WIDTH,
-        -height => WINDOW_HEIGHT
+        -width  => config->param('common'=>'window'=>'width'),
+        -height => config->param('common'=>'window'=>'height')
     ));
 
     # Alpha value for image animation
@@ -88,8 +85,9 @@ sub draw
 {
     my $self = shift;
     # Count current alpha value for each frame and set it
-    $self->{alpha} += ALPHA_STEP if $self->{alpha} < 255 and
-        !($self->model->current % $self->model->delta);
+    $self->{alpha} += config->param('intro'=>'logo'=>'astep')
+         if $self->{alpha} < 255 and
+            !($self->model->current % $self->model->delta);
     $self->img('logo')->set_alpha(SDL_SRCALPHA, $self->{alpha});
     # Draw image
     $self->app->fill($self->dest('background'), $SDL::Color::black);

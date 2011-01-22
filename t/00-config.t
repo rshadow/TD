@@ -24,7 +24,7 @@ BEGIN {
 ok config, 'Config created';
 ok config->dir('base') && config->dir('map') && config->dir('img'),
     'All init dir params looks good';
-ok defined config->param('debug'),
+ok defined config->param('user'=>'debug'),
     'All init file params looks good';
 
 #note explain config;

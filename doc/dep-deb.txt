@@ -1,4 +1,3 @@
 perl 						5.10
-libconfig-tiny-perl			Config::Tiny
 libsdl-perl					SDL
 msttcorefonts

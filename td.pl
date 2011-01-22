@@ -8,7 +8,14 @@ use open qw(:utf8 :std);
 
 use Game::TD;
 
+#$::SIG{'__DIE__'} = sub {
+#    use Carp;
+#    confess @_;
+#};
+
 my $game = Game::TD->new;
 die 'Can`t init application' unless $game;
 
 $game->run;
+
+exit;
