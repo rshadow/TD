@@ -8,8 +8,13 @@ package Game::TD::Core;
 use Exporter;
 use SDL::Constants;
 
+use Game::TD::Config;
 use Game::TD::Controller::Intro;
 use Game::TD::Controller::Menu;
+use Game::TD::Controller::Level;
+
+use Game::TD::Model::Player;
+
 
 =head1 Game::TD::Model
 
@@ -32,6 +37,14 @@ sub new
 
     $self->ctrl(intro => Game::TD::Controller::Intro->new(app => $self->app));
     $self->ctrl(menu  => Game::TD::Controller::Menu->new(app => $self->app));
+
+    my $player = Game::TD::Model::Player->new(
+        name => config->param('user'=>'name')
+    );
+    $self->ctrl(level => Game::TD::Controller::Level->new(
+        app     => $self->app,
+        player  => $player,
+    ));
 
     return $self;
 }

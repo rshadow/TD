@@ -2,23 +2,23 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::Controller::Menu;
+package Game::TD::Controller::Level;
 use base qw(Game::TD::Controller);
 
 use SDL;
 
 use Game::TD::Config;
-use Game::TD::Model::Menu;
-use Game::TD::View::Menu;
+use Game::TD::Model::Level;
+use Game::TD::View::Level;
 use Game::TD::Button;
 
 =head1 NAME
 
-Game::TD::Controller::Menu - Модуль
+Game::TD::Controller::Level - Модуль
 
 =head1 SYNOPSIS
 
-  use Game::TD::Controller::Menu;
+  use Game::TD::Controller::Level;
 
 =head1 DESCRIPTION
 
@@ -32,30 +32,31 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    die 'Missing required param "app"'   unless defined $opts{app};
+    die 'Missing required param "app"'      unless defined $opts{app};
+    die 'Missing required param "player"'   unless defined $opts{player};
 
     my $self = $class->SUPER::new(%opts);
 
-    $self->model( Game::TD::Model::Menu->new(
-        app => $self->app
+    $self->model( Game::TD::Model::Level->new(
+        current => $self->player->level,
     ));
 
-    $self->view( Game::TD::View::Menu->new(
+    $self->view( Game::TD::View::Level->new(
         app     => $self->app,
         model   => $self->model
     ));
 
-    for my $index (0 .. $#{$self->model->items})
-    {
-        my $name  = $self->model->items->[$index]{name};
-        my $title = $self->model->items->[$index]{title};
-
-        $self->button($name => Game::TD::Button->new(
-            name    => $name,
-            app     => $self->app,
-            conf    => 'menu',
-        ));
-    }
+#    for my $index (0 .. $#{$self->model->items})
+#    {
+#        my $name  = $self->model->items->[$index]{name};
+#        my $title = $self->model->items->[$index]{title};
+#
+#        $self->button($name => Game::TD::Button->new(
+#            name    => $name,
+#            app     => $self->app,
+#            conf    => 'menu',
+#        ));
+#    }
 
     return $self;
 }
@@ -88,7 +89,7 @@ sub event
 #    elsif( $type == SDL_KEYDOWN         or $type == SDL_KEYUP       or
 #           $type == SDL_MOUSEBUTTONDOWN or $type == SDL_MOUSEBUTTONUP)
 #    {
-#        # Goto Menu
+#        # Goto Level
 #        $result{state} = 'menu';
 #    }
     # Just send event to buttons
@@ -141,6 +142,11 @@ sub button
     die 'Name required'               unless defined $name;
     $self->{button}{$name} = $value   if defined $value;
     return $self->{button}{$name};
+}
+
+sub player
+{
+    return shift()->{player};
 }
 
 1;

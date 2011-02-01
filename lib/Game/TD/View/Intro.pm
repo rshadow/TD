@@ -42,7 +42,7 @@ sub new
 
     # Load image from file
     $self->img(logo => SDL::Surface->new(
-        -name   => config->param('intro'=>'logo'=>'name'),
+        -name   => config->param('intro'=>'logo'=>'file'),
         -flags  => SDL_HWSURFACE
     ));
     $self->img('logo')->display_format;

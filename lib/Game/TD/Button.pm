@@ -6,6 +6,7 @@ package Game::TD::Button;
 use base qw(Game::TD::View);
 
 use SDL;
+use Game::TD::Config;
 
 =head1 NAME
 
@@ -28,22 +29,24 @@ sub new
     my ($class, %opts) = @_;
 
     die 'Missing required param "app"' unless defined $opts{app};
-    die 'Param left required'   unless defined $opts{left};
-    die 'Param top required'    unless defined $opts{top};
-    die 'Param name required'   unless defined $opts{name};
-
-    $opts{text}  //= '';
-    $opts{state} //= 'out';
+    die 'Missing required param "conf' unless defined $opts{conf};
+    die 'Missing required param "name' unless defined $opts{name};
 
     my $self = bless \%opts, $class;
 
+    # Get params from config by conf name and button name
+    $self->{left}   = int(config->param($self->conf=>$self->name=>'left'));
+    $self->{top}    = int(config->param($self->conf=>$self->name=>'top'));
+    $self->{file}   = config->param($self->conf=>$self->name=>'file');
+    $self->{text}   = config->param($self->conf=>$self->name=>'text');
+
     $self->img(background => SDL::Surface->new(
-        -name   => $opts{name},
+        -name   => $self->file,
         -flags  => SDL_HWSURFACE
     ));
     $self->img('background')->display_format;
     # Image size
-    $self->{width}  = int($self->img('background')->width / 2);
+    $self->{width}  = int($self->img('background')->width  / 2);
     $self->{height} = int($self->img('background')->height / 2);
     $self->size(background => SDL::Rect->new(
         -width  => $self->width,
@@ -52,8 +55,8 @@ sub new
 
     # Draw destination - all window
     $self->dest(background => SDL::Rect->new(
-        -left   => $opts{left},
-        -top    => $opts{top},
+        -left   => $self->left,
+        -top    => $self->top,
         -width  => $self->width,
         -height => $self->height
     ));
@@ -84,19 +87,27 @@ sub new
         -height => $self->height
     ));
 
+    # If button have text then load font for it
     if( length $self->text )
     {
-        $self->font(item => SDL::TTFont->new(
-            -name => "/usr/share/fonts/type1/gsfonts/a010013l.pfb",
-            -size => '56',
-            -mode => SDL::UTF8_SOLID,
-            -fg   => $SDL::Color::white,
-        ));
+        my $font  = config->param($self->conf=>$self->name=>'font');
+        my $size  = config->param($self->conf=>$self->name=>'size');
+        my %color = config->color($self->conf=>$self->name=>'color');
+
+        if($self->name and $font and $size and %color)
+        {
+            $self->font(text => SDL::TTFont->new(
+                -name => $font,
+                -size => $size,
+                -mode => SDL::UTF8_SOLID,
+                -fg   => SDL::Color->new(%color),
+            ));
+        }
     }
 
     # Check initial state
     my ($x, $y) = @{ SDL::GetMouseState() }[1 .. 2];
-    $self->state('over') if $self->is_over($x, $y);
+    $self->is_over($x, $y) ?$self->state('over') :$self->state('out');
 
     return $self;
 }
@@ -116,9 +127,14 @@ sub event
 
     if($type == SDL_MOUSEMOTION)
     {
-        $self->is_over($event->motion_x, $event->motion_y)
-            ? $self->state('over')
-            : $self->state('out');
+        if( $self->is_over($event->motion_x, $event->motion_y) )
+        {
+            $self->state('over') unless $self->state eq 'down';
+        }
+        else
+        {
+            $self->state('out')
+        }
     }
     elsif($type == SDL_MOUSEBUTTONDOWN)
     {
@@ -147,12 +163,12 @@ sub draw
     $self->img('background')->blit(
         $self->clip($self->state), $self->app, $self->dest('background'));
 
-    $self->font('item')->print(
+    $self->font('text')->print(
         $self->app,
         $self->dest('background')->left,
         $self->dest('background')->top,
         $self->text
-    );
+    ) if $self->font('text');
 
     return 1;
 }
@@ -174,6 +190,9 @@ sub is_over
     return 0;
 }
 
+sub name    {return shift()->{name}  }
+sub file    {return shift()->{file}  }
+sub conf    {return shift()->{conf}  }
 sub left    {return shift()->{left}  }
 sub top     {return shift()->{top}   }
 sub width   {return shift()->{width} }

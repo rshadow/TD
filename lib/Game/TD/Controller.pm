@@ -6,6 +6,8 @@ package Game::TD::Controller;
 
 use SDL;
 
+use Game::TD::Model::Player;
+
 =head1 Game::TD::Model
 
 Model for TD game

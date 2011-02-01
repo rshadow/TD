@@ -28,7 +28,7 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    $opts{current} //= 0;
+#    $opts{current} //= 0;
 
     my $self = bless \%opts, $class;
 
@@ -47,21 +47,21 @@ sub new
     return $self;
 }
 
-sub up
-{
-    my $self = shift;
-    $self->{current}-- if $self->{current} > 0;
-    return 1;
-}
+#sub up
+#{
+#    my $self = shift;
+#    $self->{current}-- if $self->{current} > 0;
+#    return 1;
+#}
+#
+#sub down
+#{
+#    my $self = shift;
+#    $self->{current}++ if $self->{current} < $#{$self->items};
+#    return 1;
+#}
 
-sub down
-{
-    my $self = shift;
-    $self->{current}++ if $self->{current} < $#{$self->items};
-    return 1;
-}
-
-sub current {return shift()->{current}}
+#sub current {return shift()->{current}}
 sub version {return shift()->{version}}
 
 sub items
