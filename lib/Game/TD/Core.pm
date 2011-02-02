@@ -4,9 +4,8 @@ use utf8;
 
 package Game::TD::Core;
 
-# Use raw SDL constants for events
-use Exporter;
-use SDL::Constants;
+use Carp;
+use SDL;
 
 use Game::TD::Config;
 use Game::TD::Controller::Intro;
@@ -14,7 +13,6 @@ use Game::TD::Controller::Menu;
 use Game::TD::Controller::Level;
 
 use Game::TD::Model::Player;
-
 
 =head1 Game::TD::Model
 
@@ -31,20 +29,16 @@ sub new
     my ($class, %opts) = @_;
 
     die 'Missing required param "app"' unless defined $opts{app};
-    $opts{state} //= 'intro';
 
     my $self = bless \%opts, $class;
 
-    $self->ctrl(intro => Game::TD::Controller::Intro->new(app => $self->app));
-    $self->ctrl(menu  => Game::TD::Controller::Menu->new(app => $self->app));
-
-    my $player = Game::TD::Model::Player->new(
+    # Load player info
+    $self->player( Game::TD::Model::Player->new(
         name => config->param('user'=>'name')
-    );
-    $self->ctrl(level => Game::TD::Controller::Level->new(
-        app     => $self->app,
-        player  => $player,
     ));
+
+    # Run from intro
+    $self->state('intro');
 
     return $self;
 }
@@ -58,7 +52,38 @@ Set state of game: intro, memu, level, game, score
 sub state
 {
     my ($self, $state) = @_;
-    $self->{state} = $state if defined $state;
+
+    if( defined $state )
+    {
+        # Remember current state
+        my $last = $self->{state};
+
+        # Load controller for new state
+        if($state eq 'intro')
+        {
+            $self->ctrl(intro =>
+                Game::TD::Controller::Intro->new(app => $self->app));
+        }
+        elsif( $state eq 'menu' )
+        {
+            $self->ctrl(menu  =>
+                Game::TD::Controller::Menu->new(app => $self->app));
+        }
+        elsif($state eq 'level')
+        {
+            $self->ctrl(level => Game::TD::Controller::Level->new(
+                app     => $self->app,
+                player  => $self->player,
+            ));
+        }
+
+        # Set new state
+        $self->{state} = $state;
+
+        # Free unused controller
+        $self->free( $last ) if $last;
+    }
+
     return $self->{state};
 }
 
@@ -119,33 +144,6 @@ sub event
     # Goto next state if controller require it
     $self->state( $state, %$result ) if $state;
 
-
-
-#    # Handle user events
-#        last if ($event->type eq SDL_QUIT );
-#        last if (SDL::GetKeyState(SDLK_ESCAPE));
-#
-#        if ($event->type eq SDL_KEYDOWN)
-#        {
-#            $self->core->key_down( $self->event->key_sym );
-#        }
-#        elsif ($event->type eq SDL_KEYUP)
-#        {
-#            $self->core->key_up( $self->event->key_sym );
-#        }
-#        elsif($event->type eq SDL_MOUSEMOTION)
-#        {
-#            $self->core->mouse_motion();
-#        }
-#        elsif($event->type eq SDL_MOUSEBUTTONDOWN)
-#        {
-#            $self->core->mouse_button_down( $self->event->button );
-#        }
-#        elsif($event->type eq SDL_MOUSEBUTTONUP)
-#        {
-#            $self->core->mouse_button_up( $self->event->button );
-#        }
-
     return 1;
 }
 
@@ -178,8 +176,15 @@ sub ctrl
 sub free
 {
     my ($self, $name) = @_;
-    die 'Name required' unless defined $name;
+    croak 'Name required' unless defined $name;
     delete $self->{ctrl}{$name};
+}
+
+sub player
+{
+    my ($self, $player) = @_;
+    $self->{player} = $player if defined $player;
+    return $self->{player};
 }
 
 1;
