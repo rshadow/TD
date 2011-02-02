@@ -63,6 +63,7 @@ sub new
 #    $opts{dir}{img}         = $opts{dir}{base} . '/data/img';
     $opts{dir}{po}          = base . '/po';
     $opts{dir}{config}      = base . '/data/conf';
+    $opts{dir}{level}       = base . '/data/level';
 #    $opts{dir}{layout}      = $opts{dir}{base} . '/data/layout';
 
 #    $opts{dir}{intro}       = $opts{dir}{img} . '/intro';
@@ -74,15 +75,30 @@ sub new
 
     my $self = bless \%opts, $class;
 
-    # Load params from config files
+    # Get config files
     # Common must be first becouse it`s values used next config files
-    for my $name (qw(common intro menu user))
+    my @conf = glob sprintf '%s/*.conf', $self->dir('config');
+    for (my $index = 0; $index < @conf; $index++ )
     {
+        if( $conf[$index] =~ m{/common\.conf$} )
+        {
+            # Skip if already first
+            last if $index == 0;
+            # Move "common" in first position
+            my $common = splice @conf, $index, 1;
+            unshift @conf, $common;
+            last;
+        }
+    }
+
+    # Load params from config files
+    for my $path (@conf)
+    {
+        my ($name) = $path =~ m{^.*/(.*?)\.conf$};
         local $/;
-        open my $cnf, '<', sprintf('%s/%s.conf', $self->dir('config'), $name)
-            or die $!;
+        open my $cnf, '<', $path                       or die $!;
         $self->{param}{$name} = { eval <$cnf> };
-        close $cnf or die $!;
+        close $cnf                                     or die $!;
     }
 
     return $self;
@@ -103,10 +119,8 @@ Get param from part $name by @path
 
 sub param
 {
-    my ($self, $name, @path) = @_;
-    die "Unknown param name '$name'"
-        unless exists $self->{param}{$name};
-    my $path = '$self->{param}{'.$name.'}';
+    my ($self, @path) = @_;
+    my $path = '$self->{param}';
     $path .= '{'.$_.'}' for @path;
     my $result = eval $path;
     return $result;

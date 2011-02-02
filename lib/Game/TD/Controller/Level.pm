@@ -5,6 +5,7 @@ use utf8;
 package Game::TD::Controller::Level;
 use base qw(Game::TD::Controller);
 
+use Carp;
 use SDL;
 
 use Game::TD::Config;
@@ -46,17 +47,22 @@ sub new
         model   => $self->model
     ));
 
-#    for my $index (0 .. $#{$self->model->items})
-#    {
-#        my $name  = $self->model->items->[$index]{name};
-#        my $title = $self->model->items->[$index]{title};
-#
-#        $self->button($name => Game::TD::Button->new(
-#            name    => $name,
-#            app     => $self->app,
-#            conf    => 'menu',
-#        ));
-#    }
+    for my $index (0 .. $#{$self->model->levels})
+    {
+        my $name = 'level' . $index;
+
+        $self->button($name => Game::TD::Button->new(
+            name    => $name,
+            app     => $self->app,
+            conf    => 'level',
+        ));
+    }
+
+    $self->button('menu' => Game::TD::Button->new(
+        name    => 'menu',
+        app     => $self->app,
+        conf    => 'level',
+    ));
 
     return $self;
 }
@@ -66,9 +72,6 @@ sub update
     my ($self) = @_;
 
     my %result;
-
-#    my $process = $self->model->update;
-#    $result{state} = 'menu' unless $process;
 
     return \%result;
 }
@@ -85,34 +88,35 @@ sub event
     {
         $result{quit} = 1;
     }
-#    # On any key press event go to menu
-#    elsif( $type == SDL_KEYDOWN         or $type == SDL_KEYUP       or
-#           $type == SDL_MOUSEBUTTONDOWN or $type == SDL_MOUSEBUTTONUP)
-#    {
-#        # Goto Level
-#        $result{state} = 'menu';
-#    }
     # Just send event to buttons
     elsif($type == SDL_MOUSEMOTION or $type == SDL_MOUSEBUTTONDOWN)
     {
-        for my $index (0 .. $#{$self->model->items})
+        $self->button('menu')->event( $event );
+        for my $index (0 .. $#{$self->model->levels})
         {
-            my $name  = $self->model->items->[$index]{name};
+            my $name = 'level' . $index;
             $self->button($name)->event( $event );
         }
     }
     # Respond to button up state
     elsif($type == SDL_MOUSEBUTTONUP)
     {
-        for my $index (0 .. $#{$self->model->items})
+        my $state = $self->button('menu')->event( $event );
+        if( $state eq 'up' )
         {
-            my $name  = $self->model->items->[$index]{name};
-            my $state = $self->button($name)->event( $event );
-            if( $state eq 'up' )
+            $result{state} = 'menu';
+        }
+        else
+        {
+            for my $index (0 .. $#{$self->model->levels})
             {
-                $result{state} = 'level'    if $name eq 'play';
-                $result{state} = 'score'    if $name eq 'score';
-                $result{quit}  = 1          if $name eq 'exit';
+                my $name = 'level' . $index;
+                my $state = $self->button($name)->event( $event );
+                if( $state eq 'up' )
+                {
+                    $result{state} = 'game';
+                    $result{level} = $index;
+                }
             }
         }
     }
@@ -126,9 +130,11 @@ sub draw
 
     $self->view->draw;
 
-    for my $index (0 .. $#{$self->model->items})
+    $self->button('menu')->draw;
+
+    for my $index (0 .. $#{$self->model->levels})
     {
-        my $name  = $self->model->items->[$index]{name};
+        my $name = 'level' . $index;
         $self->button($name)->draw;
     }
 
@@ -139,7 +145,7 @@ sub button
 {
     my ($self, $name, $value) = @_;
 
-    die 'Name required'               unless defined $name;
+    croak 'Name required'             unless defined $name;
     $self->{button}{$name} = $value   if defined $value;
     return $self->{button}{$name};
 }

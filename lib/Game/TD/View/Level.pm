@@ -42,7 +42,7 @@ sub new
 
     # Load background image from file
     $self->img( background => SDL::Surface->new(
-        -name   => config->param('menu'=>'background'=>'file'),
+        -name   => config->param('level'=>'background'=>'file'),
         -flags  => SDL_HWSURFACE
     ));
     $self->img('background')->display_format;

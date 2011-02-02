@@ -5,6 +5,7 @@ use utf8;
 package Game::TD::Button;
 use base qw(Game::TD::View);
 
+use Carp;
 use SDL;
 use Game::TD::Config;
 
@@ -28,11 +29,14 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    die 'Missing required param "app"' unless defined $opts{app};
-    die 'Missing required param "conf' unless defined $opts{conf};
-    die 'Missing required param "name' unless defined $opts{name};
+    croak 'Missing required param "app"' unless defined $opts{app};
+    croak 'Missing required param "conf' unless defined $opts{conf};
+    croak 'Missing required param "name' unless defined $opts{name};
 
     my $self = bless \%opts, $class;
+
+    die $opts{conf}, ' ', $opts{name}
+        unless defined config->param($self->conf=>$self->name=>'left');
 
     # Get params from config by conf name and button name
     $self->{left}   = int(config->param($self->conf=>$self->name=>'left'));

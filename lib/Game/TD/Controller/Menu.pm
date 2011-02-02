@@ -48,7 +48,6 @@ sub new
     for my $index (0 .. $#{$self->model->items})
     {
         my $name  = $self->model->items->[$index]{name};
-        my $title = $self->model->items->[$index]{title};
 
         $self->button($name => Game::TD::Button->new(
             name    => $name,

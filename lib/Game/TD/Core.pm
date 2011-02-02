@@ -111,10 +111,13 @@ sub event
     my ($self, $event) = @_;
 
     my $result = $self->ctrl( $self->state )->event( $event );
+    my $quit  = delete $result->{quit}  if exists $result->{quit};
+    my $state = delete $result->{state} if exists $result->{state};
+
     # Quit if controller want it
-    return                              if $result->{quit};
+    return                           if $quit;
     # Goto next state if controller require it
-    $self->state( $result->{state} )    if $result->{state};
+    $self->state( $state, %$result ) if $state;
 
 
 
