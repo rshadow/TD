@@ -35,14 +35,11 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    die 'Missing required param "app"'   unless defined $opts{app};
-    die 'Missing required param "model"' unless defined $opts{model};
-
     my $self = $class->SUPER::new(%opts);
 
     # Load image from file
     $self->img(logo => SDL::Surface->new(
-        -name   => config->param('intro'=>'logo'=>'file'),
+        -name   => config->param($self->conf=>'logo'=>'file'),
         -flags  => SDL_HWSURFACE
     ));
     $self->img('logo')->display_format;
@@ -53,9 +50,9 @@ sub new
     ));
     # Draw destination - center of window
     $self->dest(logo => SDL::Rect->new(
-        -left   => int(config->param('intro'=>'logo'=>'left') -
+        -left   => int(config->param($self->conf=>'logo'=>'left') -
                      $self->img('logo')->width / 2),
-        -top    => int(config->param('intro'=>'logo'=>'top') -
+        -top    => int(config->param($self->conf=>'logo'=>'top') -
                      $self->img('logo')->height / 2),
         -width  => $self->img('logo')->width,
         -height => $self->img('logo')->height
@@ -85,7 +82,7 @@ sub draw
 {
     my $self = shift;
     # Count current alpha value for each frame and set it
-    $self->{alpha} += config->param('intro'=>'logo'=>'astep')
+    $self->{alpha} += config->param($self->conf=>'logo'=>'astep')
          if $self->{alpha} < 255 and
             !($self->model->current % $self->model->delta);
     $self->img('logo')->set_alpha(SDL_SRCALPHA, $self->{alpha});

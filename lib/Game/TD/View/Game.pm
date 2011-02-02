@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::View::Menu;
+package Game::TD::View::Game;
 use base qw(Game::TD::View);
 
 use SDL;
@@ -11,7 +11,7 @@ use SDL::Rect;
 
 use Game::TD::Config;
 
-=head1 Game::TD::View::Menu
+=head1 Game::TD::View::Game
 
 Описание_модуля
 

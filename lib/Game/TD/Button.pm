@@ -35,9 +35,6 @@ sub new
 
     my $self = bless \%opts, $class;
 
-    die $opts{conf}, ' ', $opts{name}
-        unless defined config->param($self->conf=>$self->name=>'left');
-
     # Get params from config by conf name and button name
     $self->{left}   = int(config->param($self->conf=>$self->name=>'left'));
     $self->{top}    = int(config->param($self->conf=>$self->name=>'top'));
@@ -48,7 +45,7 @@ sub new
         -name   => $self->file,
         -flags  => SDL_HWSURFACE
     ));
-    $self->img('background')->display_format;
+#    $self->img('background')->display_format;
     # Image size
     $self->{width}  = int($self->img('background')->width  / 2);
     $self->{height} = int($self->img('background')->height / 2);

@@ -52,7 +52,7 @@ sub new
         $self->button($name => Game::TD::Button->new(
             name    => $name,
             app     => $self->app,
-            conf    => 'menu',
+            conf    => $self->conf,
         ));
     }
 
@@ -131,15 +131,6 @@ sub draw
     }
 
     return 1;
-}
-
-sub button
-{
-    my ($self, $name, $value) = @_;
-
-    die 'Name required'               unless defined $name;
-    $self->{button}{$name} = $value   if defined $value;
-    return $self->{button}{$name};
 }
 
 1;

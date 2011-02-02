@@ -4,6 +4,8 @@ use utf8;
 
 package Game::TD::View;
 
+use Carp;
+use SDL;
 use SDL::TTFont;
 
 use Game::TD::Config;
@@ -32,7 +34,7 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    die 'Missing required param "app"' unless defined $opts{app};
+    die 'Missing required param "app"'   unless defined $opts{app};
     die 'Missing required param "model"' unless defined $opts{model};
 
     my $self = bless \%opts, $class;
@@ -51,6 +53,32 @@ sub _init
         -size => config->param('common'=>'fps'=>'size'),
         -mode => SDL::UTF8_SOLID,
         -fg   => SDL::Color->new( config->color('common'=>'fps'=>'color') ),
+    ));
+}
+
+sub _init_background
+{
+    my ($self, $conf) = @_;
+
+    croak 'Missing required parameter "conf"' unless defined $conf;
+
+    # Load background image from file
+    $self->img( background => SDL::Surface->new(
+        -name   => config->param($conf=>'background'=>'file'),
+        -flags  => SDL_HWSURFACE
+    ));
+    $self->img('background')->display_format;
+    # Image size
+    $self->size(background => SDL::Rect->new(
+        -width  => $self->img('background')->width,
+        -height => $self->img('background')->height
+    ));
+    # Draw destination - all window
+    $self->dest(background => SDL::Rect->new(
+        -left   => 0,
+        -top    => 0,
+        -width  => config->param('common'=>'window'=>'width'),
+        -height => config->param('common'=>'window'=>'height')
     ));
 }
 
@@ -111,6 +139,21 @@ sub dest
     die 'Name required'             unless defined $name;
     $self->{dest}{$name} = $value   if defined $value;
     return $self->{dest}{$name};
+}
+
+=head2 conf
+
+Return config part name by view package name
+
+=cut
+
+sub conf
+{
+    my $self = shift;
+    my $pkg = caller;
+    my ($conf) = $pkg =~ m/^Game::TD::View::(.*?)$/;
+    $conf = lc $conf;
+    return $conf;
 }
 
 1;

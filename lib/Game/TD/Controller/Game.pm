@@ -2,24 +2,24 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::Controller::Level;
+package Game::TD::Controller::Game;
 use base qw(Game::TD::Controller);
 
 use Carp;
 use SDL;
 
 use Game::TD::Config;
-use Game::TD::Model::Level;
-use Game::TD::View::Level;
+use Game::TD::Model::Game;
+use Game::TD::View::Game;
 use Game::TD::Button;
 
 =head1 NAME
 
-Game::TD::Controller::Level - Модуль
+Game::TD::Controller::Game - Модуль
 
 =head1 SYNOPSIS
 
-  use Game::TD::Controller::Level;
+  use Game::TD::Controller::Game;
 
 =head1 DESCRIPTION
 
@@ -35,28 +35,30 @@ sub new
 
     die 'Missing required param "app"'      unless defined $opts{app};
     die 'Missing required param "player"'   unless defined $opts{player};
+    die 'Missing required param "level"'    unless defined $opts{level};
 
     my $self = $class->SUPER::new(%opts);
 
-    $self->model( Game::TD::Model::Level->new(
+    $self->model( Game::TD::Model::Game->new(
         current => $self->player->level,
     ));
 
-    $self->view( Game::TD::View::Level->new(
+    $self->view( Game::TD::View::Game->new(
         app     => $self->app,
         model   => $self->model
     ));
 
-    for my $index (0 .. $#{$self->model->levels})
-    {
-        my $name = 'level' . $index;
-
-        $self->button($name => Game::TD::Button->new(
-            name    => $name,
-            app     => $self->app,
-            conf    => $self->conf,
-        ));
-    }
+#    for my $index (0 .. $#{$self->model->levels})
+#    {
+#        my $name = 'level' . $index;
+#
+#        $self->button($name => Game::TD::Button->new(
+#            name    => $name,
+#            app     => $self->app,
+#            conf    => 'level',
+#        ));
+#    }
+#
 
     $self->button('menu' => Game::TD::Button->new(
         name    => 'menu',
@@ -70,6 +72,7 @@ sub new
 sub update
 {
     my ($self) = @_;
+
 
     my %result;
 
@@ -92,11 +95,11 @@ sub event
     elsif($type == SDL_MOUSEMOTION or $type == SDL_MOUSEBUTTONDOWN)
     {
         $self->button('menu')->event( $event );
-        for my $index (0 .. $#{$self->model->levels})
-        {
-            my $name = 'level' . $index;
-            $self->button($name)->event( $event );
-        }
+#        for my $index (0 .. $#{$self->model->levels})
+#        {
+#            my $name = 'level' . $index;
+#            $self->button($name)->event( $event );
+#        }
     }
     # Respond to button up state
     elsif($type == SDL_MOUSEBUTTONUP)
@@ -106,19 +109,19 @@ sub event
         {
             $result{state} = 'menu';
         }
-        else
-        {
-            for my $index (0 .. $#{$self->model->levels})
-            {
-                my $name = 'level' . $index;
-                my $state = $self->button($name)->event( $event );
-                if( $state eq 'up' )
-                {
-                    $result{state} = 'game';
-                    $result{level} = $index;
-                }
-            }
-        }
+#        else
+#        {
+#            for my $index (0 .. $#{$self->model->levels})
+#            {
+#                my $name = 'level' . $index;
+#                my $state = $self->button($name)->event( $event );
+#                if( $state eq 'up' )
+#                {
+#                    $result{state} = 'game';
+#                    $result{level} = $index;
+#                }
+#            }
+#        }
     }
 
     return \%result;
@@ -132,14 +135,16 @@ sub draw
 
     $self->button('menu')->draw;
 
-    for my $index (0 .. $#{$self->model->levels})
-    {
-        my $name = 'level' . $index;
-        $self->button($name)->draw;
-    }
+#    for my $index (0 .. $#{$self->model->levels})
+#    {
+#        my $name = 'level' . $index;
+#        $self->button($name)->draw;
+#    }
 
     return 1;
 }
+
+
 
 sub player
 {

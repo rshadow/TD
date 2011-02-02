@@ -35,29 +35,9 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    die 'Missing required param "app"'   unless defined $opts{app};
-    die 'Missing required param "model"' unless defined $opts{model};
-
     my $self = $class->SUPER::new(%opts);
 
-    # Load background image from file
-    $self->img( background => SDL::Surface->new(
-        -name   => config->param('level'=>'background'=>'file'),
-        -flags  => SDL_HWSURFACE
-    ));
-    $self->img('background')->display_format;
-    # Image size
-    $self->size(background => SDL::Rect->new(
-        -width  => $self->img('background')->width,
-        -height => $self->img('background')->height
-    ));
-    # Draw destination - all window
-    $self->dest(background => SDL::Rect->new(
-        -left   => 0,
-        -top    => 0,
-        -width  => config->param('common'=>'window'=>'width'),
-        -height => config->param('common'=>'window'=>'height')
-    ));
+    $self->_init_background($self->conf);
 
     return $self;
 }

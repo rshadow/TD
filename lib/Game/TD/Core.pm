@@ -11,6 +11,7 @@ use Game::TD::Config;
 use Game::TD::Controller::Intro;
 use Game::TD::Controller::Menu;
 use Game::TD::Controller::Level;
+use Game::TD::Controller::Game;
 
 use Game::TD::Model::Player;
 
@@ -51,7 +52,7 @@ Set state of game: intro, memu, level, game, score
 
 sub state
 {
-    my ($self, $state) = @_;
+    my ($self, $state, %opts) = @_;
 
     if( defined $state )
     {
@@ -62,18 +63,29 @@ sub state
         if($state eq 'intro')
         {
             $self->ctrl(intro =>
-                Game::TD::Controller::Intro->new(app => $self->app));
+                Game::TD::Controller::Intro->new(app => $self->app, %opts));
         }
         elsif( $state eq 'menu' )
         {
             $self->ctrl(menu  =>
-                Game::TD::Controller::Menu->new(app => $self->app));
+                Game::TD::Controller::Menu->new(app => $self->app, %opts));
         }
         elsif($state eq 'level')
         {
-            $self->ctrl(level => Game::TD::Controller::Level->new(
-                app     => $self->app,
-                player  => $self->player,
+            $self->ctrl(level =>
+                Game::TD::Controller::Level->new(
+                    app     => $self->app,
+                    player  => $self->player,
+                    %opts
+            ));
+        }
+        elsif($state eq 'game')
+        {
+            $self->ctrl(game =>
+                Game::TD::Controller::Game->new(
+                    app     => $self->app,
+                    player  => $self->player,
+                    %opts
             ));
         }
 

@@ -4,9 +4,8 @@ use utf8;
 
 package Game::TD::Controller;
 
+use Carp;
 use SDL;
-
-use Game::TD::Model::Player;
 
 =head1 Game::TD::Model
 
@@ -132,6 +131,37 @@ sub model
 
     $self->{model} = $value  if defined $value;
     return $self->{model};
+}
+
+=head2 button $name, $value
+
+Common storage for buttons on screen. Get $name for button and typically
+Game::TD::Button object in $value.
+
+=cut
+
+sub button
+{
+    my ($self, $name, $value) = @_;
+
+    croak 'Name required'             unless defined $name;
+    $self->{button}{$name} = $value   if defined $value;
+    return $self->{button}{$name};
+}
+
+=head2 conf
+
+Return config part name by controller package name
+
+=cut
+
+sub conf
+{
+    my $self = shift;
+    my $pkg = caller;
+    my ($conf) = $pkg =~ m/^Game::TD::Controller::(.*?)$/;
+    $conf = lc $conf;
+    return $conf;
 }
 
 =head2 DESTROY
