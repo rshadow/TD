@@ -15,6 +15,8 @@ use Game::TD::Notify;
 use Game::TD::Config;
 use Game::TD::Core;
 
+use constant TICKS_PER_SEC  => 1000;
+
 =head CONSTRUCTOR
 
 Init application
@@ -32,10 +34,12 @@ sub new
     $self->{app} = new SDL::App (
         -width  => config->param('common'=>'window'=>'width'),
         -height => config->param('common'=>'window'=>'height'),
-        -title  => 'TD',
+        -depth  => config->param('common'=>'window'=>'depth'),
+        -title  => config->param('common'=>'window'=>'title'),
         -icon   => config->param('common'=>'window'=>'icon'),
         -flags  => SDL_HWACCEL | SDL_DOUBLEBUF,
     );
+#    $self->app->display_format;
 
     $self->{event} = new SDL::Event();
 
@@ -44,7 +48,7 @@ sub new
     $self->{counter}{time}  = 0;
     $self->{counter}{fps}   = undef;
     $self->{counter}{delta} =
-        int( 1000 / config->param('common'=>'fps'=>'value') );
+        int( TICKS_PER_SEC / config->param('common'=>'fps'=>'value') );
 
     $self->{core} = Game::TD::Core->new( app => $self->app );
 
@@ -91,19 +95,19 @@ sub run
 
         # Count FPS
         $self->{counter}{frame}++;
-        if($self->app->ticks - $self->{counter}{time} >= 1000)
+        if($self->app->ticks - $self->{counter}{time} >= TICKS_PER_SEC)
         {
-            $self->{counter}{fps}   = $self->{counter}{frame};
+            $self->fps( $self->{counter}{frame} );
             $self->{counter}{frame} = 0;
             $self->{counter}{time}  = $self->app->ticks;
         }
 
         # Show FPS
-        $self->core->draw_fps( $self->{counter}{fps} );
+        $self->core->draw_fps( $self->fps );
 
         # End draw
         $self->app->unlock();
-        $self->app->flip;
+        $self->app->sync;
 
         # Limit FPS
         my $tick = $self->app->ticks;
@@ -119,6 +123,13 @@ sub run
 sub app     {return shift()->{app}}
 sub core    {return shift()->{core}}
 sub event   {return shift()->{event}}
+
+sub fps
+{
+    my ($self, $fps) = @_;
+    $self->{counter}{fps} = $fps if defined $fps;
+    return $self->{counter}{fps};
+}
 
 DESTROY
 {

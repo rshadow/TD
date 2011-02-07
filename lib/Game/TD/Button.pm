@@ -147,10 +147,14 @@ sub event
     }
     elsif($type == SDL_MOUSEBUTTONUP)
     {
-        if( $event->button == SDL_BUTTON_LEFT )
+        # Check 'down' for prevent press from another state
+        if($self->state eq 'down')
         {
-            $self->state('up')
-                if $self->is_over($event->button_x, $event->button_y);
+            if( $event->button == SDL_BUTTON_LEFT )
+            {
+                $self->state('up')
+                    if $self->is_over($event->button_x, $event->button_y);
+            }
         }
     }
 
