@@ -5,7 +5,7 @@ use strict;
 use utf8;
 
 use base qw(Exporter);
-our @EXPORT = qw(config);
+our @EXPORT = qw(config Dumper);
 
 use Carp;
 use File::Basename;
@@ -91,13 +91,19 @@ sub new
         }
     }
 
+    # Add user config if exists and readable
+    my $uconf = glob '~/.td/user.conf';
+    push( @conf, $uconf ) if -f $uconf && -r _ && -s _;
+
     # Load params from config files
     for my $path (@conf)
     {
         my ($name) = $path =~ m{^.*/(.*?)\.conf$};
         local $/;
         open my $cnf, '<', $path                       or die $!;
-        $self->{param}{$name} = { eval <$cnf> };
+        my %params = eval <$cnf>;
+        # Concat config (for user config)
+        $self->{param}{$name} = {( %{$self->{param}{$name} || {}}, %params )};
         close $cnf                                     or die $!;
     }
 

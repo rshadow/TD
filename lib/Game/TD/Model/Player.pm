@@ -1,8 +1,10 @@
+use strict;
+use warnings;
+use utf8;
+
 package Game::TD::Model::Player;
 
-use warnings;
-use strict;
-use utf8;
+use Game::TD::Config;
 
 =head1 NAME
 
@@ -24,11 +26,12 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    $opts{score} //= 0;
-    $opts{name}  //= getlogin || getpwuid($<) || "player";
-    $opts{level} //= 1;
-    $opts{money} //= 100;
-    $opts{difficult} //= 'normal';
+    $opts{score}     //= config->param(user=>'score');
+    $opts{name}      //= config->param(user=>'name')   ||
+                         getlogin || getpwuid($<) || 'player';
+    $opts{level}     //= config->param(user=>'level');
+    $opts{money}     //= 0;
+    $opts{difficult} //= config->param(user=>'difficult');
 
     my $self = bless \%opts, $class;
 

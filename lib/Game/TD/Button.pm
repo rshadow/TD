@@ -7,6 +7,8 @@ use base qw(Game::TD::View);
 
 use Carp;
 use SDL;
+use SDL::TTFont;
+
 use Game::TD::Config;
 
 =head1 NAME
@@ -33,6 +35,8 @@ sub new
     croak 'Missing required param "conf' unless defined $opts{conf};
     croak 'Missing required param "name' unless defined $opts{name};
 
+    $opts{disable} //= 0;
+
     my $self = bless \%opts, $class;
 
     # Get params from config by conf name and button name
@@ -48,7 +52,8 @@ sub new
 #    $self->img('background')->display_format;
     # Image size
     $self->{width}  = int($self->img('background')->width  / 2);
-    $self->{height} = int($self->img('background')->height / 2);
+    $self->{height} = $self->{width};
+    #int($self->img('background')->height / 3);
     $self->size(background => SDL::Rect->new(
         -width  => $self->width,
         -height => $self->height
@@ -87,6 +92,19 @@ sub new
         -width  => $self->width,
         -height => $self->height
     ));
+    $self->clip(d_over => SDL::Rect->new(
+        -left   => 0,
+        -top    => $self->height * 2,
+        -width  => $self->width,
+        -height => $self->height
+    ));
+    $self->clip(d_out => SDL::Rect->new(
+        -left   => $self->width,
+        -top    => $self->height * 2,
+        -width  => $self->width,
+        -height => $self->height
+    ));
+
 
     # If button have text then load font for it
     if( length $self->text )
@@ -103,6 +121,26 @@ sub new
                 -mode => SDL::UTF8_SOLID,
                 -fg   => SDL::Color->new(%color),
             ));
+
+#            $self->size(text => SDL::Rect->new(
+#                -width  => $self->font('text')->width($self->text),
+#                -height => $self->font('text')->height
+#            ));
+#
+#            die Dumper $self->size('text')->height;
+#
+#            my $left  = int(config->param($self->conf=>$self->name=>'tleft'));
+#            my $top   = int(config->param($self->conf=>$self->name=>'ttop'));
+#
+#
+#            $self->clip(text => SDL::Rect->new(
+#                -left   => $self->width,
+#                -top    => $self->height * 2,
+#                -width  => $self->width,
+#                -height => $self->height
+#            ));
+
+
         }
     }
 
@@ -137,7 +175,7 @@ sub event
             $self->state('out')
         }
     }
-    elsif($type == SDL_MOUSEBUTTONDOWN)
+    elsif($type == SDL_MOUSEBUTTONDOWN && ! $self->disable)
     {
         if( $event->button == SDL_BUTTON_LEFT )
         {
@@ -145,7 +183,7 @@ sub event
                 if $self->is_over($event->button_x, $event->button_y);
         }
     }
-    elsif($type == SDL_MOUSEBUTTONUP)
+    elsif($type == SDL_MOUSEBUTTONUP && ! $self->disable)
     {
         # Check 'down' for prevent press from another state
         if($self->state eq 'down')
@@ -165,8 +203,14 @@ sub draw
 {
     my $self = shift;
 
+    # Get clip for current state
+    my $clip = $self->state;
+    # Fix clip if button disabled
+    $clip = (($self->state eq 'out') ?'d_out' : 'd_over')
+        if $self->disable;
+
     $self->img('background')->blit(
-        $self->clip($self->state), $self->app, $self->dest('background'));
+        $self->clip($clip), $self->app, $self->dest('background'));
 
     $self->font('text')->print(
         $self->app,
@@ -211,6 +255,13 @@ sub clip
     die 'Name required'             unless defined $name;
     $self->{clip}{$name} = $value   if defined $value;
     return $self->{clip}{$name};
+}
+
+sub disable
+{
+    my ($self, $disable) = @_;
+    $self->{disable} = $disable if defined $disable;
+    return $self->{disable};
 }
 
 1;

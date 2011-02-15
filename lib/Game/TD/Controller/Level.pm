@@ -47,14 +47,16 @@ sub new
         model   => $self->model
     ));
 
-    for my $index (0 .. $#{$self->model->levels})
+    for my $level (0 .. $#{$self->model->levels})
     {
-        my $name = 'level' . $index;
+        my $name = 'level' . $level;
+        my $disable = ($level <= $self->player->level) ? 0 : 1;
 
         $self->button($name => Game::TD::Button->new(
             name    => $name,
             app     => $self->app,
             conf    => $self->conf,
+            disable => $disable,
         ));
     }
 
@@ -108,14 +110,14 @@ sub event
         }
         else
         {
-            for my $index (0 .. $#{$self->model->levels})
+            for my $level (0 .. $#{$self->model->levels})
             {
-                my $name = 'level' . $index;
+                my $name = 'level' . $level;
                 my $state = $self->button($name)->event( $event );
                 if( $state eq 'up' )
                 {
                     $result{state} = 'game';
-                    $result{level} = $index;
+                    $result{level} = $level;
                 }
             }
         }
@@ -132,9 +134,9 @@ sub draw
 
     $self->button('menu')->draw;
 
-    for my $index (0 .. $#{$self->model->levels})
+    for my $level (0 .. $#{$self->model->levels})
     {
-        my $name = 'level' . $index;
+        my $name = 'level' . $level;
         $self->button($name)->draw;
     }
 
