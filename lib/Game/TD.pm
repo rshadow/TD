@@ -31,16 +31,23 @@ sub new
 
     notify 'Init';
 
+    # Set window flags
+    my $flags = SDL_HWACCEL | SDL_DOUBLEBUF;
+    $flags |= SDL_FULLSCREEN
+        if config->param('common'=>'window'=>'fullscreen');
+
+    # Create window
     $self->{app} = new SDL::App (
         -width  => config->param('common'=>'window'=>'width'),
         -height => config->param('common'=>'window'=>'height'),
         -depth  => config->param('common'=>'window'=>'depth'),
         -title  => config->param('common'=>'window'=>'title'),
         -icon   => config->param('common'=>'window'=>'icon'),
-        -flags  => SDL_HWACCEL | SDL_DOUBLEBUF,
+        -flags  => $flags,
     );
 #    $self->app->display_format;
 
+    # Get event handler
     $self->{event} = new SDL::Event();
 
     # Counters
@@ -50,6 +57,7 @@ sub new
     $self->{counter}{delta} =
         int( TICKS_PER_SEC / config->param('common'=>'fps'=>'value') );
 
+    # Create game core
     $self->{core} = Game::TD::Core->new( app => $self->app );
 
     return $self;
