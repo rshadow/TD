@@ -22,7 +22,9 @@ BEGIN {
 
 
 ok config, 'Config created';
-ok config->dir('base') && config->dir('map') && config->dir('img'),
+ok config->base, 'Base dir looks good';
+ok config->dir('map') && config->dir('po') && config->dir('level') &&
+   config->dir('config'),
     'All init dir params looks good';
 ok defined config->param('user'=>'debug'),
     'All init file params looks good';

@@ -2,21 +2,21 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::Controller::Intro;
+package Game::TD::Controller::State::Intro;
 use base qw(Game::TD::Controller);
 
 use SDL;
 
-use Game::TD::Model::Intro;
-use Game::TD::View::Intro;
+use Game::TD::Model::State::Intro;
+use Game::TD::View::State::Intro;
 
 =head1 NAME
 
-Game::TD::Controller::Intro - Модуль
+Game::TD::Controller::State::Intro - Модуль
 
 =head1 SYNOPSIS
 
-  use Game::TD::Controller::Intro;
+  use Game::TD::Controller::State::Intro;
 
 =head1 DESCRIPTION
 
@@ -34,11 +34,11 @@ sub new
 
     my $self = $class->SUPER::new(%opts);
 
-    $self->model( Game::TD::Model::Intro->new(
+    $self->model( Game::TD::Model::State::Intro->new(
         app => $self->app
     ));
 
-    $self->view( Game::TD::View::Intro->new(
+    $self->view( Game::TD::View::State::Intro->new(
         app     => $self->app,
         model   => $self->model
     ));

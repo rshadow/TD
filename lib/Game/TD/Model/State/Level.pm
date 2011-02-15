@@ -2,11 +2,11 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::Model::Level;
+package Game::TD::Model::State::Level;
 
 use Game::TD::Config;
 
-=head1 Game::TD::Model::Level
+=head1 Game::TD::Model::State::Level
 
 Описание_модуля
 

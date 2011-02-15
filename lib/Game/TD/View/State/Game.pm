@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::View::Level;
+package Game::TD::View::State::Game;
 use base qw(Game::TD::View);
 
 use SDL;
@@ -11,7 +11,7 @@ use SDL::Rect;
 
 use Game::TD::Config;
 
-=head1 Game::TD::View::Level
+=head1 Game::TD::View::State::Game
 
 Описание_модуля
 

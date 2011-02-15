@@ -2,11 +2,11 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::Model::Intro;
+package Game::TD::Model::State::Intro;
 
 use Game::TD::Config;
 
-=head1 Game::TD::Model::Intro
+=head1 Game::TD::Model::State::Intro
 
 Model for intro state
 

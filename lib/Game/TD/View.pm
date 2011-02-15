@@ -151,7 +151,7 @@ sub conf
 {
     my $self = shift;
     my $pkg = caller;
-    my ($conf) = $pkg =~ m/^Game::TD::View::(.*?)$/;
+    my ($conf) = $pkg =~ m/^Game::TD::View::State::(.*?)$/;
     $conf = lc $conf;
     return $conf;
 }

@@ -8,10 +8,10 @@ use Carp;
 use SDL;
 
 use Game::TD::Config;
-use Game::TD::Controller::Intro;
-use Game::TD::Controller::Menu;
-use Game::TD::Controller::Level;
-use Game::TD::Controller::Game;
+use Game::TD::Controller::State::Intro;
+use Game::TD::Controller::State::Menu;
+use Game::TD::Controller::State::Level;
+use Game::TD::Controller::State::Game;
 
 use Game::TD::Model::Player;
 
@@ -63,17 +63,23 @@ sub state
         if($state eq 'intro')
         {
             $self->ctrl(intro =>
-                Game::TD::Controller::Intro->new(app => $self->app, %opts));
+                Game::TD::Controller::State::Intro->new(
+                    app => $self->app,
+                    %opts
+            ));
         }
         elsif( $state eq 'menu' )
         {
             $self->ctrl(menu  =>
-                Game::TD::Controller::Menu->new(app => $self->app, %opts));
+                Game::TD::Controller::State::Menu->new(
+                    app => $self->app,
+                    %opts
+            ));
         }
         elsif($state eq 'level')
         {
             $self->ctrl(level =>
-                Game::TD::Controller::Level->new(
+                Game::TD::Controller::State::Level->new(
                     app     => $self->app,
                     player  => $self->player,
                     %opts
@@ -82,7 +88,7 @@ sub state
         elsif($state eq 'game')
         {
             $self->ctrl(game =>
-                Game::TD::Controller::Game->new(
+                Game::TD::Controller::State::Game->new(
                     app     => $self->app,
                     player  => $self->player,
                     %opts

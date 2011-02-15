@@ -2,9 +2,9 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::Model::Menu;
+package Game::TD::Model::State::Menu;
 
-=head1 Game::TD::Model::Menu
+=head1 Game::TD::Model::State::Menu
 
 Описание_модуля
 

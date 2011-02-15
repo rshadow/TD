@@ -2,23 +2,23 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::Controller::Menu;
+package Game::TD::Controller::State::Menu;
 use base qw(Game::TD::Controller);
 
 use SDL;
 
 use Game::TD::Config;
-use Game::TD::Model::Menu;
-use Game::TD::View::Menu;
+use Game::TD::Model::State::Menu;
+use Game::TD::View::State::Menu;
 use Game::TD::Button;
 
 =head1 NAME
 
-Game::TD::Controller::Menu - Модуль
+Game::TD::Controller::State::Menu - Модуль
 
 =head1 SYNOPSIS
 
-  use Game::TD::Controller::Menu;
+  use Game::TD::Controller::State::Menu;
 
 =head1 DESCRIPTION
 
@@ -36,11 +36,11 @@ sub new
 
     my $self = $class->SUPER::new(%opts);
 
-    $self->model( Game::TD::Model::Menu->new(
+    $self->model( Game::TD::Model::State::Menu->new(
         app => $self->app
     ));
 
-    $self->view( Game::TD::View::Menu->new(
+    $self->view( Game::TD::View::State::Menu->new(
         app     => $self->app,
         model   => $self->model
     ));

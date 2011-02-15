@@ -2,24 +2,24 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::Controller::Level;
+package Game::TD::Controller::State::Level;
 use base qw(Game::TD::Controller);
 
 use Carp;
 use SDL;
 
 use Game::TD::Config;
-use Game::TD::Model::Level;
-use Game::TD::View::Level;
+use Game::TD::Model::State::Level;
+use Game::TD::View::State::Level;
 use Game::TD::Button;
 
 =head1 NAME
 
-Game::TD::Controller::Level - Модуль
+Game::TD::Controller::State::Level - Модуль
 
 =head1 SYNOPSIS
 
-  use Game::TD::Controller::Level;
+  use Game::TD::Controller::State::Level;
 
 =head1 DESCRIPTION
 
@@ -38,11 +38,11 @@ sub new
 
     my $self = $class->SUPER::new(%opts);
 
-    $self->model( Game::TD::Model::Level->new(
+    $self->model( Game::TD::Model::State::Level->new(
         current => $self->player->level,
     ));
 
-    $self->view( Game::TD::View::Level->new(
+    $self->view( Game::TD::View::State::Level->new(
         app     => $self->app,
         model   => $self->model
     ));

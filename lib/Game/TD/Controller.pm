@@ -159,7 +159,7 @@ sub conf
 {
     my $self = shift;
     my $pkg = caller;
-    my ($conf) = $pkg =~ m/^Game::TD::Controller::(.*?)$/;
+    my ($conf) = $pkg =~ m/^Game::TD::Controller::State::(.*?)$/;
     $conf = lc $conf;
     return $conf;
 }
