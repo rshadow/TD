@@ -6,7 +6,7 @@ use utf8;
 use open qw(:std :utf8);
 use lib qw(lib ../lib);
 
-use Test::More tests    => 3;
+use Test::More tests    => 5;
 
 BEGIN {
     # utf-8
@@ -22,11 +22,10 @@ BEGIN {
 
 
 ok config, 'Config created';
-ok config->base, 'Base dir looks good';
+ok config->base, 'Get base dir';
 ok config->dir('map') && config->dir('po') && config->dir('level') &&
    config->dir('config'),
-    'All init dir params looks good';
-ok defined config->param('user'=>'debug'),
-    'All init file params looks good';
+    'All dir params';
+ok defined config->param('user'=>'debug'), 'All file params';
 
 #note explain config;

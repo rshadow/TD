@@ -25,7 +25,7 @@ BEGIN {
 my $model = Game::TD::Model::State::Intro->new;
 ok $model, 'Object created';
 ok $model->last > 0 && $model->last > $model->current, 'Last frame init';
-ok $model->delta > 0, 'Delta init ok';
+ok $model->delta > 0, 'Delta init';
 
 my $current = $model->current;
 ok $current == 0, 'Current frame init';

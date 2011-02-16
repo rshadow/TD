@@ -2,24 +2,24 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::Controller::State::Level;
+package Game::TD::Controller::State::Board;
 use base qw(Game::TD::Controller);
 
 use Carp;
 use SDL;
 
 use Game::TD::Config;
-use Game::TD::Model::State::Level;
-use Game::TD::View::State::Level;
+use Game::TD::Model::State::Board;
+use Game::TD::View::State::Board;
 use Game::TD::Button;
 
 =head1 NAME
 
-Game::TD::Controller::State::Level - Модуль
+Game::TD::Controller::State::Board - Модуль
 
 =head1 SYNOPSIS
 
-  use Game::TD::Controller::State::Level;
+  use Game::TD::Controller::State::Board;
 
 =head1 DESCRIPTION
 
@@ -38,16 +38,16 @@ sub new
 
     my $self = $class->SUPER::new(%opts);
 
-    $self->model( Game::TD::Model::State::Level->new(
+    $self->model( Game::TD::Model::State::Board->new(
         current => $self->player->level,
     ));
 
-    $self->view( Game::TD::View::State::Level->new(
+    $self->view( Game::TD::View::State::Board->new(
         app     => $self->app,
         model   => $self->model
     ));
 
-    for my $level ($self->model->levels)
+    for my $level (0 .. $#{$self->model->levels})
     {
         my $name = 'level' . $level;
         my $disable = ($level <= $self->player->level) ? 0 : 1;

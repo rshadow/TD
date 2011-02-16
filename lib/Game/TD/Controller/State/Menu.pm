@@ -108,7 +108,7 @@ sub event
             my $state = $self->button($name)->event( $event );
             if( $state eq 'up' )
             {
-                $result{state} = 'level'    if $name eq 'play';
+                $result{state} = 'board'    if $name eq 'play';
                 $result{state} = 'score'    if $name eq 'score';
                 $result{quit}  = 1          if $name eq 'exit';
             }

@@ -10,7 +10,7 @@ use SDL;
 use Game::TD::Config;
 use Game::TD::Controller::State::Intro;
 use Game::TD::Controller::State::Menu;
-use Game::TD::Controller::State::Level;
+use Game::TD::Controller::State::Board;
 use Game::TD::Controller::State::Game;
 
 use Game::TD::Model::Player;
@@ -62,7 +62,7 @@ sub state
         # Load controller for new state
         if($state eq 'intro')
         {
-            $self->ctrl(intro =>
+            $self->ctrl($state =>
                 Game::TD::Controller::State::Intro->new(
                     app => $self->app,
                     %opts
@@ -70,16 +70,16 @@ sub state
         }
         elsif( $state eq 'menu' )
         {
-            $self->ctrl(menu  =>
+            $self->ctrl($state  =>
                 Game::TD::Controller::State::Menu->new(
                     app => $self->app,
                     %opts
             ));
         }
-        elsif($state eq 'level')
+        elsif($state eq 'board')
         {
-            $self->ctrl(level =>
-                Game::TD::Controller::State::Level->new(
+            $self->ctrl($state =>
+                Game::TD::Controller::State::Board->new(
                     app     => $self->app,
                     player  => $self->player,
                     %opts
@@ -87,7 +87,7 @@ sub state
         }
         elsif($state eq 'game')
         {
-            $self->ctrl(game =>
+            $self->ctrl($state =>
                 Game::TD::Controller::State::Game->new(
                     app     => $self->app,
                     player  => $self->player,

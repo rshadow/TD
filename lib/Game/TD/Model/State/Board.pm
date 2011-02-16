@@ -2,11 +2,11 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::Model::State::Level;
+package Game::TD::Model::State::Board;
 
 use Game::TD::Config;
 
-=head1 Game::TD::Model::State::Level
+=head1 Game::TD::Model::State::Board
 
 Описание_модуля
 
@@ -34,8 +34,7 @@ sub new
 
     my $self = bless \%opts, $class;
 
-    $self->{levels} = config->param('level'=>'levels');
-#    $self->{levels} = [ glob sprintf '%s/*.level', config->dir('level') ];
+    $self->{levels} = [ glob sprintf '%s/*.level', config->dir('level') ];
     die 'No levels found' unless @{ $self->{levels} };
 
     return $self;
@@ -44,7 +43,7 @@ sub new
 sub levels
 {
     my ($self) = @_;
-    return wantarray ? @{$self->{levels}} : $self->{levels};
+    return wantarray ? %{$self->{levels}} : $self->{levels};
 }
 
 sub current

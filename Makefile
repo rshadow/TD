@@ -1,6 +1,5 @@
-GIT = ''
 
-.PHONY: run test
+.PHONY: run test exe
 
 run:
 	@perl ./td.pl
