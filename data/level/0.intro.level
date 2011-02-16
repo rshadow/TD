@@ -1,3 +1,6 @@
+name  => 'intro',
+title => 'Game tutorial',
+
 # Map
 map => [
     [

@@ -47,7 +47,7 @@ sub new
         model   => $self->model
     ));
 
-    for my $level (0 .. $#{$self->model->levels})
+    for my $level ($self->model->levels)
     {
         my $name = 'level' . $level;
         my $disable = ($level <= $self->player->level) ? 0 : 1;

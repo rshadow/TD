@@ -34,7 +34,8 @@ sub new
 
     my $self = bless \%opts, $class;
 
-    $self->{levels} = [ glob sprintf '%s/*.level', config->dir('level') ];
+    $self->{levels} = config->param('level'=>'levels');
+#    $self->{levels} = [ glob sprintf '%s/*.level', config->dir('level') ];
     die 'No levels found' unless @{ $self->{levels} };
 
     return $self;
