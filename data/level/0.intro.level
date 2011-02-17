@@ -1,5 +1,22 @@
-name  => 'intro',
-title => 'Game tutorial',
+name    => 'intro',             # Internal name
+title   => 'Game tutorial',     # Title
+sleep   => 10,                  # Time to units run
+health  => 1000,                # Max damage
+
+wave => [
+    # Wave 1
+    {
+        # Units types
+        types   => [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        # Sleep between units run
+        sleep   => 1,
+    },
+    # Wave 2
+    {
+        types   => [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1],
+        sleep   => 1,
+    },
+],
 
 # Map
 map => [
@@ -445,20 +462,3 @@ map => [
     ],
 ],
 
-# Time for units run
-sleep =>    10,
-
-wave => [
-    # Wave 1
-    {
-        # Units types
-        types   => [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        # Sleep between units run
-        sleep   => 1,
-    },
-    # Wave 2
-    {
-        types   => [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1],
-        sleep   => 1,
-    },
-]

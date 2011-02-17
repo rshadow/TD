@@ -40,7 +40,8 @@ sub new
     my $self = $class->SUPER::new(%opts);
 
     $self->model( Game::TD::Model::State::Game->new(
-        level => $opts{level},
+        level   => $opts{level},
+        player  => $self->player,
     ));
 
     $self->view( Game::TD::View::State::Game->new(
@@ -73,8 +74,10 @@ sub update
 {
     my ($self) = @_;
 
-
     my %result;
+
+    my $process = $self->model->update;
+    $result{state} = 'score' unless $process;
 
     return \%result;
 }
