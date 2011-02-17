@@ -5,6 +5,7 @@ use utf8;
 package Game::TD::Model::State::Game;
 
 use Game::TD::Config;
+use Game::TD::Model::Timer;
 
 =head1 Game::TD::Model::State::Game
 
@@ -44,12 +45,22 @@ sub new
     # Concat
     $self->{$_} = $level{$_} for keys %level;
 
+    $self->timer('sleep' => Game::TD::Model::Timer->new() );
+    $self->timer('sleep')->start;
+
     return $self;
 }
 
 sub update
 {
     my $self = shift;
+
+
+    if( $self->sleep )
+    {
+        $self->left( $self->sleep - $self->timer('sleep')->get_ticks );
+        return 1;
+    }
 
     return 0 if $self->health <= 0;
     return 1;
@@ -98,6 +109,22 @@ sub sleep
     return $self->{sleep};
 }
 
+=head2 left
+
+Get/Set counter for game start. See <i>sleep</i> function.
+
+=cut
+
+sub left
+{
+    my ($self, $value) = @_;
+    if( defined $value )
+    {
+        $self->{left} = ($value > 0) ?$value : 0;
+    }
+    return $self->{left};
+}
+
 sub health
 {
     my ($self) = @_;
@@ -106,4 +133,11 @@ sub health
     return $self->{health};
 }
 
+sub timer
+{
+    my ($self, $name, $timer) = @_;
+    die 'Missing required parameter "name"' unless defined $name;
+    $self->{timer}{$name} = $timer if defined $timer;
+    return $self->{timer}{$name};
+}
 1;

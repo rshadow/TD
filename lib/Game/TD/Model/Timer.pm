@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::Timer;
+package Game::TD::Model::Timer;
 
 use SDL;
 
@@ -71,5 +71,31 @@ sub get_ticks
     # If the timer isn't running
     return 0;
 }
+
+sub pause
+{
+    my $self = shift;
+
+    if( $self->{started} == 1 && $self->{paused} == 0 )
+    {
+        $self->{paused} = 1;
+        $self->{paused_ticks} = SDL::GetTicks() - $self->{start_ticks};
+    }
+}
+
+sub unpause
+{
+    my $self = shift;
+
+    if( $self->{paused} == 1 )
+    {
+        $self->{paused} = 0;
+        $self->{start_ticks} = SDL::GetTicks() - $self->{paused_ticks};
+        $self->{paused_ticks} = 0;
+    }
+}
+
+sub is_started { return shift()->{started} }
+sub is_paused  { return shift()->{paused}  }
 
 1;

@@ -31,11 +31,6 @@ sub new
 
     notify 'Init';
 
-    # Set window flags
-    my $flags = SDL_HWACCEL | SDL_DOUBLEBUF;
-    $flags |= SDL_FULLSCREEN
-        if config->param('common'=>'window'=>'fullscreen');
-
     # Create window
     $self->{app} = new SDL::App (
         -width  => config->param('common'=>'window'=>'width'),
@@ -43,7 +38,11 @@ sub new
         -depth  => config->param('common'=>'window'=>'depth'),
         -title  => config->param('common'=>'window'=>'title'),
         -icon   => config->param('common'=>'window'=>'icon'),
-        -flags  => $flags,
+#        -icon_title     => config->param('common'=>'window'=>'icon'),
+        -double_buffer  => (config->param('common'=>'window'=>'dbuffer') || 0),
+        -fullscreen => (config->param('common'=>'window'=>'fullscreen') || 0),
+        -flags      => SDL_HWACCEL,
+#        -asyncblit  => 1,
     );
 #    $self->app->display_format;
 

@@ -47,8 +47,8 @@ sub new
 
     $self->img(background => SDL::Surface->new(
         -name   => $self->file,
-        -flags  => SDL_HWSURFACE
-    ));
+        -flags  => SDL_HWSURFACE,
+    )->rgba);
 #    $self->img('background')->display_format;
     # Image size
     $self->{width}  = int($self->img('background')->width  / 2);
@@ -105,7 +105,6 @@ sub new
         -height => $self->height
     ));
 
-
     # If button have text then load font for it
     if( length $self->text )
     {
@@ -119,7 +118,9 @@ sub new
                 -name => $font,
                 -size => $size,
                 -mode => SDL::UTF8_SOLID,
+#                -mode => SDL::UTF8_BLENDED,
                 -fg   => SDL::Color->new(%color),
+                -bg   => SDL::Color->new(-r => 255, -g => 0, -b => 0),
             ));
 
 #            $self->size(text => SDL::Rect->new(

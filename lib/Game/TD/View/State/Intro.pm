@@ -40,7 +40,7 @@ sub new
     # Load image from file
     $self->img(logo => SDL::Surface->new(
         -name   => config->param($self->conf=>'logo'=>'file'),
-        -flags  => SDL_HWSURFACE
+        -flags  => SDL_HWSURFACE,
     ));
     $self->img('logo')->display_format;
     # Image size

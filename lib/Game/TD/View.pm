@@ -65,7 +65,7 @@ sub _init_background
     # Load background image from file
     $self->img( background => SDL::Surface->new(
         -name   => config->param($conf=>'background'=>'file'),
-        -flags  => SDL_HWSURFACE
+        -flags  => SDL_HWSURFACE,
     ));
     $self->img('background')->display_format;
     # Image size
