@@ -7,6 +7,9 @@ package Game::TD::Model::State::Game;
 use Game::TD::Config;
 use Game::TD::Model::Timer;
 
+use constant TAIL_WIDTH     => 50;
+use constant TAIL_HEIGHT    => 50;
+
 =head1 Game::TD::Model::State::Game
 
 Описание_модуля
@@ -140,4 +143,7 @@ sub timer
     $self->{timer}{$name} = $timer if defined $timer;
     return $self->{timer}{$name};
 }
+
+sub tail_width  { return TAIL_WIDTH  }
+sub tail_height { return TAIL_HEIGHT }
 1;

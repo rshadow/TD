@@ -5,6 +5,7 @@ use utf8;
 package Game::TD::View::State::Game;
 use base qw(Game::TD::View);
 
+use Carp;
 use SDL;
 use SDL::Surface;
 use SDL::Rect;
@@ -113,70 +114,117 @@ sub _init_background
     my $mtop  = config->param($self->conf=>'map'=>'top');
 
     my @map = $self->model->map;
+
+    # Draw map tiles on background
     for my $y (0 .. $#map )
     {
         my @line = @{ $map[$y] };
         for my $x (0 .. $#line)
         {
-            my $type = $map[$y][$x]->{type};
-            my $mod  = $map[$y][$x]->{mod};
-            my $name = $type . $mod;
-
-            # Load map tile if not defined
-            unless( defined $self->img($name) )
-            {
-                $self->img($name => SDL::Surface->new(
-                    -name   => config->param('map'=>$type=>$mod=>'file'),
-                    -flags  => SDL_SWSURFACE,
-                ));
-
-                $self->size($name => SDL::Rect->new(
-                    -left   => 0,
-                    -top    => 0,
-                    -width  => $self->img($name)->width,
-                    -height => $self->img($name)->height
-                ));
-            }
-
-            # Apply map tile to background
-            my $dest = SDL::Rect->new(
-                -left   =>  $mleft + $self->size($name)->width  * $x,
-                -top    =>  $mtop  + $self->size($name)->height * $y,
-                -width  => $self->size($name)->width,
-                -height => $self->size($name)->height
+            $self->_draw_map_tile(
+                to      => 'background',
+                type    => $map[$y][$x]->{type},
+                mod     => $map[$y][$x]->{mod},
+                mleft   => $mleft,
+                mtop    => $mtop,
+                x       => $x,
+                y       => $y,
             );
+        }
+    }
 
-            $self->img($name)->blit(
-                $self->size($name), $self->img('background'), $dest);
-
+    # Draw items on background
+    for my $y (0 .. $#map )
+    {
+        my @line = @{ $map[$y] };
+        for my $x (0 .. $#line)
+        {
             # If exists item then load it
             next unless exists $map[$y][$x]->{item};
 
-            $type = $map[$y][$x]->{item}{type};
-            $mod  = $map[$y][$x]->{item}{mod};
-            $name = $type . $mod;
-
-            # Load item tile if not defined
-            unless( defined $self->img($name) )
-            {
-                $self->img($name => SDL::Surface->new(
-                    -name   => config->param('map'=>$type=>$mod=>'file'),
-                    -flags  => SDL_SWSURFACE,
-                ));
-
-                $self->size($name => SDL::Rect->new(
-                    -left   => 0,
-                    -top    => 0,
-                    -width  => $self->img($name)->width,
-                    -height => $self->img($name)->height
-                ));
-            }
-
-            # Apply item tile to background
-            $self->img($name)->blit(
-                $self->size($name), $self->img('background'), $dest);
+            $self->_draw_map_tile(
+                to      => 'background',
+                type    => $map[$y][$x]->{item}{type},
+                mod     => $map[$y][$x]->{item}{mod},
+                mleft   => $mleft,
+                mtop    => $mtop,
+                x       => $x,
+                y       => $y,
+            );
         }
     }
+}
+
+sub _draw_map_tile
+{
+    my ($self, %tile) = @_;
+
+    croak 'Missing required parameter "to"'     unless defined $tile{to};
+    croak 'Missing required parameter "type"'   unless defined $tile{type};
+    croak 'Missing required parameter "mod"'    unless defined $tile{mod};
+    croak 'Missing required parameter "x"'      unless defined $tile{x};
+    croak 'Missing required parameter "y"'      unless defined $tile{y};
+
+    # Name of destanation surface
+    my $to      = $tile{to};
+    # Tile type
+    my $type    = $tile{type};
+    my $mod     = $tile{mod};
+    # Logical coordinates
+    my $x       = $tile{x};
+    my $y       = $tile{y};
+    # Map shift
+    my $mleft   = $tile{mleft} || 0;
+    my $mtop    = $tile{mtop}  || 0;
+
+    my $name = $type . $mod;
+
+    # Load item tile if not defined
+    unless( defined $self->img($name) )
+    {
+        $self->img($name => SDL::Surface->new(
+            -name   => config->param('map'=>$type=>$mod=>'file'),
+            -flags  => SDL_SWSURFACE,
+        ));
+
+        $self->size($name => SDL::Rect->new(
+            -left   => 0,
+            -top    => 0,
+            -width  => $self->img($name)->width,
+            -height => $self->img($name)->height
+        ));
+    }
+
+    my $dx =
+        int(($self->size($name)->width  - $self->model->tail_width)/2);
+    my $dy =
+        int(($self->size($name)->height - $self->model->tail_height)/2);
+
+    my $dest = SDL::Rect->new(
+        -left   =>  $mleft + $self->model->tail_width  * $x - $dx,
+        -top    =>  $mtop  + $self->model->tail_height * $y - $dy,
+        -width  => $self->size($name)->width,
+        -height => $self->size($name)->height
+    );
+
+    my $src = SDL::Rect->new(
+        -left   => $self->size($name)->left,
+        -top    => $self->size($name)->top,
+        -width  => $self->size($name)->width,
+        -height => $self->size($name)->height
+    );
+
+#            if($type eq 'tree')
+#            {
+#                printf "%s:%s \t dx=%s, dy=%s \t src=%s:%s,%sx%s \t dest:%s:%s,%s:%s\n",
+#                    $x, $y, $dx, $dy,
+#
+#                    $src->left, $src->top, $src->width, $src->height,
+#                    $dest->left, $dest->top, $dest->width, $dest->height;
+#            }
+
+    # Apply item tile to background
+    $self->img($name)->blit($src, $self->img($to), $dest);
 }
 
 =head2 draw
