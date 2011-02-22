@@ -32,14 +32,11 @@ sub new
 
     my $self = bless \%opts, $class;
 
-    # Current frame
-    $self->{frame}{current} = 0;
-    # Total frames for animation
-    $self->{frame}{last}    =
-        config->param('common'=>'fps'=>'value') *
-        config->param('intro'=>'duration');
-    # Delta frames for up alpha (alpha in 0 .. 255)
-    $self->{frame}{delta}   = int( $self->last / 255 ) || 1;
+    # Start alpha value
+    $self->{alpha} = 0;
+    # Count total frames for show
+    $self->{left}  = config->param('common'=>'fps'=>'value') *
+                     config->param('intro'=>'duration');
 
     return $self;
 }
@@ -48,14 +45,18 @@ sub update
 {
     my $self = shift;
 
-    $self->{frame}{current}++;
+    # Update alpha if need
+    unless( $self->{alpha} == 255 )
+    {
+        $self->{alpha} += config->param('intro'=>'logo'=>'astep');
+        $self->{alpha} = 255 if $self->{alpha} > 255;
+    }
 
-    return 0 if $self->{frame}{current} >= $self->{frame}{last};
-    return $self->{frame}{last} - $self->{frame}{current};
+    $self->{left}-- if $self->{left} >= 0;
+    return $self->left;
 }
 
-sub current {return shift()->{frame}{current}}
-sub last    {return shift()->{frame}{last}}
-sub delta   {return shift()->{frame}{delta}}
+sub alpha   {return shift()->{alpha}}
+sub left    {return shift()->{left}}
 
 1;

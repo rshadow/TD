@@ -6,6 +6,7 @@ package Game::TD::Controller;
 
 use Carp;
 use SDL;
+use SDL::Event;
 
 =head1 Game::TD::Model
 

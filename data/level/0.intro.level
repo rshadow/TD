@@ -7,14 +7,36 @@ wave => [
     # Wave 1
     {
         # Units types
-        types   => [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        units   => [
+            runner,
+            runner,
+            runner,
+            runner,
+            runner,
+            runner,
+            runner,
+            runner,
+            runner,
+            runner,
+        ],
         # Sleep between units run
-        sleep   => 1,
+        sleep   => 100,
     },
     # Wave 2
     {
-        types   => [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1],
-        sleep   => 1,
+        units   => [
+            runner,
+            runner,
+            runner,
+            runner,
+            runner,
+            runner,
+            runner,
+            runner2,
+            runner2,
+            runner2,
+        ],
+        sleep   => 100,
     },
 ],
 

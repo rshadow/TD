@@ -6,6 +6,7 @@ package Game::TD::Controller::State::Intro;
 use base qw(Game::TD::Controller);
 
 use SDL;
+use SDL::Event;
 
 use Game::TD::Model::State::Intro;
 use Game::TD::View::State::Intro;
@@ -66,7 +67,7 @@ sub event
     my $type = $event->type;
 
     # Quit if Esc
-    if($type == SDL_QUIT or SDL::GetKeyState(SDLK_ESCAPE))
+    if($type == SDL_QUIT)
     {
         $result{quit} = 1;
     }

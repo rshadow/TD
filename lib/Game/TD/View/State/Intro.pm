@@ -37,37 +37,21 @@ sub new
 
     my $self = $class->SUPER::new(%opts);
 
+    $self->_init_background($self->conf);
+
     # Load image from file
-    $self->img(logo => SDL::Surface->new(
-        -name   => config->param($self->conf=>'logo'=>'file'),
-        -flags  => SDL_HWSURFACE,
-    ));
-    $self->img('logo')->display_format;
-    # Image size
-    $self->size(logo => SDL::Rect->new(
-        -width  => $self->img('logo')->width,
-        -height => $self->img('logo')->height
-    ));
-    # Draw destination - center of window
-    $self->dest(logo => SDL::Rect->new(
-        -left   => int(config->param($self->conf=>'logo'=>'left') -
-                     $self->img('logo')->width / 2),
-        -top    => int(config->param($self->conf=>'logo'=>'top') -
-                     $self->img('logo')->height / 2),
-        -width  => $self->img('logo')->width,
-        -height => $self->img('logo')->height
+    $self->sprite('logo' => SDLx::Sprite->new(
+        image   => config->param($self->conf=>'logo'=>'file'),
     ));
 
-    # Draw destination - all window
-    $self->dest(background => SDL::Rect->new(
-        -left   => 0,
-        -top    => 0,
-        -width  => config->param('common'=>'window'=>'width'),
-        -height => config->param('common'=>'window'=>'height')
+    $self->sprite('logo')->rect(SDL::Rect->new(
+        int(config->param($self->conf=>'logo'=>'left') -
+            $self->sprite('logo')->w / 2),
+        int(config->param($self->conf=>'logo'=>'top')  -
+            $self->sprite('logo')->h / 2),
+        $self->sprite('logo')->w,
+        $self->sprite('logo')->h,
     ));
-
-    # Alpha value for image animation
-    $self->{alpha} = 0;
 
     return $self;
 }
@@ -81,15 +65,14 @@ Draw intro: display image in center of window
 sub draw
 {
     my $self = shift;
-    # Count current alpha value for each frame and set it
-    $self->{alpha} += config->param($self->conf=>'logo'=>'astep')
-         if $self->{alpha} < 255 and
-            !($self->model->current % $self->model->delta);
-    $self->img('logo')->set_alpha(SDL_SRCALPHA, $self->{alpha});
-    # Draw image
-    $self->app->fill($self->dest('background'), $SDL::Color::black);
-    $self->img('logo')->blit(
-        $self->size('logo'), $self->app, $self->dest('logo'));
+
+    # Don`t update if animation complete
+#    return if $self->model->alpha == 255;
+
+    $self->sprite('logo')->alpha($self->model->alpha);
+
+    $self->sprite('background')->draw($self->app);
+    $self->sprite('logo')->draw($self->app);
 }
 
 1;

@@ -5,8 +5,9 @@ use utf8;
 package Game::TD::View;
 
 use Carp;
-use SDL;
-use SDL::TTFont;
+#use SDL;
+use SDLx::Sprite;
+use SDLx::Text;
 
 use Game::TD::Config;
 
@@ -48,11 +49,16 @@ sub _init
 {
     my $self = shift;
 
-    $self->font(fps => SDL::TTFont->new(
-        -name => config->param('common'=>'fps'=>'font'),
-        -size => config->param('common'=>'fps'=>'size'),
-        -mode => SDL::UTF8_SOLID,
-        -fg   => SDL::Color->new( config->color('common'=>'fps'=>'color') ),
+    $self->font(fps => SDLx::Text->new(
+        font    => config->param('common'=>'fps'=>'font'),
+        size    => config->param('common'=>'fps'=>'size'),
+        color   => config->color('common'=>'fps'=>'color'),
+    ));
+
+    $self->dest(fps => SDL::Rect->new(
+        config->param('common'=>'fps'=>'left'),
+        config->param('common'=>'fps'=>'top'),
+        0, 0
     ));
 }
 
@@ -63,23 +69,32 @@ sub _init_background
     croak 'Missing required parameter "conf"' unless defined $conf;
 
     # Load background image from file
-    $self->img( background => SDL::Surface->new(
-        -name   => config->param($conf=>'background'=>'file'),
-        -flags  => SDL_HWSURFACE,
+    $self->sprite(background => SDLx::Sprite->new(
+        image   => config->param($conf=>'background'=>'file')
     ));
-    $self->img('background')->display_format;
+#    $self->img->load(config->param($conf=>'background'=>'file'));
+     $self->sprite('background')->draw( $self->app );
+
+#    $self->sprite( background => SDL::Surface->new(
+#        -name   => config->param($conf=>'background'=>'file'),
+#        -flags  => SDL_HWSURFACE,
+#    ));
+#    $self->sprite('background')->display_format;
     # Image size
-    $self->size(background => SDL::Rect->new(
-        -width  => $self->img('background')->width,
-        -height => $self->img('background')->height
-    ));
-    # Draw destination - all window
-    $self->dest(background => SDL::Rect->new(
-        -left   => 0,
-        -top    => 0,
-        -width  => config->param('common'=>'window'=>'width'),
-        -height => config->param('common'=>'window'=>'height')
-    ));
+#    $self->size(background => SDL::Rect->new(
+#        -width  => $self->sprite('background')->width,
+#        -height => $self->sprite('background')->height
+#    ));
+#    # Draw destination - all window
+#    $self->dest(background => SDL::Rect->new(
+#        -left   => 0,
+#        -top    => 0,
+#        -width  => config->param('common'=>'window'=>'width'),
+#        -height => config->param('common'=>'window'=>'height')
+#    ));
+
+#    $self->sprite('background')->blit(
+#        $self->size('background'), $self->app, $self->dest('background'));
 }
 
 =head2
@@ -93,13 +108,33 @@ sub draw_fps
     my ($self, $fps) = @_;
 
     return unless defined $fps;
-    return unless config->param(user => 'showfps');
 
-    $self->font('fps')->print(
+#    $self->sprite('background')->clip($x,$y,$w,$h);
+#    $self->sprite('background')->draw();
+
+    $self->font('fps')->text(sprintf '%d fps', $fps);
+    $self->font('fps')->write_xy(
         $self->app,
         config->param('common'=>'fps'=>'left'),
-        config->param('common'=>'fps'=>'top'),
-        sprintf '%d fps', $fps );
+        config->param('common'=>'fps'=>'top')
+    );
+
+#    $self->font('fps')->draw($self->dest('fps'));
+#    $self->font('fps')->write_to(
+#        $self->dest('fps'),
+#    );
+
+#    my $str = sprintf '%d fps', $fps;
+#
+#    $self->sprite('background')->blit(
+#        $self->size('fps'), $self->app, $self->dest('fps'));
+#
+#    $self->font('fps')->print(
+#        $self->app,
+#        $self->dest('fps')->left,
+#        $self->dest('fps')->top,
+#        $str
+#    );
 }
 
 sub app         {return shift()->{app}}
@@ -114,22 +149,13 @@ sub font
     return $self->{font}{$name};
 }
 
-sub img
+sub sprite
 {
     my ($self, $name, $value) = @_;
 
-    die 'Name required'             unless defined $name;
-    $self->{img}{$name} = $value    if defined $value;
-    return $self->{img}{$name};
-}
-
-sub size
-{
-    my ($self, $name, $value) = @_;
-
-    die 'Name required'             unless defined $name;
-    $self->{size}{$name} = $value   if defined $value;
-    return $self->{size}{$name};
+    die 'Name required'                 unless defined $name;
+    $self->{sprite}{$name} = $value     if defined $value;
+    return $self->{sprite}{$name};
 }
 
 sub dest

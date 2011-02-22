@@ -102,6 +102,7 @@ sub new
         local $/;
         open my $cnf, '<', $path                       or die $!;
         my %params = eval <$cnf>;
+        die sprintf 'Error in %s: %s', $path, $@ if $@;
         # Concat config (for user config)
         $self->{param}{$name} = {( %{$self->{param}{$name} || {}}, %params )};
         close $cnf                                     or die $!;
@@ -144,16 +145,16 @@ sub color
     my $result = $self->param($name, @path);
     if('HASH' eq ref $result)
     {
-        return (-r => $result->{r}, -g => $result->{g}, -b => $result->{b});
+        return [$result->{r}, $result->{g}, $result->{b}];
     }
     elsif('ARRAY' eq ref $result)
     {
-        return (-r => $result->[0], -g => $result->[1], -b => $result->[2]);
+        return $result;
     }
     else
     {
         $result =~ m/([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})/;
-        return (-r => hex($1), -g => hex($2), -b => hex($3));
+        return [hex($1), hex($2), hex($3)];
     }
 }
 
