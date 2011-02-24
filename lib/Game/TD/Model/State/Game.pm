@@ -4,8 +4,9 @@ use utf8;
 
 package Game::TD::Model::State::Game;
 
+use SDLx::Controller::Timer;
+
 use Game::TD::Config;
-use Game::TD::Model::Timer;
 
 use constant TAIL_WIDTH     => 50;
 use constant TAIL_HEIGHT    => 50;
@@ -48,7 +49,7 @@ sub new
     # Concat
     $self->{$_} = $level{$_} for keys %level;
 
-    $self->timer('sleep' => Game::TD::Model::Timer->new() );
+    $self->timer('sleep' => SDLx::Controller::Timer->new() );
     $self->timer('sleep')->start;
 
     return $self;

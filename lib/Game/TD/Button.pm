@@ -6,8 +6,11 @@ package Game::TD::Button;
 use base qw(Game::TD::View);
 
 use Carp;
+
 use SDL;
-use SDL::TTFont;
+use SDL::Event;
+use SDLx::Sprite;
+use SDLx::Text;
 
 use Game::TD::Config;
 
@@ -45,64 +48,40 @@ sub new
     $self->{file}   = config->param($self->conf=>$self->name=>'file');
     $self->{text}   = config->param($self->conf=>$self->name=>'text');
 
-    $self->img(background => SDL::Surface->new(
-        -name   => $self->file,
-        -flags  => SDL_HWSURFACE,
-    )->rgba);
-#    $self->img('background')->display_format;
+    $self->sprite(background => SDLx::Sprite->new(image => $self->file));
+
     # Image size
-    $self->{width}  = int($self->img('background')->width  / 2);
+    $self->{width}  = int($self->sprite('background')->w  / 2);
     $self->{height} = $self->{width};
-    #int($self->img('background')->height / 3);
-    $self->size(background => SDL::Rect->new(
-        -width  => $self->width,
-        -height => $self->height
-    ));
 
     # Draw destination - all window
-    $self->dest(background => SDL::Rect->new(
-        -left   => $self->left,
-        -top    => $self->top,
-        -width  => $self->width,
-        -height => $self->height
-    ));
+    $self->sprite('background')->rect(SDL::Rect->new(
+        $self->left, $self->top, $self->width, $self->height));
 
     # Clip image states
     $self->clip(over => SDL::Rect->new(
-        -left   => 0,
-        -top    => 0,
-        -width  => $self->width,
-        -height => $self->height
+        0, 0,
+        $self->width, $self->height
     ));
     $self->clip(out => SDL::Rect->new(
-        -left   => $self->width,
-        -top    => 0,
-        -width  => $self->width,
-        -height => $self->height
+        $self->width, 0,
+        $self->width,$self->height
     ));
     $self->clip(down => SDL::Rect->new(
-        -left   => 0,
-        -top    => $self->height,
-        -width  => $self->width,
-        -height => $self->height
+        0, $self->height,
+        $self->width, $self->height
     ));
     $self->clip(up => SDL::Rect->new(
-        -left   => $self->width,
-        -top    => $self->height,
-        -width  => $self->width,
-        -height => $self->height
+        $self->width, $self->height,
+        $self->width, $self->height
     ));
     $self->clip(d_over => SDL::Rect->new(
-        -left   => 0,
-        -top    => $self->height * 2,
-        -width  => $self->width,
-        -height => $self->height
+        0, $self->height * 2,
+        $self->width, $self->height
     ));
     $self->clip(d_out => SDL::Rect->new(
-        -left   => $self->width,
-        -top    => $self->height * 2,
-        -width  => $self->width,
-        -height => $self->height
+        $self->width, $self->height * 2,
+        $self->width, $self->height
     ));
 
     # If button have text then load font for it
@@ -110,44 +89,27 @@ sub new
     {
         my $font  = config->param($self->conf=>$self->name=>'font');
         my $size  = config->param($self->conf=>$self->name=>'size');
-        my %color = config->color($self->conf=>$self->name=>'color');
+        my $color = config->color($self->conf=>$self->name=>'color');
 
-        if($self->name and $font and $size and %color)
+        if($self->name and $font and $size and $color)
         {
-            $self->font(text => SDL::TTFont->new(
-                -name => $font,
-                -size => $size,
-                -mode => SDL::UTF8_SOLID,
-#                -mode => SDL::UTF8_BLENDED,
-                -fg   => SDL::Color->new(%color),
-                -bg   => SDL::Color->new(-r => 255, -g => 0, -b => 0),
+            $self->font(text => SDLx::Text->new(
+                font    => $font,
+                size    => $size,
+                color   => $color,
+                mode    => 'utf8',
             ));
 
-#            $self->size(text => SDL::Rect->new(
-#                -width  => $self->font('text')->width($self->text),
-#                -height => $self->font('text')->height
-#            ));
-#
-#            die Dumper $self->size('text')->height;
-#
-#            my $left  = int(config->param($self->conf=>$self->name=>'tleft'));
-#            my $top   = int(config->param($self->conf=>$self->name=>'ttop'));
-#
-#
-#            $self->clip(text => SDL::Rect->new(
-#                -left   => $self->width,
-#                -top    => $self->height * 2,
-#                -width  => $self->width,
-#                -height => $self->height
-#            ));
+            $self->font('text')->text( $self->text );
 
-
+            $self->dest(text => $self->sprite('background')->rect);
         }
     }
 
     # Check initial state
-    my ($x, $y) = @{ SDL::GetMouseState() }[1 .. 2];
-    $self->is_over($x, $y) ?$self->state('over') :$self->state('out');
+#    my ($x, $y) = @{ SDL::GetMouseState() }[1 .. 2];
+#    $self->is_over($x, $y) ?$self->state('over') :$self->state('out');
+    $self->state('out');
 
     return $self;
 }
@@ -178,7 +140,7 @@ sub event
     }
     elsif($type == SDL_MOUSEBUTTONDOWN && ! $self->disable)
     {
-        if( $event->button == SDL_BUTTON_LEFT )
+        if( $event->button_button == SDL_BUTTON_LEFT )
         {
             $self->state('down')
                 if $self->is_over($event->button_x, $event->button_y);
@@ -189,7 +151,7 @@ sub event
         # Check 'down' for prevent press from another state
         if($self->state eq 'down')
         {
-            if( $event->button == SDL_BUTTON_LEFT )
+            if( $event->button_button == SDL_BUTTON_LEFT )
             {
                 $self->state('up')
                     if $self->is_over($event->button_x, $event->button_y);
@@ -205,19 +167,18 @@ sub draw
     my $self = shift;
 
     # Get clip for current state
-    my $clip = $self->state;
+    my $state = $self->state;
     # Fix clip if button disabled
-    $clip = (($self->state eq 'out') ?'d_out' : 'd_over')
+    $state = (($self->state eq 'out') ?'d_out' : 'd_over')
         if $self->disable;
 
-    $self->img('background')->blit(
-        $self->clip($clip), $self->app, $self->dest('background'));
+    $self->sprite('background')->clip( $self->clip($state) );
+    $self->sprite('background')->draw($self->app);
 
-    $self->font('text')->print(
+    $self->font('text')->write_xy(
         $self->app,
-        $self->dest('background')->left,
-        $self->dest('background')->top,
-        $self->text
+        $self->dest('text')->x,
+        $self->dest('text')->y,
     ) if $self->font('text');
 
     return 1;
@@ -253,7 +214,7 @@ sub clip
 {
     my ($self, $name, $value) = @_;
 
-    die 'Name required'             unless defined $name;
+    confess 'Name required'             unless defined $name;
     $self->{clip}{$name} = $value   if defined $value;
     return $self->{clip}{$name};
 }

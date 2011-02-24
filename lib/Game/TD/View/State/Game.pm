@@ -7,7 +7,7 @@ use base qw(Game::TD::View);
 
 use Carp;
 use SDL;
-use SDL::Surface;
+use SDLx::Sprite;
 use SDL::Rect;
 
 use Game::TD::Config;
@@ -41,27 +41,29 @@ sub new
     $self->_init_background;
 
     # Health counter font
-    $self->font(health => SDL::TTFont->new(
-        -name => config->param($self->conf=>'health'=>'font'),
-        -size => config->param($self->conf=>'health'=>'size'),
-        -mode => SDL::UTF8_SOLID,
-        -fg   => SDL::Color->new(config->color($self->conf=>'health'=>'color')),
+    $self->font(health => SDLx::Text->new(
+        font    => config->param($self->conf=>'health'=>'font'),
+        size    => config->param($self->conf=>'health'=>'size'),
+        color   => config->color($self->conf=>'health'=>'color'),
+        mode    => 'utf8',
     ));
     $self->dest(health => SDL::Rect->new(
-        -left   => config->param($self->conf=>'health'=>'fleft'),
-        -top    => config->param($self->conf=>'health'=>'ftop'),
+        config->param($self->conf=>'health'=>'fleft'),
+        config->param($self->conf=>'health'=>'ftop'),
+        0 ,0
     ));
 
     # Score font
-    $self->font(score => SDL::TTFont->new(
-        -name => config->param($self->conf=>'score'=>'font'),
-        -size => config->param($self->conf=>'score'=>'size'),
-        -mode => SDL::UTF8_SOLID,
-        -fg   => SDL::Color->new(config->color($self->conf=>'score'=>'color')),
+    $self->font(score => SDLx::Text->new(
+        font    => config->param($self->conf=>'score'=>'font'),
+        size    => config->param($self->conf=>'score'=>'size'),
+        color   => config->color($self->conf=>'score'=>'color'),
+        mode    => 'utf8',
     ));
     $self->dest(score => SDL::Rect->new(
-        -left   => config->param($self->conf=>'score'=>'fleft'),
-        -top    => config->param($self->conf=>'score'=>'ftop'),
+        config->param($self->conf=>'score'=>'fleft'),
+        config->param($self->conf=>'score'=>'ftop'),
+        0 ,0
     ));
 
     # Zero coordinates for map
@@ -69,15 +71,16 @@ sub new
     my $mtop  = config->param($self->conf=>'map'=>'top');
 
     # Sleep font
-    $self->font(sleep => SDL::TTFont->new(
-        -name => config->param($self->conf=>'sleep'=>'font'),
-        -size => config->param($self->conf=>'sleep'=>'size'),
-        -mode => SDL::UTF8_SOLID,
-        -fg   => SDL::Color->new(config->color($self->conf=>'sleep'=>'color')),
+    $self->font(sleep => SDLx::Text->new(
+        font    => config->param($self->conf=>'sleep'=>'font'),
+        size    => config->param($self->conf=>'sleep'=>'size'),
+        color   => config->color($self->conf=>'sleep'=>'color'),
+        mode    => 'utf8',
     ));
     $self->dest(sleep => SDL::Rect->new(
-        -left   => $mleft + config->param($self->conf=>'sleep'=>'fleft'),
-        -top    => $mtop +  config->param($self->conf=>'sleep'=>'ftop'),
+        $mleft + config->param($self->conf=>'sleep'=>'fleft'),
+        $mtop  + config->param($self->conf=>'sleep'=>'ftop'),
+        0 ,0
     ));
 
     return $self;
@@ -91,21 +94,22 @@ sub _init_background
     $self->SUPER::_init_background( $self->conf );
 
     # Level title font
-    $self->font(title => SDL::TTFont->new(
-        -name => config->param($self->conf=>'title'=>'font'),
-        -size => config->param($self->conf=>'title'=>'size'),
-        -mode => SDL::UTF8_SOLID,
-        -fg   => SDL::Color->new(config->color($self->conf=>'title'=>'color')),
+    $self->font(title => SDLx::Text->new(
+        font    => config->param($self->conf=>'title'=>'font'),
+        size    => config->param($self->conf=>'title'=>'size'),
+        color   => config->color($self->conf=>'title'=>'color'),
+        mode    => 'utf8',
     ));
     $self->dest(title => SDL::Rect->new(
-        -left   => config->param($self->conf=>'title'=>'fleft'),
-        -top    => config->param($self->conf=>'title'=>'ftop'),
+        config->param($self->conf=>'title'=>'fleft'),
+        config->param($self->conf=>'title'=>'ftop'),
+        0 ,0
     ));
     # Draw title on background
-    $self->font('title')->print(
-        $self->img('background'),
-        $self->dest('title')->left,
-        $self->dest('title')->top,
+    $self->font('title')->write_xy(
+        $self->sprite('background')->surface,
+        $self->dest('title')->x,
+        $self->dest('title')->y,
         $self->model->title,
     );
 
@@ -180,51 +184,27 @@ sub _draw_map_tile
     my $name = $type . $mod;
 
     # Load item tile if not defined
-    unless( defined $self->img($name) )
+    unless( defined $self->sprite($name) )
     {
-        $self->img($name => SDL::Surface->new(
-            -name   => config->param('map'=>$type=>$mod=>'file'),
-            -flags  => SDL_SWSURFACE,
-        ));
-
-        $self->size($name => SDL::Rect->new(
-            -left   => 0,
-            -top    => 0,
-            -width  => $self->img($name)->width,
-            -height => $self->img($name)->height
+        $self->sprite($name => SDLx::Sprite->new(
+            image => config->param('map'=>$type=>$mod=>'file'),
         ));
     }
 
-    my $dx =
-        int(($self->size($name)->width  - $self->model->tail_width)/2);
-    my $dy =
-        int(($self->size($name)->height - $self->model->tail_height)/2);
+    my $dx = int(($self->sprite($name)->w - $self->model->tail_width)  / 2);
+    my $dy = int(($self->sprite($name)->h - $self->model->tail_height) / 2);
 
-    my $dest = SDL::Rect->new(
-        -left   =>  $mleft + $self->model->tail_width  * $x - $dx,
-        -top    =>  $mtop  + $self->model->tail_height * $y - $dy,
-        -width  => $self->size($name)->width,
-        -height => $self->size($name)->height
-    );
-
-    my $src = SDL::Rect->new(
-        -left   => $self->size($name)->left,
-        -top    => $self->size($name)->top,
-        -width  => $self->size($name)->width,
-        -height => $self->size($name)->height
-    );
-
-#            if($type eq 'tree')
-#            {
-#                printf "%s:%s \t dx=%s, dy=%s \t src=%s:%s,%sx%s \t dest:%s:%s,%s:%s\n",
-#                    $x, $y, $dx, $dy,
-#
-#                    $src->left, $src->top, $src->width, $src->height,
-#                    $dest->left, $dest->top, $dest->width, $dest->height;
-#            }
+    $self->sprite($name)->rect(SDL::Rect->new(
+        $mleft + $self->model->tail_width  * $x - $dx,
+        $mtop  + $self->model->tail_height * $y - $dy,
+        $self->sprite($name)->w,
+        $self->sprite($name)->h
+    ));
 
     # Apply item tile to background
-    $self->img($name)->blit($src, $self->img($to), $dest);
+    $self->sprite($name)->draw( $self->sprite($to)->surface );
+#    $self->sprite($name)->draw( $self->app );
+#    $self->sprite($name)->blit($src, $self->sprite($to), $dest);
 }
 
 =head2 draw
@@ -238,24 +218,23 @@ sub draw
     my ($self) = @_;
 
     # Draw background
-    $self->img('background')->blit(
-        $self->size('background'), $self->app, $self->dest('background'));
+    $self->sprite('background')->draw( $self->app );
 
     # Draw health counter
-    $self->font('health')->print(
+    $self->font('health')->write_xy(
         $self->app,
-        $self->dest('health')->left,
-        $self->dest('health')->top,
+        $self->dest('health')->x,
+        $self->dest('health')->y,
         sprintf '%s %s',
             config->param($self->conf=>'health'=>'text') || '',
             $self->model->health,
     );
 
     # Draw score
-    $self->font('score')->print(
+    $self->font('score')->write_xy(
         $self->app,
-        $self->dest('score')->left,
-        $self->dest('score')->top,
+        $self->dest('score')->x,
+        $self->dest('score')->y,
         sprintf '%s %s',
             config->param($self->conf=>'score'=>'text') || '',
             $self->model->player->score,
@@ -267,11 +246,11 @@ sub draw
         $text = 'Go!' if $text < 1;
 
         # Draw sleep
-        $self->font('sleep')->print(
+        $self->font('sleep')->write_xy(
             $self->app,
-            $self->dest('sleep')->left,
-            $self->dest('sleep')->top,
-            $text,
+            $self->dest('sleep')->x,
+            $self->dest('sleep')->y,
+            $text
         );
 
         return;

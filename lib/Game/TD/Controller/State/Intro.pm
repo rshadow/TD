@@ -70,7 +70,7 @@ sub event
     {
         $result{quit} = 1;
     }
-    elsif($type == SDL_KEYDOWN)
+    elsif($type == SDL_KEYDOWN or $type == SDL_KEYUP)
     {
         my $key = $event->key_sym;
 
@@ -78,10 +78,14 @@ sub event
         {
             $result{quit} = 1;
         }
+        else
+        {
+            # Goto Menu
+            $result{state} = 'menu';
+        }
     }
     # On any key press event go to menu
-    elsif( $type == SDL_KEYDOWN         or $type == SDL_KEYUP       or
-           $type == SDL_MOUSEBUTTONDOWN or $type == SDL_MOUSEBUTTONUP)
+    elsif($type == SDL_MOUSEBUTTONDOWN or $type == SDL_MOUSEBUTTONUP)
     {
         # Goto Menu
         $result{state} = 'menu';

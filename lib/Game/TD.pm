@@ -8,6 +8,7 @@ use 5.10.0;
 our $VERSION = 0.2;
 
 use SDL 2.530;
+use SDL::Event;
 use SDL::Surface;
 use SDLx::App;
 use SDLx::FPS;
@@ -41,7 +42,6 @@ sub new
         double_buffer   => config->param('common'=>'window'=>'dbuffer'),
         fullscreen      => config->param('common'=>'window'=>'fullscreen'),
         flags           => SDL_HWACCEL,
-#        asyncblit   => 1,
     ));
 
     $self->app->dt(0.1);
@@ -52,17 +52,32 @@ sub new
 
     # Events
     $self->app->add_event_handler(
-        sub { my ($event, $app) = @_;       $self->core->event( $event ); }
+        sub
+        {
+            my ($event, $app) = @_;
+            # Quit if event handler return false
+            exit unless $self->core->event( $event );
+            # Quit on SDL_QUIT event
+            exit if $event->type eq SDL_QUIT;
+        }
     );
 
-    # Update model
+    # Model
     $self->app->add_move_handler(
-        sub { my ($step, $app, $t) = @_;    $self->core->update; }
+        sub
+        {
+            my ($step, $app, $t) = @_;
+            $self->core->update;
+        }
     );
 
     # View
     $self->app->add_show_handler(
-        sub { my ($delta, $app) = @_;       $self->core->draw; }
+        sub
+        {
+            my ($delta, $app) = @_;
+            $self->core->draw;
+        }
     );
 
     return $self;
@@ -77,6 +92,9 @@ Run game loop
 sub run
 {
     my ($self) = @_;
+
+    notify 'Run';
+
     $self->app->run;
 }
 
@@ -100,8 +118,6 @@ DESTROY
 
     notify 'Stop';
 
-    # Stop executing
-    $self->app->remove_all_handlers;
     # Delete objects
     delete $self->{core};
     delete $self->{app};

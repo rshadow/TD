@@ -53,8 +53,7 @@ sub draw
     my ($self) = @_;
 
     # Draw background
-    $self->img('background')->blit(
-        $self->size('background'), $self->app, $self->dest('background'));
+    $self->sprite('background')->draw( $self->app );
 }
 
 1;

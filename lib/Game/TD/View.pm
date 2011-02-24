@@ -5,7 +5,8 @@ use utf8;
 package Game::TD::View;
 
 use Carp;
-#use SDL;
+
+use SDL;
 use SDLx::Sprite;
 use SDLx::Text;
 
@@ -53,6 +54,7 @@ sub _init
         font    => config->param('common'=>'fps'=>'font'),
         size    => config->param('common'=>'fps'=>'size'),
         color   => config->color('common'=>'fps'=>'color'),
+        mode    => 'utf8',
     ));
 
     $self->dest(fps => SDL::Rect->new(
@@ -68,31 +70,10 @@ sub _init_background
 
     # Load background image from file
     $self->sprite(background => SDLx::Sprite->new(
-        image   => config->param($self->conf=>'background'=>'file')
+        image   => config->param($self->conf(caller)=>'background'=>'file')
     ));
-#    $self->img->load(config->param($conf=>'background'=>'file'));
-     $self->sprite('background')->draw( $self->app );
 
-#    $self->sprite( background => SDL::Surface->new(
-#        -name   => config->param($conf=>'background'=>'file'),
-#        -flags  => SDL_HWSURFACE,
-#    ));
-#    $self->sprite('background')->display_format;
-    # Image size
-#    $self->size(background => SDL::Rect->new(
-#        -width  => $self->sprite('background')->width,
-#        -height => $self->sprite('background')->height
-#    ));
-#    # Draw destination - all window
-#    $self->dest(background => SDL::Rect->new(
-#        -left   => 0,
-#        -top    => 0,
-#        -width  => config->param('common'=>'window'=>'width'),
-#        -height => config->param('common'=>'window'=>'height')
-#    ));
-
-#    $self->sprite('background')->blit(
-#        $self->size('background'), $self->app, $self->dest('background'));
+    $self->sprite('background')->draw( $self->app );
 }
 
 =head2
@@ -173,8 +154,9 @@ Return config part name by view package name
 
 sub conf
 {
-    my $self = shift;
-    my $pkg = caller;
+    my ($self, $pkg) = @_;
+    $pkg //= caller;
+
     my ($conf) = $pkg =~ m/^Game::TD::View::State::(.*?)$/;
     $conf = lc $conf;
     return $conf;

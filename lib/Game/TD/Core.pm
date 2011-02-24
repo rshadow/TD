@@ -33,6 +33,9 @@ sub new
         name => config->param('user'=>'name')
     ));
 
+    $self->counter('frame' => 0);
+    $self->counter('time'  => $self->app->ticks);
+
     # Run from intro
     $self->state('intro');
 
@@ -134,24 +137,20 @@ sub draw
 
     $self->ctrl( $self->state )->draw;
 
-    $self->ctrl( $self->state )->draw_fps(
-        config->param('common'=>'fps'=>'value'))
-            if config->param(user => 'showfps');
+    if( config->param(user => 'showfps') )
+    {
+        $self->counter( 'frame' => ($self->counter('frame') + 1) );
+        if($self->app->ticks - $self->counter('time') >= 1000)
+        {
+            $self->fps( $self->counter('frame') );
+            $self->counter('frame' => 0);
+            $self->counter('time' => $self->app->ticks);
+        }
+
+        $self->ctrl( $self->state )->draw_fps($self->fps);
+    }
 
     $self->app->flip;
-}
-
-=head2 draw_fps $fps
-
-Handler for update $fps count event
-
-=cut
-
-sub draw_fps
-{
-    my ($self, $fps) = @_;
-
-    return $self->ctrl( $self->state )->draw_fps($fps);
 }
 
 sub event
@@ -208,6 +207,21 @@ sub player
     my ($self, $player) = @_;
     $self->{player} = $player if defined $player;
     return $self->{player};
+}
+
+sub fps
+{
+    my ($self, $fps) = @_;
+    $self->{fps} = $fps if defined $fps;
+    return $self->{fps};
+}
+
+sub counter
+{
+    my ($self, $name, $value) = @_;
+    croak 'Name required' unless defined $name;
+    $self->{counter}{$name} = $value if defined $value;
+    return $self->{counter}{$name};
 }
 
 1;
