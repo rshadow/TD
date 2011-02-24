@@ -37,7 +37,7 @@ sub new
 
     my $self = $class->SUPER::new(%opts);
 
-    $self->_init_background($self->conf);
+    $self->_init_background;
 
     return $self;
 }
@@ -53,8 +53,7 @@ sub draw
     my ($self) = @_;
 
     # Draw background
-    $self->img('background')->blit(
-        $self->size('background'), $self->app, $self->dest('background'));
+    $self->sprite('background')->draw($self->app);
 }
 
 1;

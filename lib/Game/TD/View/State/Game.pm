@@ -38,7 +38,7 @@ sub new
 
     my $self = $class->SUPER::new(%opts);
 
-    $self->_init_background($self->conf);
+    $self->_init_background;
 
     # Health counter font
     $self->font(health => SDL::TTFont->new(
@@ -88,7 +88,7 @@ sub _init_background
     my ($self, $conf) = @_;
 
     # Load starndart background image
-    $self->SUPER::_init_background( $conf );
+    $self->SUPER::_init_background( $self->conf );
 
     # Level title font
     $self->font(title => SDL::TTFont->new(

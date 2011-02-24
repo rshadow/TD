@@ -5,7 +5,7 @@ use utf8;
 package Game::TD::Controller::State::Menu;
 use base qw(Game::TD::Controller);
 
-use SDL;
+use SDL::Event;
 
 use Game::TD::Config;
 use Game::TD::Model::State::Menu;
@@ -79,9 +79,18 @@ sub event
     my $type = $event->type;
 
     # Quit if Esc
-    if($type eq SDL_QUIT or SDL::GetKeyState(SDLK_ESCAPE))
+    if($type == SDL_QUIT)
     {
         $result{quit} = 1;
+    }
+    elsif($type == SDL_KEYDOWN)
+    {
+        my $key = $event->key_sym;
+
+        if($key == SDLK_ESCAPE)
+        {
+            $result{quit} = 1;
+        }
     }
 #    # On any key press event go to menu
 #    elsif( $type == SDL_KEYDOWN         or $type == SDL_KEYUP       or

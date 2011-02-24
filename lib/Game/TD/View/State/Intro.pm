@@ -37,7 +37,7 @@ sub new
 
     my $self = $class->SUPER::new(%opts);
 
-    $self->_init_background($self->conf);
+    $self->_init_background;
 
     # Load image from file
     $self->sprite('logo' => SDLx::Sprite->new(

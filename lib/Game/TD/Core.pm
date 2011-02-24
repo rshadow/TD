@@ -8,11 +8,6 @@ use Carp;
 use SDL;
 
 use Game::TD::Config;
-use Game::TD::Controller::State::Intro;
-#use Game::TD::Controller::State::Menu;
-#use Game::TD::Controller::State::Board;
-#use Game::TD::Controller::State::Game;
-
 use Game::TD::Model::Player;
 
 =head1 Game::TD::Model
@@ -62,6 +57,7 @@ sub state
         # Load controller for new state
         if($state eq 'intro')
         {
+            require Game::TD::Controller::State::Intro;
             $self->ctrl($state =>
                 Game::TD::Controller::State::Intro->new(
                     app => $self->app,
@@ -70,6 +66,7 @@ sub state
         }
         elsif( $state eq 'menu' )
         {
+            require Game::TD::Controller::State::Menu;
             $self->ctrl($state  =>
                 Game::TD::Controller::State::Menu->new(
                     app => $self->app,
@@ -78,6 +75,7 @@ sub state
         }
         elsif($state eq 'board')
         {
+            require Game::TD::Controller::State::Board;
             $self->ctrl($state =>
                 Game::TD::Controller::State::Board->new(
                     app     => $self->app,
@@ -87,6 +85,7 @@ sub state
         }
         elsif($state eq 'game')
         {
+            require Game::TD::Controller::State::Game;
             $self->ctrl($state =>
                 Game::TD::Controller::State::Game->new(
                     app     => $self->app,
@@ -133,7 +132,13 @@ sub draw
 {
     my $self = shift;
 
-    return $self->ctrl( $self->state )->draw;
+    $self->ctrl( $self->state )->draw;
+
+    $self->ctrl( $self->state )->draw_fps(
+        config->param('common'=>'fps'=>'value'))
+            if config->param(user => 'showfps');
+
+    $self->app->flip;
 }
 
 =head2 draw_fps $fps

@@ -66,11 +66,9 @@ sub _init_background
 {
     my ($self, $conf) = @_;
 
-    croak 'Missing required parameter "conf"' unless defined $conf;
-
     # Load background image from file
     $self->sprite(background => SDLx::Sprite->new(
-        image   => config->param($conf=>'background'=>'file')
+        image   => config->param($self->conf=>'background'=>'file')
     ));
 #    $self->img->load(config->param($conf=>'background'=>'file'));
      $self->sprite('background')->draw( $self->app );

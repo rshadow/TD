@@ -6,7 +6,7 @@ package Game::TD::Controller::State::Board;
 use base qw(Game::TD::Controller);
 
 use Carp;
-use SDL;
+use SDL::Event;
 
 use Game::TD::Config;
 use Game::TD::Model::State::Board;
@@ -86,9 +86,18 @@ sub event
     my $type = $event->type;
 
     # Quit if Esc
-    if($type eq SDL_QUIT or SDL::GetKeyState(SDLK_ESCAPE))
+    if($type == SDL_QUIT)
     {
         $result{quit} = 1;
+    }
+    elsif($type == SDL_KEYDOWN)
+    {
+        my $key = $event->key_sym;
+
+        if($key == SDLK_ESCAPE)
+        {
+            $result{quit} = 1;
+        }
     }
     # Just send event to buttons
     elsif($type == SDL_MOUSEMOTION or $type == SDL_MOUSEBUTTONDOWN)
