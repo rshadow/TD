@@ -76,6 +76,7 @@ sub new
         size    => config->param($self->conf=>'sleep'=>'size'),
         color   => config->color($self->conf=>'sleep'=>'color'),
         mode    => 'utf8',
+        h_align => 'center',
     ));
     $self->dest(sleep => SDL::Rect->new(
         $mleft + config->param($self->conf=>'sleep'=>'fleft'),
@@ -110,14 +111,14 @@ sub _init_background
         $self->sprite('background')->surface,
         $self->dest('title')->x,
         $self->dest('title')->y,
-        $self->model->title,
+        $self->model->level->title,
     );
 
     # Zero coordinates for map
     my $mleft = config->param($self->conf=>'map'=>'left');
     my $mtop  = config->param($self->conf=>'map'=>'top');
 
-    my @map = $self->model->map;
+    my @map = $self->model->level->map;
 
     # Draw map tiles on background
     for my $y (0 .. $#map )
@@ -191,20 +192,18 @@ sub _draw_map_tile
         ));
     }
 
-    my $dx = int(($self->sprite($name)->w - $self->model->tail_width)  / 2);
-    my $dy = int(($self->sprite($name)->h - $self->model->tail_height) / 2);
+    my $dx = int(($self->sprite($name)->w - $self->model->level->tail_width)  / 2);
+    my $dy = int(($self->sprite($name)->h - $self->model->level->tail_height) / 2);
 
     $self->sprite($name)->rect(SDL::Rect->new(
-        $mleft + $self->model->tail_width  * $x - $dx,
-        $mtop  + $self->model->tail_height * $y - $dy,
+        $mleft + $self->model->level->tail_width  * $x - $dx,
+        $mtop  + $self->model->level->tail_height * $y - $dy,
         $self->sprite($name)->w,
         $self->sprite($name)->h
     ));
 
     # Apply item tile to background
     $self->sprite($name)->draw( $self->sprite($to)->surface );
-#    $self->sprite($name)->draw( $self->app );
-#    $self->sprite($name)->blit($src, $self->sprite($to), $dest);
 }
 
 =head2 draw
@@ -227,7 +226,7 @@ sub draw
         $self->dest('health')->y,
         sprintf '%s %s',
             config->param($self->conf=>'health'=>'text') || '',
-            $self->model->health,
+            $self->model->level->health,
     );
 
     # Draw score
@@ -246,10 +245,11 @@ sub draw
         $text = 'Go!' if $text < 1;
 
         # Draw sleep
-        $self->font('sleep')->write_xy(
+#        $self->font('sleep')->text($text);
+        $self->font('sleep')->write_to(
             $self->app,
-            $self->dest('sleep')->x,
-            $self->dest('sleep')->y,
+#            $self->font('sleep')->x,
+#            $self->font('sleep')->y,
             $text
         );
 

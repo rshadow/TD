@@ -3,6 +3,7 @@ use warnings;
 use utf8;
 
 package Game::TD::Model::State::Menu;
+use base qw(Game::TD::Model);
 
 =head1 Game::TD::Model::State::Menu
 

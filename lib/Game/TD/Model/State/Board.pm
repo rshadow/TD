@@ -3,6 +3,7 @@ use warnings;
 use utf8;
 
 package Game::TD::Model::State::Board;
+use base qw(Game::TD::Model);
 
 use Game::TD::Config;
 

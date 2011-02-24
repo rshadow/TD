@@ -3,13 +3,10 @@ use warnings;
 use utf8;
 
 package Game::TD::Model::State::Game;
-
-use SDLx::Controller::Timer;
+use base qw(Game::TD::Model);
 
 use Game::TD::Config;
-
-use constant TAIL_WIDTH     => 50;
-use constant TAIL_HEIGHT    => 50;
+use Game::TD::Model::Level;
 
 =head1 Game::TD::Model::State::Game
 
@@ -35,22 +32,14 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    die 'Missing required param "level"'    unless defined $opts{level};
+    die 'Missing required param "level_no"' unless defined $opts{level_no};
     die 'Missing required param "player"'   unless defined $opts{player};
 
     my $self = bless \%opts, $class;
 
-    # Load level hash
-    my ($file) =
-        glob sprintf '%s/%d.*.level', config->dir('level'), $self->level;
-    my %level = do $file;
-    die $@ if $@;
+    $self->level(Game::TD::Model::Level->new(level => $self->level_no));
 
-    # Concat
-    $self->{$_} = $level{$_} for keys %level;
-
-    $self->timer('sleep' => SDLx::Controller::Timer->new() );
-    $self->timer('sleep')->start;
+    $self->timer('sleep'=>'new')->start;
 
     return $self;
 }
@@ -60,62 +49,30 @@ sub update
     my $self = shift;
 
 
-    if( $self->sleep )
+    if( $self->level->sleep )
     {
-        $self->left( $self->sleep - $self->timer('sleep')->get_ticks );
+        $self->left( $self->level->sleep - $self->timer('sleep')->get_ticks );
         return 1;
     }
 
-    return 0 if $self->health <= 0;
+    return 0 if $self->level->health <= 0;
     return 1;
 }
 
-sub level   { return shift()->{level};  }
-sub player  { return shift()->{player}; }
+sub level_no    { return shift()->{level_no};   }
+sub player      { return shift()->{player};     }
 
-sub name
+sub level
 {
-    my ($self) = @_;
-    die 'Missing "name" parameter in level file'
-        unless defined $self->{name};
-    return $self->{name};
-}
-
-sub title
-{
-    my ($self) = @_;
-    die 'Missing "title" parameter in level file'
-        unless defined $self->{title};
-    return $self->{title};
-}
-
-sub map
-{
-    my ($self) = @_;
-    die 'Missing "map" parameter in level file'
-        unless defined $self->{map};
-    return (wantarray) ? @{$self->{map}} :$self->{map};
-}
-
-sub wave
-{
-    my ($self) = @_;
-    die 'Missing "wave" parameter in level file'
-        unless defined $self->{wave};
-    return (wantarray) ? @{$self->{wave}} :$self->{wave};
-}
-
-sub sleep
-{
-    my ($self) = @_;
-    die 'Missing "sleep" parameter in level file'
-        unless defined $self->{sleep};
-    return $self->{sleep};
+    my ($self, $level) = @_;
+    $self->{level} = $level if defined $level;
+    return $self->{level};
 }
 
 =head2 left
 
-Get/Set counter for game start. See <i>sleep</i> function.
+Get/Set counter for game start. See <i>Game::TD::Model::Level::sleep</i>
+function.
 
 =cut
 
@@ -129,22 +86,4 @@ sub left
     return $self->{left};
 }
 
-sub health
-{
-    my ($self) = @_;
-    die 'Missing "health" parameter in level file'
-        unless defined $self->{health};
-    return $self->{health};
-}
-
-sub timer
-{
-    my ($self, $name, $timer) = @_;
-    die 'Missing required parameter "name"' unless defined $name;
-    $self->{timer}{$name} = $timer if defined $timer;
-    return $self->{timer}{$name};
-}
-
-sub tail_width  { return TAIL_WIDTH  }
-sub tail_height { return TAIL_HEIGHT }
 1;
