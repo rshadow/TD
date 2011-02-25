@@ -48,4 +48,11 @@ sub timer
     return $self->{timer}{$name};
 }
 
+DESTROY
+{
+    my $self = shift;
+
+    undef $self->{timer}{$_} for keys %{ $self->{timer} };
+}
+
 1;

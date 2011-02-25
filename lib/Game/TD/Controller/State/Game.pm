@@ -40,7 +40,7 @@ sub new
     my $self = $class->SUPER::new(%opts);
 
     $self->model( Game::TD::Model::State::Game->new(
-        level_no    => $opts{level},
+        level       => $opts{level},
         player      => $self->player,
     ));
 

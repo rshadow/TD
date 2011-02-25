@@ -226,4 +226,11 @@ sub disable
     return $self->{disable};
 }
 
+DESTROY
+{
+    my $self = shift;
+
+    undef $self->{clip}{$_} for keys %{ $self->{clip} };
+}
+
 1;

@@ -143,4 +143,15 @@ sub conf
     return $conf;
 }
 
+DESTROY
+{
+    my $self = shift;
+
+    undef $self->{dest}{$_}     for keys %{ $self->{dest}   };
+    undef $self->{font}{$_}     for keys %{ $self->{font}   };
+    undef $self->{sprite}{$_}   for keys %{ $self->{sprite} };
+    undef $self->{model};
+    undef $self->{app};
+}
+
 1;

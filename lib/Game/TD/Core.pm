@@ -227,7 +227,7 @@ sub free
 {
     my ($self, $name) = @_;
     croak 'Name required' unless defined $name;
-    delete $self->{ctrl}{$name};
+    undef $self->{ctrl}{$name};
 }
 
 sub player

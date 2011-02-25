@@ -59,7 +59,6 @@ sub new
     my %opts;
 
     # Absolute resources dirs
-    $opts{dir}{map}         = base . '/data/map';
 #    $opts{dir}{img}         = $opts{dir}{base} . '/data/img';
     $opts{dir}{po}          = base . '/po';
     $opts{dir}{config}      = base . '/data/conf';
@@ -128,7 +127,7 @@ sub param
 {
     my ($self, @path) = @_;
     my $path = '$self->{param}';
-    $path .= '{'.$_.'}' for @path;
+    $path .= '{\''.$_.'\'}' for @path;
     my $result = eval $path;
     return $result;
 }

@@ -32,12 +32,14 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    die 'Missing required param "level_no"' unless defined $opts{level_no};
+    die 'Missing required param "level"'    unless defined $opts{level};
     die 'Missing required param "player"'   unless defined $opts{player};
+
+    my $num = delete $opts{level};
 
     my $self = bless \%opts, $class;
 
-    $self->level(Game::TD::Model::Level->new(level => $self->level_no));
+    $self->level(Game::TD::Model::Level->new(num => $num));
 
     $self->timer('sleep'=>'new')->start;
 
@@ -48,18 +50,19 @@ sub update
 {
     my $self = shift;
 
-
+    # Sleep timer
     if( $self->level->sleep )
     {
         $self->left( $self->level->sleep - $self->timer('sleep')->get_ticks );
         return 1;
     }
 
+    $self->level->update;
+
     return 0 if $self->level->health <= 0;
     return 1;
 }
 
-sub level_no    { return shift()->{level_no};   }
 sub player      { return shift()->{player};     }
 
 sub level

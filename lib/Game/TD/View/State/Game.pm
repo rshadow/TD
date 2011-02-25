@@ -80,8 +80,8 @@ sub new
         h_align => 'center',
     ));
     $self->dest(sleep => SDL::Rect->new(
-        $mleft + $self->model->level->tail_map_width  / 2,
-        $mtop  + $self->model->level->tail_map_height / 2,
+        $mleft + $self->model->level->map->tail_map_width  / 2,
+        $mtop  + $self->model->level->map->tail_map_height / 2,
         0 ,0
     ));
 
@@ -119,18 +119,17 @@ sub _init_background
     my $mleft = config->param($self->conf=>'map'=>'left');
     my $mtop  = config->param($self->conf=>'map'=>'top');
 
-    my @map = $self->model->level->map;
-
     # Draw map tiles on background
-    for my $y (0 .. $#map )
+    for my $y (0 .. ($self->model->level->map->height - 1) )
     {
-        my @line = @{ $map[$y] };
-        for my $x (0 .. $#line)
+        for my $x (0 .. ($self->model->level->map->width - 1))
         {
+            my $tail = $self->model->level->map->tail($y,$x);
+
             $self->_draw_map_tile(
                 to      => 'background',
-                type    => $map[$y][$x]->{type},
-                mod     => $map[$y][$x]->{mod},
+                type    => $tail->{type},
+                mod     => $tail->{mod},
                 mleft   => $mleft,
                 mtop    => $mtop,
                 x       => $x,
@@ -140,18 +139,19 @@ sub _init_background
     }
 
     # Draw items on background
-    for my $y (0 .. $#map )
+    for my $y (0 .. ($self->model->level->map->height - 1) )
     {
-        my @line = @{ $map[$y] };
-        for my $x (0 .. $#line)
+        for my $x (0 .. ($self->model->level->map->width - 1))
         {
+            my $tail = $self->model->level->map->tail($y,$x);
+
             # If exists item then load it
-            next unless exists $map[$y][$x]->{item};
+            next unless exists $tail->{item};
 
             $self->_draw_map_tile(
                 to      => 'background',
-                type    => $map[$y][$x]->{item}{type},
-                mod     => $map[$y][$x]->{item}{mod},
+                type    => $tail->{item}{type},
+                mod     => $tail->{item}{mod},
                 mleft   => $mleft,
                 mtop    => $mtop,
                 x       => $x,
@@ -189,16 +189,18 @@ sub _draw_map_tile
     unless( defined $self->sprite($name) )
     {
         $self->sprite($name => SDLx::Sprite->new(
-            image => config->param('map'=>$type=>$mod=>'file'),
+            image => config->param('img'=>$type=>$mod=>'file'),
         ));
     }
 
-    my $dx = int(($self->sprite($name)->w - $self->model->level->tail_width)  / 2);
-    my $dy = int(($self->sprite($name)->h - $self->model->level->tail_height) / 2);
+    my $dx = int(
+        ($self->sprite($name)->w - $self->model->level->map->tail_width)  / 2);
+    my $dy = int(
+        ($self->sprite($name)->h - $self->model->level->map->tail_height) / 2);
 
     $self->sprite($name)->rect(SDL::Rect->new(
-        $mleft + $self->model->level->tail_width  * $x - $dx,
-        $mtop  + $self->model->level->tail_height * $y - $dy,
+        $mleft + $self->model->level->map->tail_width  * $x - $dx,
+        $mtop  + $self->model->level->map->tail_height * $y - $dy,
         $self->sprite($name)->w,
         $self->sprite($name)->h
     ));

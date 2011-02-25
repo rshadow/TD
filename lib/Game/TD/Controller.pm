@@ -183,9 +183,11 @@ Free model and view resources
 DESTROY
 {
     my $self = shift;
-    delete $self->{view};
-    delete $self->{model};
-    delete $self->{app};
+
+    undef $self->{button}{$_} for keys %{ $self->{button} };
+    undef $self->{view};
+    undef $self->{model};
+    undef $self->{app};
 }
 
 1;

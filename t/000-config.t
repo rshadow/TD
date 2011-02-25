@@ -23,7 +23,7 @@ BEGIN {
 
 ok config, 'Config created';
 ok config->base, 'Get base dir';
-ok config->dir('map') && config->dir('po') && config->dir('level') &&
+ok config->dir('po') && config->dir('level') &&
    config->dir('config'),
     'All dir params';
 ok defined config->param('user'=>'debug'), 'All file params';
