@@ -88,32 +88,13 @@ sub draw_fps
 
     return unless defined $fps;
 
-#    $self->sprite('background')->clip($x,$y,$w,$h);
-#    $self->sprite('background')->draw();
-
-    $self->font('fps')->text(sprintf '%d fps', $fps);
+    # Draw new FPS value
     $self->font('fps')->write_xy(
         $self->app,
         config->param('common'=>'fps'=>'left'),
-        config->param('common'=>'fps'=>'top')
+        config->param('common'=>'fps'=>'top'),
+        sprintf '%d fps', $fps
     );
-
-#    $self->font('fps')->draw($self->dest('fps'));
-#    $self->font('fps')->write_to(
-#        $self->dest('fps'),
-#    );
-
-#    my $str = sprintf '%d fps', $fps;
-#
-#    $self->sprite('background')->blit(
-#        $self->size('fps'), $self->app, $self->dest('fps'));
-#
-#    $self->font('fps')->print(
-#        $self->app,
-#        $self->dest('fps')->left,
-#        $self->dest('fps')->top,
-#        $str
-#    );
 }
 
 sub app         {return shift()->{app}}

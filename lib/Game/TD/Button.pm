@@ -9,6 +9,7 @@ use Carp;
 
 use SDL;
 use SDL::Event;
+use SDL::Events;
 use SDLx::Sprite;
 use SDLx::Text;
 
@@ -107,9 +108,8 @@ sub new
     }
 
     # Check initial state
-#    my ($x, $y) = @{ SDL::GetMouseState() }[1 .. 2];
-#    $self->is_over($x, $y) ?$self->state('over') :$self->state('out');
-    $self->state('out');
+    my ($x, $y) = @{ SDL::Events::get_mouse_state() }[1 .. 2];
+    $self->is_over($x, $y) ?$self->state('over') :$self->state('out');
 
     return $self;
 }

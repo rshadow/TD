@@ -20,7 +20,7 @@ wave => [
             runner,
         ],
         # Sleep between units run
-        sleep   => 100,
+        sleep   => 500,
     },
     # Wave 2
     {
@@ -36,7 +36,7 @@ wave => [
             runner2,
             runner2,
         ],
-        sleep   => 100,
+        sleep   => 500,
     },
 ],
 

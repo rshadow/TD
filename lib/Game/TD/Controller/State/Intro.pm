@@ -65,24 +65,10 @@ sub event
     my %result;
     my $type = $event->type;
 
-    # Quit if Esc
-    if($type == SDL_QUIT)
+    if($type == SDL_KEYDOWN or $type == SDL_KEYUP)
     {
-        $result{quit} = 1;
-    }
-    elsif($type == SDL_KEYDOWN or $type == SDL_KEYUP)
-    {
-        my $key = $event->key_sym;
-
-        if($key == SDLK_ESCAPE)
-        {
-            $result{quit} = 1;
-        }
-        else
-        {
-            # Goto Menu
-            $result{state} = 'menu';
-        }
+        # Goto Menu
+        $result{state} = 'menu';
     }
     # On any key press event go to menu
     elsif($type == SDL_MOUSEBUTTONDOWN or $type == SDL_MOUSEBUTTONUP)

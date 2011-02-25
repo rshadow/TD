@@ -111,14 +111,39 @@ sub health
 
 sub level       { return shift()->{level} }
 
+=head2 tail_width
+
+Get tail width in pixel
+
+=cut
+
 sub tail_width  { return TAIL_WIDTH  }
+
+=head2 tail_height
+
+Get tail height in pixel
+
+=cut
+
 sub tail_height { return TAIL_HEIGHT }
+
+=head2 tail_map_width
+
+Get map width in pixel
+
+=cut
 
 sub tail_map_width
 {
     my ($self) = @_;
     return $self->map_width * $self->tail_width;
 }
+
+=head2 tail_map_height
+
+Get map height in pixel
+
+=cut
 
 sub tail_map_height
 {

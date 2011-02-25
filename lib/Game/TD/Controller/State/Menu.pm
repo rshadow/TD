@@ -78,20 +78,6 @@ sub event
     my %result;
     my $type = $event->type;
 
-    # Quit if Esc
-    if($type == SDL_QUIT)
-    {
-        $result{quit} = 1;
-    }
-    elsif($type == SDL_KEYDOWN)
-    {
-        my $key = $event->key_sym;
-
-        if($key == SDLK_ESCAPE)
-        {
-            $result{quit} = 1;
-        }
-    }
 #    # On any key press event go to menu
 #    elsif( $type == SDL_KEYDOWN         or $type == SDL_KEYUP       or
 #           $type == SDL_MOUSEBUTTONDOWN or $type == SDL_MOUSEBUTTONUP)
@@ -100,7 +86,7 @@ sub event
 #        $result{state} = 'menu';
 #    }
     # Just send event to buttons
-    elsif($type == SDL_MOUSEMOTION or $type == SDL_MOUSEBUTTONDOWN)
+    if($type == SDL_MOUSEMOTION or $type == SDL_MOUSEBUTTONDOWN)
     {
         for my $index (0 .. $#{$self->model->items})
         {

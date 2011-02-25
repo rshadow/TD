@@ -6,6 +6,7 @@ package Game::TD::Core;
 
 use Carp;
 use SDL;
+use SDL::Event;
 
 use Game::TD::Config;
 use Game::TD::Model::Player;
@@ -157,14 +158,41 @@ sub event
 {
     my ($self, $event) = @_;
 
-    my $result = $self->ctrl( $self->state )->event( $event );
-    my $quit  = delete $result->{quit}  if exists $result->{quit};
-    my $state = delete $result->{state} if exists $result->{state};
+    my $type = $event->type;
 
-    # Quit if controller want it
-    return                           if $quit;
-    # Goto next state if controller require it
-    $self->state( $state, %$result ) if $state;
+    # Common events
+    if($type == SDL_QUIT)
+    {
+        return;
+    }
+    elsif($type == SDL_KEYDOWN)
+    {
+        my $sym = $event->key_sym;
+        my $mod = $event->key_mod;
+
+        # ESC exit from game
+        if($sym == SDLK_ESCAPE)
+        {
+            return;
+        }
+        # Ctrl+F toggle fullscreen mode
+        elsif($sym == SDLK_f && $mod & KMOD_CTRL)
+        {
+            $self->app->fullscreen;
+        }
+    }
+    # Game events
+    else
+    {
+        my $result = $self->ctrl( $self->state )->event( $event );
+        my $quit  = delete $result->{quit}  if exists $result->{quit};
+        my $state = delete $result->{state} if exists $result->{state};
+
+        # Quit if controller want it
+        return                           if $quit;
+        # Goto next state if controller require it
+        $self->state( $state, %$result ) if $state;
+    }
 
     return 1;
 }

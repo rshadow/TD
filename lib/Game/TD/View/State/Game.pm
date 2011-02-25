@@ -7,8 +7,9 @@ use base qw(Game::TD::View);
 
 use Carp;
 use SDL;
-use SDLx::Sprite;
 use SDL::Rect;
+use SDLx::Sprite;
+use SDLx::Text;
 
 use Game::TD::Config;
 
@@ -79,8 +80,8 @@ sub new
         h_align => 'center',
     ));
     $self->dest(sleep => SDL::Rect->new(
-        $mleft + config->param($self->conf=>'sleep'=>'fleft'),
-        $mtop  + config->param($self->conf=>'sleep'=>'ftop'),
+        $mleft + $self->model->level->tail_map_width  / 2,
+        $mtop  + $self->model->level->tail_map_height / 2,
         0 ,0
     ));
 
@@ -239,17 +240,17 @@ sub draw
             $self->model->player->score,
     );
 
+    # Draw sleep in center of screen
     if( $self->model->left > 0 )
     {
         my $text = int($self->model->left / 1000);
         $text = 'Go!' if $text < 1;
 
-        # Draw sleep
-#        $self->font('sleep')->text($text);
-        $self->font('sleep')->write_to(
+        $self->font('sleep')->text($text);
+        $self->font('sleep')->write_xy(
             $self->app,
-#            $self->font('sleep')->x,
-#            $self->font('sleep')->y,
+            int($self->dest('sleep')->x - $self->font('sleep')->w/2),
+            int($self->dest('sleep')->y - $self->font('sleep')->h/2),
             $text
         );
 

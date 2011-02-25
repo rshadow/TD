@@ -55,10 +55,11 @@ sub new
         sub
         {
             my ($event, $app) = @_;
-            # Quit if event handler return false
-            exit unless $self->core->event( $event );
             # Quit on SDL_QUIT event
             exit if $event->type eq SDL_QUIT;
+            # Quit if event handler return false
+            exit unless $self->core->event( $event );
+
         }
     );
 
