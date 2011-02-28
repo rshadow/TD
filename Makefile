@@ -6,7 +6,7 @@ run:
 	
 test:
 	@for test in `find t/ -type f -name "*.t" | sort`; do	\
-		perl "$$test";								\
+		perl "$$test" || exit;								\
 	done
 
 #Need PAR Packager
