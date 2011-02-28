@@ -11,9 +11,9 @@ use Test::More tests    => 5;
 BEGIN {
     # utf-8
     my $builder = Test::More->builder;
-    binmode $builder->output,         ":utf8";
-    binmode $builder->failure_output, ":utf8";
-    binmode $builder->todo_output,    ":utf8";
+    binmode $builder->output,         ':encoding(UTF-8)';
+    binmode $builder->failure_output, ':encoding(UTF-8)';
+    binmode $builder->todo_output,    ':encoding(UTF-8)';
 
     note "************* Game::TD::Config *************";
 

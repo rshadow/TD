@@ -1,10 +1,10 @@
+use strict;
+use warnings;
+use utf8;
+
 package Game::TD::Notify;
 use base qw(Exporter);
 our @EXPORT = qw(notify);
-
-use warnings;
-use strict;
-use utf8;
 
 use Game::TD::Config;
 

@@ -40,7 +40,7 @@ sub new
 
     # Get current version
     {{
-        eval 'require Game::TD';
+        eval {require Game::TD};
         die $@ if $@;
         $self->{version} = $Game::TD::VERSION;
     }}

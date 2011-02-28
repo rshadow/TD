@@ -1,8 +1,8 @@
-package Game::TD::Config;
-
-use warnings;
 use strict;
+use warnings;
 use utf8;
+
+package Game::TD::Config;
 
 use base qw(Exporter);
 our @EXPORT = qw(config Dumper);
@@ -100,7 +100,7 @@ sub new
         my ($name) = $path =~ m{^.*/(.*?)\.conf$};
         local $/;
         open my $cnf, '<', $path                       or die $!;
-        my %params = eval <$cnf>;
+        my %params = eval { <$cnf> };
         die sprintf 'Error in %s: %s', $path, $@ if $@;
         # Concat config (for user config)
         $self->{param}{$name} = {( %{$self->{param}{$name} || {}}, %params )};
@@ -128,7 +128,7 @@ sub param
     my ($self, @path) = @_;
     my $path = '$self->{param}';
     $path .= '{\''.$_.'\'}' for @path;
-    my $result = eval $path;
+    my $result = eval { $path };
     return $result;
 }
 

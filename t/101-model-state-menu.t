@@ -11,9 +11,9 @@ use Test::More tests    => 3;
 BEGIN {
     # utf-8
     my $builder = Test::More->builder;
-    binmode $builder->output,         ":utf8";
-    binmode $builder->failure_output, ":utf8";
-    binmode $builder->todo_output,    ":utf8";
+    binmode $builder->output,         ':encoding(UTF-8)';
+    binmode $builder->failure_output, ':encoding(UTF-8)';
+    binmode $builder->todo_output,    ':encoding(UTF-8)';
 
     note "************* Game::TD::Model::State::Menu *************";
 
@@ -21,8 +21,10 @@ BEGIN {
 }
 
 my $menu = Game::TD::Model::State::Menu->new();
-ok $menu, 'Menu loaded';
-ok length $menu->items, 'Menu items present';
+ok $menu, 'menu loaded';
+ok length $menu->items, 'menu items present';
+
+ok length $menu->version, 'version: '.$menu->version;
 
 #ok $menu->current == 0, 'Current top item';
 #ok $menu->up   && $menu->current == 0, 'Up work';

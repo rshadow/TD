@@ -184,9 +184,11 @@ sub event
     # Game events
     else
     {
+        my ($quit, $state);
+
         my $result = $self->ctrl( $self->state )->event( $event );
-        my $quit  = delete $result->{quit}  if exists $result->{quit};
-        my $state = delete $result->{state} if exists $result->{state};
+        $quit  = delete $result->{quit}  if exists $result->{quit};
+        $state = delete $result->{state} if exists $result->{state};
 
         # Quit if controller want it
         return                           if $quit;
