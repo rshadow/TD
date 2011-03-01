@@ -6,7 +6,7 @@ use utf8;
 use open qw(:std :utf8);
 use lib qw(lib ../lib);
 
-use Test::More tests    => 4;
+use Test::More tests    => 2;
 
 BEGIN {
     # utf-8
@@ -15,19 +15,17 @@ BEGIN {
     binmode $builder->failure_output, ':encoding(UTF-8)';
     binmode $builder->todo_output,    ':encoding(UTF-8)';
 
-    note "************* Game::TD::Model::Wave *************";
+    note "************* Game::TD::Model::Map *************";
 
     use_ok 'Game::TD::Config';
-    use_ok 'Game::TD::Model::Wave';
+    use_ok 'Game::TD::Model::Map';
 }
 
 my ($file) = glob sprintf '%s/%d.*.level', config->dir('level'), 0;
 my %level = do $file;
 ok !$@, 'level loaded';
 
-my $wave = Game::TD::Model::Wave->new( wave => $level{wave} );
-ok $wave, 'Wave created';
+my $map = Game::TD::Model::Map->new( map => $level{map} );
+ok $map, 'Map created';
 
-ok defined $wave->current,  'get current: '.$wave->current;
-ok $wave->waves_count,      'get waves count: '.$wave->waves_count;
-ok $wave->path_count,       'get path count: '.$wave->path_count;
+$map->next_path('path1', 0, 0);

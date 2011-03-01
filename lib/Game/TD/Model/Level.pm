@@ -4,9 +4,11 @@ use utf8;
 
 package Game::TD::Model::Level;
 
+use Carp;
 use Game::TD::Config;
-use Game::TD::Model::Wave;
+#use Game::TD::Model::Wave;
 use Game::TD::Model::Map;
+use Game::TD::Model::Unit;
 
 =head1 Game::TD::Model::Level
 
@@ -42,17 +44,38 @@ sub new
     my %level = do $file;
     die $@ if $@;
 
-    # Create wave object
-    die 'Missing "wave" parameter in level file' unless defined $level{wave};
-    $self->wave( Game::TD::Model::Wave->new(wave => delete $level{wave}) );
-
     die 'Missing "map" parameter in level file' unless defined $level{map};
     $self->map( Game::TD::Model::Map->new(map => delete $level{map}) );
 
     # Concat
     $self->{$_} = $level{$_} for keys %level;
 
+    $self->_init_units;
+
     return $self;
+}
+
+sub _init_units
+{
+    my ($self) = @_;
+
+    my @path = keys %{ $self->wave };
+
+    for my $path ( @path )
+    {
+        my $tail = $self->map->start($path);
+
+        for my $rec ( @{ $self->{wave}{$path} } )
+        {
+            $rec = Game::TD::Model::Unit->new(
+                type        => $rec->{unit},
+                x           => $tail->x * $self->map->tail_width,
+                y           => $tail->y * $self->map->tail_height,
+                direction   => 'right',
+                span        => $rec->{span},
+            );
+        }
+    }
 }
 
 sub update
@@ -87,8 +110,7 @@ sub map
 sub wave
 {
     my ($self, $wave) = @_;
-    $self->{wave} = $wave if defined $wave;
-    return $self->{wave};
+    return wantarray ? %{$self->{wave}} : $self->{wave};
 }
 
 sub sleep

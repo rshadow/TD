@@ -8,6 +8,8 @@ package Game::TD::Model::Unit;
 
 use Carp;
 
+use Game::TD::Config;
+
 =head1 NAME
 
 Game::TD::Model::Unit - Модуль
@@ -32,13 +34,14 @@ sub new
     die 'Missing required param "x"'            unless defined $opts{x};
     die 'Missing required param "y"'            unless defined $opts{y};
     die 'Missing required param "direction"'    unless defined $opts{direction};
+    die 'Missing required param "span"'         unless defined $opts{span};
 
     my $self = bless \%opts, $class;
 
     # Get from config
-    my %unit = config->param('unit'=>$self->type);
+    my %unit = %{ config->param('unit'=>$self->type) };
     # Concat
-    $self->{$_} = $unit{$_} for keys %unit;
+    $self->{$_} = $unit{$_} for qw(speed health);
 
     return $self;
 }
@@ -92,6 +95,13 @@ sub move
     {
         confess 'Unknown direction';
     }
+}
+
+sub span
+{
+    my ($self, $span) = @_;
+    $self->{span} = $span if defined $span;
+    return $self->{span};
 }
 
 1;
