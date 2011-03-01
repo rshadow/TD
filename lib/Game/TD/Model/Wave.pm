@@ -6,6 +6,8 @@ package Game::TD::Model::Wave;
 #use base qw(Exporter);
 #our @EXPORT = qw();
 
+use Game::TD::Model::Unit;
+
 =head1 Game::TD::Model::Wave
 
 Описание_модуля
@@ -35,6 +37,22 @@ sub new
     die 'Missing required param "wave"'    unless defined $opts{wave};
 
     my $self = bless \%opts, $class;
+
+    for my $wave ( @{ $self->{wave} } )
+    {
+        for my $path ( @{$wave->{path}} )
+        {
+            for my $unit (@{$wave->{units}})
+            {
+                $unit = Game::TD::Model::Unit->new(
+                    type        => $unit,
+                    x           => 0,
+                    y           => 100,
+                    direction   => 'right',
+                );
+            }
+        }
+    }
 
     return $self;
 }

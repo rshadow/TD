@@ -41,7 +41,10 @@ sub new
 
     $self->level(Game::TD::Model::Level->new(num => $num));
 
-    $self->timer('sleep'=>'new')->start;
+    $self->timer('sleep'=>'new');
+    $self->left( $self->level->sleep - $self->timer('sleep')->get_ticks );
+
+    $self->timer('sleep')->start;
 
     return $self;
 }
@@ -51,7 +54,7 @@ sub update
     my $self = shift;
 
     # Sleep timer
-    if( $self->level->sleep )
+    if( $self->left)
     {
         $self->left( $self->level->sleep - $self->timer('sleep')->get_ticks );
         return 1;

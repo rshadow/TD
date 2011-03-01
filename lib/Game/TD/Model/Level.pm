@@ -55,6 +55,12 @@ sub new
     return $self;
 }
 
+sub update
+{
+    my ($self) = @_;
+
+}
+
 sub name
 {
     my ($self) = @_;
