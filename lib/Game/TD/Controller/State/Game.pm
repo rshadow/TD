@@ -42,6 +42,7 @@ sub new
     $self->model( Game::TD::Model::State::Game->new(
         level       => $opts{level},
         player      => $self->player,
+        dt          => $self->app->dt,
     ));
 
     $self->view( Game::TD::View::State::Game->new(

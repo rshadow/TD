@@ -31,7 +31,7 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    my $self = bless \%opts, $class;
+    my $self = $class->SUPER::new(%opts);
 
     # Start alpha value
     $self->{alpha} = 0;

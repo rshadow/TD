@@ -37,14 +37,14 @@ sub new
 
     my $num = delete $opts{level};
 
-    my $self = bless \%opts, $class;
+    my $self = $class->SUPER::new(%opts);
 
-    $self->level(Game::TD::Model::Level->new(num => $num));
+    $self->level(Game::TD::Model::Level->new(
+        num => $num,
+        dt  => $self->dt || 1
+    ));
 
-    $self->timer('sleep'=>'new');
-    $self->left( $self->level->sleep - $self->timer('sleep')->get_ticks );
 
-    $self->timer('sleep')->start;
 
     return $self;
 }
@@ -53,43 +53,19 @@ sub update
 {
     my $self = shift;
 
-    # Sleep timer
-    if( $self->left)
-    {
-        $self->left( $self->level->sleep - $self->timer('sleep')->get_ticks );
-        return 1;
-    }
-
     $self->level->update;
 
     return 0 if $self->level->health <= 0;
     return 1;
 }
 
-sub player      { return shift()->{player};     }
+sub player    { return shift()->{player};   }
 
 sub level
 {
     my ($self, $level) = @_;
     $self->{level} = $level if defined $level;
     return $self->{level};
-}
-
-=head2 left
-
-Get/Set counter for game start. See <i>Game::TD::Model::Level::sleep</i>
-function.
-
-=cut
-
-sub left
-{
-    my ($self, $value) = @_;
-    if( defined $value )
-    {
-        $self->{left} = ($value > 0) ?$value : 0;
-    }
-    return $self->{left};
 }
 
 1;

@@ -3,6 +3,7 @@ use warnings;
 use utf8;
 
 package Game::TD::Model::Level;
+use base qw(Game::TD::Model);
 
 use Carp;
 use Game::TD::Config;
@@ -36,7 +37,7 @@ sub new
 
     die 'Missing required param "num"'    unless defined $opts{num};
 
-    my $self = bless \%opts, $class;
+    my $self = $class->SUPER::new(%opts);
 
     # Load level hash
     my ($file) =
@@ -50,7 +51,12 @@ sub new
     # Concat
     $self->{$_} = $level{$_} for keys %level;
 
+    # Init units positions
     $self->_init_units;
+
+    $self->timer('sleep'=>'new');
+    $self->left( $self->sleep - $self->timer('sleep')->get_ticks );
+    $self->timer('sleep')->start;
 
     return $self;
 }
@@ -81,6 +87,15 @@ sub _init_units
 sub update
 {
     my ($self) = @_;
+
+    # Sleep timer
+    if( $self->left)
+    {
+        $self->left( $self->sleep - $self->timer('sleep')->get_ticks );
+        return 1;
+    }
+
+#    my @units = $self->get_active_units;
 
 }
 
@@ -121,6 +136,23 @@ sub sleep
     return $self->{sleep};
 }
 
+=head2 left
+
+Get/Set counter for game start. See <i>Game::TD::Model::Level::sleep</i>
+function.
+
+=cut
+
+sub left
+{
+    my ($self, $value) = @_;
+    if( defined $value )
+    {
+        $self->{left} = ($value > 0) ?$value : 0;
+    }
+    return $self->{left};
+}
+
 sub health
 {
     my ($self) = @_;
@@ -129,6 +161,16 @@ sub health
     return $self->{health};
 }
 
-sub num       { return shift()->{num} }
+sub num       { return shift()->{num}   }
 
+sub get_active_units
+{
+    my ($self) = @_;
+
+    # Run timer if not exists
+    $self->timer('units' => 'new')->start unless $self->timer('units');
+
+#    my @active = grep {}
+    $self->timer('units')->get_ticks;
+}
 1;

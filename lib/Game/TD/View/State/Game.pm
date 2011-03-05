@@ -243,9 +243,9 @@ sub draw
     );
 
     # Draw sleep in center of screen
-    if( $self->model->left > 0 )
+    if( $self->model->level->left > 0 )
     {
-        my $text = int($self->model->left / 1000);
+        my $text = int($self->model->level->left / 1000);
         $text = 'Go!' if $text < 1;
 
         $self->font('sleep')->text($text);

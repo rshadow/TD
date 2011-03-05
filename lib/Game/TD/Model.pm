@@ -30,6 +30,8 @@ sub new
 {
     my ($class, %opts) = @_;
 
+    $opts{dt} //= 1;
+
     my $self = bless \%opts, $class;
 
     return $self;
@@ -54,5 +56,7 @@ DESTROY
 
     undef $self->{timer}{$_} for keys %{ $self->{timer} };
 }
+
+sub dt        { return shift()->{dt}; }
 
 1;

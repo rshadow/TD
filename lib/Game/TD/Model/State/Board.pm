@@ -33,7 +33,7 @@ sub new
 
     $opts{current} //= 0;
 
-    my $self = bless \%opts, $class;
+    my $self = $class->SUPER::new(%opts);
 
     $self->{levels} = [ glob sprintf '%s/*.level', config->dir('level') ];
     die 'No levels found' unless @{ $self->{levels} };

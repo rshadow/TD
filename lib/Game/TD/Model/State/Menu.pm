@@ -31,7 +31,7 @@ sub new
 
 #    $opts{current} //= 0;
 
-    my $self = bless \%opts, $class;
+    my $self = $class->SUPER::new(%opts);
 
     $self->{items} = [
         {name => 'play',    title => 'Play'},
