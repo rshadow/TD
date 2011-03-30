@@ -9,7 +9,7 @@ use Carp;
 use Game::TD::Config;
 #use Game::TD::Model::Wave;
 use Game::TD::Model::Map;
-use Game::TD::Model::Unit;
+
 
 =head1 Game::TD::Model::Level
 
@@ -51,37 +51,11 @@ sub new
     # Concat
     $self->{$_} = $level{$_} for keys %level;
 
-    # Init units positions
-    $self->_init_units;
-
     $self->timer('sleep'=>'new');
     $self->left( $self->sleep - $self->timer('sleep')->get_ticks );
     $self->timer('sleep')->start;
 
     return $self;
-}
-
-sub _init_units
-{
-    my ($self) = @_;
-
-    my @path = keys %{ $self->wave };
-
-    for my $path ( @path )
-    {
-        my $tail = $self->map->start($path);
-
-        for my $rec ( @{ $self->{wave}{$path} } )
-        {
-            $rec = Game::TD::Model::Unit->new(
-                type        => $rec->{unit},
-                x           => $tail->x * $self->map->tail_width,
-                y           => $tail->y * $self->map->tail_height,
-                direction   => 'right',
-                span        => $rec->{span},
-            );
-        }
-    }
 }
 
 sub update
@@ -94,9 +68,12 @@ sub update
         $self->left( $self->sleep - $self->timer('sleep')->get_ticks );
         return 1;
     }
+}
 
-#    my @units = $self->get_active_units;
-
+sub wave
+{
+    my ($self, $wave) = @_;
+    return wantarray ? %{$self->{wave}} : $self->{wave};
 }
 
 sub name
@@ -120,12 +97,6 @@ sub map
     my ($self, $map) = @_;
     $self->{map} = $map if defined $map;
     return $self->{map};
-}
-
-sub wave
-{
-    my ($self, $wave) = @_;
-    return wantarray ? %{$self->{wave}} : $self->{wave};
 }
 
 sub sleep
@@ -163,14 +134,4 @@ sub health
 
 sub num       { return shift()->{num}   }
 
-sub get_active_units
-{
-    my ($self) = @_;
-
-    # Run timer if not exists
-    $self->timer('units' => 'new')->start unless $self->timer('units');
-
-#    my @active = grep {}
-    $self->timer('units')->get_ticks;
-}
 1;

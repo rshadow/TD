@@ -2,11 +2,13 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::Model::Unit;
+package Game::TD::Unit;
+use base qw(Game::TD::View);
 #use base qw(Exporter);
 #our @EXPORT = qw();
 
 use Carp;
+use SDLx::Sprite::Animated;
 
 use Game::TD::Config;
 
@@ -30,11 +32,13 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    die 'Missing required param "type"'         unless defined $opts{type};
-    die 'Missing required param "x"'            unless defined $opts{x};
-    die 'Missing required param "y"'            unless defined $opts{y};
-    die 'Missing required param "direction"'    unless defined $opts{direction};
-    die 'Missing required param "span"'         unless defined $opts{span};
+    croak 'Missing required param "app"'        unless defined $opts{app};
+
+    croak 'Missing required param "type"'       unless defined $opts{type};
+    croak 'Missing required param "x"'          unless defined $opts{x};
+    croak 'Missing required param "y"'          unless defined $opts{y};
+    croak 'Missing required param "direction"'  unless defined $opts{direction};
+    croak 'Missing required param "span"'       unless defined $opts{span};
 
     my $self = bless \%opts, $class;
 
@@ -43,12 +47,28 @@ sub new
     # Concat
     $self->{$_} = $unit{$_} for qw(speed health);
 
+    # Load animation
+    $self->sprite(unit => SDLx::Sprite::Animated->new(
+        images => config->param($self->conf=>$self->type=>'animation'=>'right'),
+        type => 'circular',
+        ticks_per_frame => config->param($self->conf=>$self->type=>'speed'),
+        x => $self->x,
+        y => $self->y,
+    ));
+    $self->sprite('unit')->start;
+
     return $self;
 }
 
 sub type    {return shift()->{type}     }
 sub speed   {return shift()->{speed}    }
 sub health  {return shift()->{health}   }
+
+sub conf
+{
+    my $self = shift;
+    return $self->{conf} // 'unit';
+}
 
 sub direction
 {
@@ -102,6 +122,13 @@ sub span
     my ($self, $span) = @_;
     $self->{span} = $span if defined $span;
     return $self->{span};
+}
+
+sub draw
+{
+    my $self = shift;
+#    $self->sprite('unit')->next;
+    $self->sprite('unit')->draw( $self->app );
 }
 
 1;

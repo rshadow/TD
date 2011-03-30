@@ -12,6 +12,7 @@ use Game::TD::Config;
 use Game::TD::Model::State::Game;
 use Game::TD::View::State::Game;
 use Game::TD::Button;
+use Game::TD::Unit;
 
 =head1 NAME
 
@@ -50,22 +51,38 @@ sub new
         model   => $self->model
     ));
 
-#    for my $index (0 .. $#{$self->model->levels})
-#    {
-#        my $name = 'level' . $index;
-#
-#        $self->button($name => Game::TD::Button->new(
-#            name    => $name,
-#            app     => $self->app,
-#            conf    => 'level',
-#        ));
-#    }
-#
-
     $self->button('menu' => Game::TD::Button->new(
         name    => 'menu',
         app     => $self->app,
         conf    => $self->conf,
+    ));
+
+#    my @path = keys %{ $self->model->level->wave };
+#
+#    for my $path ( @path )
+#    {
+#        my $tail = $self->model->level->map->start($path);
+#
+#        for my $rec ( @{ $self->model->level->wave->{$path} } )
+#        {
+#            $self->unit( Game::TD::Unit->new(
+#                app         => $self->app,
+#                type        => $rec->{unit},
+#                x           => $tail->x * $self->map->tail_width,
+#                y           => $tail->y * $self->map->tail_height,
+#                direction   => 'right',
+#                span        => $rec->{span},
+#            ));
+#        }
+#    }
+#
+    $self->unit('1' => Game::TD::Unit->new(
+        app     => $self->app,
+        x       => 500,
+        y       => 500,
+        type    => 'ambusher',
+        direction   => 'right',
+        span        => 0,
     ));
 
     return $self;
@@ -134,6 +151,8 @@ sub draw
 
     $self->button('menu')->draw;
 
+    $self->unit('1')->draw;
+
 #    for my $index (0 .. $#{$self->model->levels})
 #    {
 #        my $name = 'level' . $index;
@@ -150,4 +169,19 @@ sub player
     return shift()->{player};
 }
 
+=head2 unit $name, $value
+
+Common storage for units. Get $name for unit and typically
+Game::TD::Unit object in $value.
+
+=cut
+
+sub unit
+{
+    my ($self, $name, $value) = @_;
+
+    croak 'Name required'           unless defined $name;
+    $self->{unit}{$name} = $value   if defined $value;
+    return $self->{unit}{$name};
+}
 1;
