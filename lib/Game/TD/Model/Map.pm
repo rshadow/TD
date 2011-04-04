@@ -34,7 +34,7 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    die 'Missing required param "map"'    unless defined $opts{map};
+    croak 'Missing required param "map"'    unless defined $opts{map};
 
     my $self = bless \%opts, $class;
 
@@ -69,8 +69,8 @@ sub _init_tile
     }
 
     # Find start and finish tails
-    $self->start($_->{path}{name}, $_)  for $self->find_by_path_type('start');
-    $self->finish($_->{path}{name}, $_) for $self->find_by_path_type('finish');
+    $self->start($_->{path}{name}, $_)  for $self->tail_find_by_path_type('start');
+    $self->finish($_->{path}{name}, $_) for $self->tail_find_by_path_type('finish');
 }
 
 sub map     {return shift()->{map}}
@@ -129,7 +129,7 @@ Get tail height in pixel
 
 sub tail_height { return TAIL_HEIGHT }
 
-sub find_by_path_type
+sub tail_find_by_path_type
 {
     my ($self, $type) = @_;
 

@@ -151,7 +151,11 @@ sub draw
 
     $self->button('menu')->draw;
 
+    $self->unit('1')->move;
     $self->unit('1')->draw;
+
+    my ($mx, $my) = $self->map_xy( $self->unit('1') );
+    printf "%s : %s \n", $mx, $my;
 
 #    for my $index (0 .. $#{$self->model->levels})
 #    {
@@ -184,4 +188,14 @@ sub unit
     $self->{unit}{$name} = $value   if defined $value;
     return $self->{unit}{$name};
 }
+
+sub map_xy
+{
+    my ($self, $unit) = @_;
+    return (
+        int( $unit->x / $self->model->level->map->tail_width  ),
+        int( $unit->y / $self->model->level->map->tail_height ),
+    );
+}
+
 1;

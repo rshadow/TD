@@ -95,21 +95,23 @@ sub move
 {
     my ($self, $dt) = @_;
 
+    $dt //= $self->app->dt;
+
     if($self->direction eq 'left')
     {
-        $self->x( $self->x - $self->speed * ($dt / 1000));
+        $self->x( $self->x - $self->speed * $dt);
     }
     elsif($self->direction eq 'right')
     {
-        $self->x( $self->x + $self->speed * ($dt / 1000));
+        $self->x( $self->x + $self->speed * $dt);
     }
     elsif($self->direction eq 'up')
     {
-        $self->y( $self->y - $self->speed * ($dt / 1000));
+        $self->y( $self->y - $self->speed * $dt);
     }
     elsif($self->direction eq 'down')
     {
-        $self->y( $self->y + $self->speed * ($dt / 1000));
+        $self->y( $self->y + $self->speed * $dt);
     }
     else
     {
@@ -127,7 +129,9 @@ sub span
 sub draw
 {
     my $self = shift;
-#    $self->sprite('unit')->next;
+
+    $self->sprite('unit')->x( $self->x );
+    $self->sprite('unit')->y( $self->y );
     $self->sprite('unit')->draw( $self->app );
 }
 

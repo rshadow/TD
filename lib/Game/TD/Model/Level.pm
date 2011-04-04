@@ -7,7 +7,7 @@ use base qw(Game::TD::Model);
 
 use Carp;
 use Game::TD::Config;
-#use Game::TD::Model::Wave;
+use Game::TD::Model::Wave;
 use Game::TD::Model::Map;
 
 
@@ -35,7 +35,7 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    die 'Missing required param "num"'    unless defined $opts{num};
+    croak 'Missing required param "num"'    unless defined $opts{num};
 
     my $self = $class->SUPER::new(%opts);
 
@@ -45,7 +45,10 @@ sub new
     my %level = do $file;
     die $@ if $@;
 
-    die 'Missing "map" parameter in level file' unless defined $level{map};
+    croak 'Missing "wave" parameter in level file' unless defined $level{wave};
+    $self->wave( Game::TD::Model::Wave->new(wave => delete $level{wave}) );
+
+    croak 'Missing "map" parameter in level file' unless defined $level{map};
     $self->map( Game::TD::Model::Map->new(map => delete $level{map}) );
 
     # Concat
@@ -73,7 +76,8 @@ sub update
 sub wave
 {
     my ($self, $wave) = @_;
-    return wantarray ? %{$self->{wave}} : $self->{wave};
+    $self->{wave} = $wave if defined $wave;
+    return $self->{wave};
 }
 
 sub name
