@@ -34,6 +34,7 @@ sub new
     my ($class, %opts) = @_;
 
     croak 'Missing required param "wave"'    unless defined $opts{wave};
+    croak 'Missing required param "map"'     unless defined $opts{map};
 
     my $self = bless \%opts, $class;
 
@@ -51,10 +52,8 @@ sub _init_units
             $unit = Game::TD::Unit->new(
                 app         => $self->app,
                 type        => $unit->{type},
-                x   => 500,
-                y   => 500,
-#                x           => $tail->x * $self->map->tail_width,
-#                y           => $tail->y * $self->map->tail_height,
+                x   => $self->map->start($name)->x * $self->map->tail_width,
+                y   => $self->map->start($name)->y * $self->map->tail_height,
                 direction   => 'right', #???
                 span        => $unit->{span},
             );
@@ -81,5 +80,5 @@ sub path
 }
 
 
-
+sub map { return shift()->{map} }
 1;

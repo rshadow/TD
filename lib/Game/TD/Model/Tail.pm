@@ -6,6 +6,8 @@ package Game::TD::Model::Tail;
 #use base qw(Exporter);
 #our @EXPORT = qw();
 
+use Scalar::Util qw(weaken);
+
 =head1 Game::TD::Model::Tail
 
 Описание_модуля
@@ -95,6 +97,24 @@ sub has_path_type
         :  ( $self->{path} );
 
     return (grep {defined $_->{type} and $_->{type} eq $type } @path) ? 1 : 0;
+}
+
+sub direction
+{
+    my ($self, $direction) = @_;
+    $self->{direction} = $direction if defined $direction;
+    return $self->{direction};
+}
+
+sub next
+{
+    my ($self, $tail) = @_;
+    if( defined $tail )
+    {
+        $self->{next} = $tail ;
+        weaken $self->{next};
+    }
+    return $self->{next};
 }
 
 1;

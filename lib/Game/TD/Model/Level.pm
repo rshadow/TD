@@ -45,11 +45,14 @@ sub new
     my %level = do $file;
     die $@ if $@;
 
-    croak 'Missing "wave" parameter in level file' unless defined $level{wave};
-    $self->wave( Game::TD::Model::Wave->new(wave => delete $level{wave}) );
-
     croak 'Missing "map" parameter in level file' unless defined $level{map};
     $self->map( Game::TD::Model::Map->new(map => delete $level{map}) );
+
+    croak 'Missing "wave" parameter in level file' unless defined $level{wave};
+    $self->wave( Game::TD::Model::Wave->new(
+        wave    => delete $level{wave},
+        map     => $self->map,
+    ));
 
     # Concat
     $self->{$_} = $level{$_} for keys %level;

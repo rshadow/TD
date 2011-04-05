@@ -47,6 +47,7 @@ sub new
     $self->{tail_map_height} = $self->height * $self->tail_height;
 
     $self->_init_tile;
+    $self->_init_roads;
 
     return $self;
 }
@@ -67,10 +68,80 @@ sub _init_tile
             );
         }
     }
+}
+
+sub _init_roads
+{
+    my ($self) = @_;
 
     # Find start and finish tails
-    $self->start($_->{path}{name}, $_)  for $self->tail_find_by_path_type('start');
-    $self->finish($_->{path}{name}, $_) for $self->tail_find_by_path_type('finish');
+    $self->start($_->{path}{name}, $_)
+        for $self->tail_find_by_path_type('start');
+    $self->finish($_->{path}{name}, $_)
+        for $self->tail_find_by_path_type('finish');
+
+        my %road;
+
+    # Set directions: move by road from start to end and set it for each tail
+    for my $name (keys %{ $self->start })
+    {
+        my $tail = $self->start($name);
+        while( $tail )
+        {
+            if( $self->tail($tail->x-1, $tail->y)               and
+                !$self->tail($tail->x-1, $tail->y)->next        and
+                $self->tail($tail->x-1, $tail->y)->has_path     and
+                $self->tail($tail->x-1, $tail->y)->has_path_name($name) )
+            {
+                $tail->next( $self->tail($tail->x-1, $tail->y) );
+                $tail->direction('left');
+            }
+            elsif( $self->tail($tail->x+1, $tail->y)            and
+                !$self->tail($tail->x+1, $tail->y)->next        and
+                $self->tail($tail->x+1, $tail->y)->has_path     and
+                $self->tail($tail->x+1, $tail->y)->has_path_name($name) )
+            {
+                $tail->next( $self->tail($tail->x+1, $tail->y) );
+                $tail->direction('right');
+            }
+            elsif( $self->tail($tail->x, $tail->y-1)            and
+                !$self->tail($tail->x, $tail->y-1)->next        and
+                $self->tail($tail->x, $tail->y-1)->has_path     and
+                $self->tail($tail->x, $tail->y-1)->has_path_name($name) )
+            {
+                $tail->next( $self->tail($tail->x, $tail->y-1) );
+                $tail->direction('up');
+            }
+            elsif( $self->tail($tail->x, $tail->y+1)            and
+                !$self->tail($tail->x, $tail->y+1)->next        and
+                $self->tail($tail->x, $tail->y+1)->has_path     and
+                $self->tail($tail->x, $tail->y+1)->has_path_name($name) )
+            {
+                $tail->next( $self->tail($tail->x, $tail->y+1) );
+                $tail->direction('down');
+            }
+
+            push @{ $road{$name} }, $tail;
+            printf "%s - %s : %s \n", $name, $tail->x, $tail->y;
+
+            last if $tail->has_path_type('finish');
+            $tail = $tail->next;
+        }
+    }
+
+#    use Data::Dumper;
+#    die Dumper \%road;
+
+for my $y (0 .. $self->height - 1)
+    {
+        for my $x (0 .. $self->width - 1)
+        {
+            printf '%s ', $self->map->[$x][$y]->direction;
+        }
+
+        print "\n";
+    }
+die 1;
 }
 
 sub map     {return shift()->{map}}
@@ -81,14 +152,16 @@ sub start
 {
     my ($self, $name, $tail) = @_;
     $self->{start}{$name} = $tail if defined $tail;
-    return $self->{start}{$name};
+    return $self->{start}{$name}  if defined $name;
+    return wantarray ?%{ $self->{start} } :$self->{start};
 }
 
 sub finish
 {
     my ($self, $name, $tail) = @_;
     $self->{finish}{$name} = $tail if defined $tail;
-    return $self->{finish}{$name};
+    return $self->{finish}{$name}  if defined $name;
+    return wantarray ?%{ $self->{finish} } :$self->{finish};
 }
 
 =head2 tail_map_width
