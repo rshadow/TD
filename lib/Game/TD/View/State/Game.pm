@@ -80,8 +80,8 @@ sub new
         h_align => 'center',
     ));
     $self->dest(sleep => SDL::Rect->new(
-        $mleft + $self->model->level->map->tail_map_width  / 2,
-        $mtop  + $self->model->level->map->tail_map_height / 2,
+        $mleft + $self->model->map->tail_map_width  / 2,
+        $mtop  + $self->model->map->tail_map_height / 2,
         0 ,0
     ));
 
@@ -112,7 +112,7 @@ sub _init_background
         $self->sprite('background')->surface,
         $self->dest('title')->x,
         $self->dest('title')->y,
-        $self->model->level->title,
+        $self->model->title,
     );
 
     # Zero coordinates for map
@@ -120,11 +120,11 @@ sub _init_background
     my $mtop  = config->param($self->conf=>'map'=>'top');
 
     # Draw map tiles on background
-    for my $y (0 .. ($self->model->level->map->height - 1) )
+    for my $y (0 .. ($self->model->map->height - 1) )
     {
-        for my $x (0 .. ($self->model->level->map->width - 1))
+        for my $x (0 .. ($self->model->map->width - 1))
         {
-            my $tail = $self->model->level->map->tail($y,$x);
+            my $tail = $self->model->map->tail($x,$y);
 
             $self->_draw_map_tile(
                 to      => 'background',
@@ -139,11 +139,11 @@ sub _init_background
     }
 
     # Draw items on background
-    for my $y (0 .. ($self->model->level->map->height - 1) )
+    for my $y (0 .. ($self->model->map->height - 1) )
     {
-        for my $x (0 .. ($self->model->level->map->width - 1))
+        for my $x (0 .. ($self->model->map->width - 1))
         {
-            my $tail = $self->model->level->map->tail($y,$x);
+            my $tail = $self->model->map->tail($x,$y);
 
             # If exists item then load it
             next unless exists $tail->{item};
@@ -194,13 +194,13 @@ sub _draw_map_tile
     }
 
     my $dx = int(
-        ($self->sprite($name)->w - $self->model->level->map->tail_width)  / 2);
+        ($self->sprite($name)->w - $self->model->map->tail_width)  / 2);
     my $dy = int(
-        ($self->sprite($name)->h - $self->model->level->map->tail_height) / 2);
+        ($self->sprite($name)->h - $self->model->map->tail_height) / 2);
 
     $self->sprite($name)->rect(SDL::Rect->new(
-        $mleft + $self->model->level->map->tail_width  * $x - $dx,
-        $mtop  + $self->model->level->map->tail_height * $y - $dy,
+        $mleft + $self->model->map->tail_width  * $x - $dx,
+        $mtop  + $self->model->map->tail_height * $y - $dy,
         $self->sprite($name)->w,
         $self->sprite($name)->h
     ));
@@ -229,7 +229,7 @@ sub draw
         $self->dest('health')->y,
         sprintf '%s %s',
             config->param($self->conf=>'health'=>'text') || '',
-            $self->model->level->health,
+            $self->model->health,
     );
 
     # Draw score
@@ -243,9 +243,9 @@ sub draw
     );
 
     # Draw sleep in center of screen
-    if( $self->model->level->left > 0 )
+    if( $self->model->left )
     {
-        my $text = int($self->model->level->left / 1000);
+        my $text = int($self->model->left / 1000);
         $text = 'Go!' if $text < 1;
 
         $self->font('sleep')->text($text);

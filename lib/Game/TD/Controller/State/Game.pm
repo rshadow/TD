@@ -41,9 +41,12 @@ sub new
     my $self = $class->SUPER::new(%opts);
 
     $self->model( Game::TD::Model::State::Game->new(
-        level       => $opts{level},
-        player      => $self->player,
-        dt          => $self->app->dt,
+        num     => $opts{level},
+        player  => $self->player,
+        dt      => $self->app->dt,
+
+        # black magic for unit objects - they incapsulate mvc =(
+        app     => $self->app,
     ));
 
     $self->view( Game::TD::View::State::Game->new(
@@ -154,7 +157,7 @@ sub draw
     $self->unit('1')->move;
     $self->unit('1')->draw;
 
-    my ($mx, $my) = $self->map_xy( $self->unit('1') );
+    my ($mx, $my) = $self->map_xy( $self->unit('1')->x, $self->unit('1')->y );
     printf "%s : %s \n", $mx, $my;
 
 #    for my $index (0 .. $#{$self->model->levels})
@@ -191,11 +194,17 @@ sub unit
 
 sub map_xy
 {
-    my ($self, $unit) = @_;
-    return (
-        int( $unit->x / $self->model->level->map->tail_width  ),
-        int( $unit->y / $self->model->level->map->tail_height ),
-    );
+    my ($self, $x, $y) = @_;
+
+    my $m_x = int( $x / $self->model->map->tail_width  );
+    my $m_y = int( $y / $self->model->map->tail_height );
+
+    croak 'x not on map'
+        if $m_x < 0 || $m_x > ($self->model->map->width - 1);
+    croak 'y not on map'
+        if $m_y < 0 || $m_y > ($self->model->map->height - 1);
+
+    return ($m_x, $m_y);
 }
 
 1;

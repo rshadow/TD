@@ -5,8 +5,10 @@ use utf8;
 package Game::TD::Model::State::Game;
 use base qw(Game::TD::Model);
 
+use Carp;
 use Game::TD::Config;
-use Game::TD::Model::Level;
+use Game::TD::Model::Wave;
+use Game::TD::Model::Map;
 
 =head1 Game::TD::Model::State::Game
 
@@ -32,40 +34,179 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    die 'Missing required param "level"'    unless defined $opts{level};
-    die 'Missing required param "player"'   unless defined $opts{player};
+    croak 'Missing required param "num"'    unless defined $opts{num};
+    croak 'Missing required param "player"' unless defined $opts{player};
 
-    my $num = delete $opts{level};
+    # black magic for unit objects - they incapsulate mvc =(
+    my $app = delete $opts{app};
 
     my $self = $class->SUPER::new(%opts);
 
-    $self->level(Game::TD::Model::Level->new(
-        num => $num,
-        dt  => $self->dt || 1
+    # Load level hash
+    my ($file) =
+        glob sprintf '%s/%d.*.level', config->dir('level'), $self->num;
+    my %level = do $file;
+    die $@ if $@;
+
+    croak 'Missing "map" parameter in level file' unless defined $level{map};
+    $self->map( Game::TD::Model::Map->new(map => delete $level{map}) );
+
+    croak 'Missing "wave" parameter in level file' unless defined $level{wave};
+    $self->wave( Game::TD::Model::Wave->new(
+        wave    => delete $level{wave},
+        map     => $self->map,
+
+        # black magic for unit objects - they incapsulate mvc =(
+        app     => $app,
     ));
 
+    # Concat
+    $self->{$_} = $level{$_} for keys %level;
 
+    # Sleep timer
+    $self->timer('sleep'=>'new');
+    $self->left( $self->sleep - $self->timer('sleep')->get_ticks );
+    $self->timer('sleep')->start;
+
+    # Units timer
+    $self->timer('units'=>'new');
 
     return $self;
 }
 
 sub update
 {
-    my $self = shift;
+    my ($self) = @_;
 
-    $self->level->update;
+    # Sleep timer
+    if( $self->left)
+    {
+        $self->left( $self->sleep - $self->timer('sleep')->get_ticks );
+        # Start units timer
+        $self->timer('units')->start unless $self->left;
+        return 1;
+    }
 
-    return 0 if $self->level->health <= 0;
+    $self->wave->update( $self->timer('sleep')->get_ticks );
+
+    return 0 if $self->health <= 0;
+
     return 1;
 }
 
+=head2 num
+
+Return player storage
+
+=cut
+
 sub player    { return shift()->{player};   }
 
-sub level
+=head2 num
+
+Return level board position
+
+=cut
+
+sub num       { return shift()->{num};   }
+
+=head2 name
+
+Return level internal name
+
+=cut
+
+sub name
 {
-    my ($self, $level) = @_;
-    $self->{level} = $level if defined $level;
-    return $self->{level};
+    my ($self) = @_;
+    die 'Missing "name" parameter in level file'
+        unless defined $self->{name};
+    return $self->{name};
+}
+
+=head2 title
+
+Return level title
+
+=cut
+
+sub title
+{
+    my ($self) = @_;
+    die 'Missing "title" parameter in level file'
+        unless defined $self->{title};
+    return $self->{title};
+}
+
+=head2 sleep
+
+Return level sleep pause before units run
+
+=cut
+
+sub sleep
+{
+    my ($self) = @_;
+    die 'Missing "sleep" parameter in level file'
+        unless defined $self->{sleep};
+    return $self->{sleep};
+}
+
+=head2 left
+
+Get/Set counter for game start. See <i>Game::TD::Model::Level::sleep</i>
+function.
+
+=cut
+
+sub left
+{
+    my ($self, $value) = @_;
+    if( defined $value )
+    {
+        $self->{left} = ($value > 0) ?$value : 0;
+    }
+    return $self->{left};
+}
+
+=head2 health
+
+Return level health
+
+=cut
+
+sub health
+{
+    my ($self) = @_;
+    die 'Missing "health" parameter in level file'
+        unless defined $self->{health};
+    return $self->{health};
+}
+
+=head2 wave $wave
+
+Get/set units wave storage Game::TD::Model::Wave
+
+=cut
+
+sub wave
+{
+    my ($self, $wave) = @_;
+    $self->{wave} = $wave if defined $wave;
+    return $self->{wave};
+}
+
+=head2 map $map
+
+Get/set level map storage Game::TD::Model::Map
+
+=cut
+
+sub map
+{
+    my ($self, $map) = @_;
+    $self->{map} = $map if defined $map;
+    return $self->{map};
 }
 
 1;

@@ -61,10 +61,10 @@ sub _init_tile
     {
         for my $x (0 .. $self->width - 1)
         {
-            $self->map->[$x][$y] = Game::TD::Model::Tail->new(
+            $self->map->[$y][$x] = Game::TD::Model::Tail->new(
                 x => $x,
                 y => $y,
-                %{ $self->map->[$x][$y] },
+                %{ $self->map->[$y][$x] },
             );
         }
     }
@@ -80,8 +80,6 @@ sub _init_roads
     $self->finish($_->{path}{name}, $_)
         for $self->tail_find_by_path_type('finish');
 
-        my %road;
-
     # Set directions: move by road from start to end and set it for each tail
     for my $name (keys %{ $self->start })
     {
@@ -89,31 +87,34 @@ sub _init_roads
         while( $tail )
         {
             if( $self->tail($tail->x-1, $tail->y)               and
-                !$self->tail($tail->x-1, $tail->y)->next        and
+               !$self->tail($tail->x-1, $tail->y)->next         and
                 $self->tail($tail->x-1, $tail->y)->has_path     and
                 $self->tail($tail->x-1, $tail->y)->has_path_name($name) )
             {
                 $tail->next( $self->tail($tail->x-1, $tail->y) );
                 $tail->direction('left');
             }
-            elsif( $self->tail($tail->x+1, $tail->y)            and
-                !$self->tail($tail->x+1, $tail->y)->next        and
+            elsif(
+                $self->tail($tail->x+1, $tail->y)               and
+               !$self->tail($tail->x+1, $tail->y)->next         and
                 $self->tail($tail->x+1, $tail->y)->has_path     and
                 $self->tail($tail->x+1, $tail->y)->has_path_name($name) )
             {
                 $tail->next( $self->tail($tail->x+1, $tail->y) );
                 $tail->direction('right');
             }
-            elsif( $self->tail($tail->x, $tail->y-1)            and
-                !$self->tail($tail->x, $tail->y-1)->next        and
+            elsif(
+                $self->tail($tail->x, $tail->y-1)               and
+               !$self->tail($tail->x, $tail->y-1)->next         and
                 $self->tail($tail->x, $tail->y-1)->has_path     and
                 $self->tail($tail->x, $tail->y-1)->has_path_name($name) )
             {
                 $tail->next( $self->tail($tail->x, $tail->y-1) );
                 $tail->direction('up');
             }
-            elsif( $self->tail($tail->x, $tail->y+1)            and
-                !$self->tail($tail->x, $tail->y+1)->next        and
+            elsif(
+                $self->tail($tail->x, $tail->y+1)               and
+               !$self->tail($tail->x, $tail->y+1)->next         and
                 $self->tail($tail->x, $tail->y+1)->has_path     and
                 $self->tail($tail->x, $tail->y+1)->has_path_name($name) )
             {
@@ -121,27 +122,13 @@ sub _init_roads
                 $tail->direction('down');
             }
 
-            push @{ $road{$name} }, $tail;
-            printf "%s - %s : %s \n", $name, $tail->x, $tail->y;
-
+            # while not finish
             last if $tail->has_path_type('finish');
+
+            # Goto next tail
             $tail = $tail->next;
         }
     }
-
-#    use Data::Dumper;
-#    die Dumper \%road;
-
-for my $y (0 .. $self->height - 1)
-    {
-        for my $x (0 .. $self->width - 1)
-        {
-            printf '%s ', $self->map->[$x][$y]->direction;
-        }
-
-        print "\n";
-    }
-die 1;
 }
 
 sub map     {return shift()->{map}}
@@ -183,7 +170,7 @@ sub tail_map_height  {return shift()->{tail_map_height}}
 sub tail
 {
     my ($self, $x, $y) = @_;
-    return $self->map->[$x][$y];
+    return $self->map->[$y][$x];
 }
 
 =head2 tail_width
@@ -218,27 +205,6 @@ sub tail_find_by_path_type
     }
 
     return wantarray ? @result : \@result;
-}
-
-sub next_path
-{
-    my ($self, $name, $x, $y) = @_;
-
-    return undef if $self->tail($x, $y)->{path}{type} eq 'finish';
-
-    # Create array of possibles ways
-    my @path = (
-        ($y > 0)                    ? {x => $x,   y => $y-1}    : (),
-        ($y < $self->height - 1)    ? {x => $x+1, y => $y  }    : (),
-        ($x < $self->width  - 1)    ? {x => $x,   y => $y+1}    : (),
-        ($x > 0)                    ? {x => $x-1, y => $y  }    : (),
-    );
-
-    die 'TODO!!!';
-#    # Find next possible path
-#    for my $possible (@path)
-#    {
-#    }
 }
 
 1;

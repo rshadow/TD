@@ -36,25 +36,29 @@ sub new
     croak 'Missing required param "wave"'    unless defined $opts{wave};
     croak 'Missing required param "map"'     unless defined $opts{map};
 
+    # black magic for unit objects - they incapsulate mvc =(
+    my $app = delete $opts{app};
+
     my $self = bless \%opts, $class;
 
+    $self->_init_units($app);
 
     return $self;
 }
 
 sub _init_units
 {
-    my ($self) = @_;
+    my ($self, $app) = @_;
     for my $name ($self->names)
     {
         for my $unit ( $self->path($name) )
         {
             $unit = Game::TD::Unit->new(
-                app         => $self->app,
+                app         => $app,
                 type        => $unit->{type},
-                x   => $self->map->start($name)->x * $self->map->tail_width,
-                y   => $self->map->start($name)->y * $self->map->tail_height,
-                direction   => 'right', #???
+                x           => $self->map->start($name)->x * $self->map->tail_width,
+                y           => $self->map->start($name)->y * $self->map->tail_height,
+                direction   => $self->map->start($name)->direction,
                 span        => $unit->{span},
             );
         }
@@ -79,6 +83,12 @@ sub path
     return wantarray ?@{ $self->{wave}{$name} } :$self->{wave}{$name};
 }
 
-
 sub map { return shift()->{map} }
+
+sub update
+{
+    my ($self, $ticks) = @_;
+
+}
+
 1;
