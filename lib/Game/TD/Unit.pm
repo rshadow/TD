@@ -48,13 +48,16 @@ sub new
     $self->{$_} = $unit{$_} for qw(speed health);
 
     # Load animation
+    my $images = config->param($self->conf=>$self->type=>'animation'=>'right');
     $self->sprite(unit => SDLx::Sprite::Animated->new(
-        images => config->param($self->conf=>$self->type=>'animation'=>'right'),
-        type => 'circular',
-        ticks_per_frame => config->param($self->conf=>$self->type=>'speed'),
-        x => $self->x,
-        y => $self->y,
+        images          => $images,
+        type            => 'circular',
+        ticks_per_frame => $self->speed * $self->app->dt,
+        x               => $self->x,
+        y               => $self->y,
     ));
+    # Randomize start frame
+    $self->sprite('unit')->next for 0 .. rand scalar @$images;
     $self->sprite('unit')->start;
 
     return $self;

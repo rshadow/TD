@@ -82,14 +82,24 @@ sub update
     if( $self->left)
     {
         $self->left( $self->sleep - $self->timer('sleep')->get_ticks );
-        # Start units timer
-        $self->timer('units')->start unless $self->left;
+        # Stop sleep time and start units timer
+        unless( $self->left )
+        {
+            $self->timer('sleep')->stop;
+            $self->timer('units')->start;
+        }
         return 1;
     }
 
-    $self->wave->update( $self->timer('sleep')->get_ticks );
+    # Update units
+    $self->wave->update( $self->timer('units')->get_ticks );
 
-    return 0 if $self->health <= 0;
+    # Check for level health
+    if( $self->health <= 0 )
+    {
+        $self->timer('units')->stop;
+        return 0;
+    }
 
     return 1;
 }
