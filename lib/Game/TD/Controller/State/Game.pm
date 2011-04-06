@@ -60,34 +60,6 @@ sub new
         conf    => $self->conf,
     ));
 
-#    my @path = keys %{ $self->model->level->wave };
-#
-#    for my $path ( @path )
-#    {
-#        my $tail = $self->model->level->map->start($path);
-#
-#        for my $rec ( @{ $self->model->level->wave->{$path} } )
-#        {
-#            $self->unit( Game::TD::Unit->new(
-#                app         => $self->app,
-#                type        => $rec->{unit},
-#                x           => $tail->x * $self->map->tail_width,
-#                y           => $tail->y * $self->map->tail_height,
-#                direction   => 'right',
-#                span        => $rec->{span},
-#            ));
-#        }
-#    }
-#
-    $self->unit('1' => Game::TD::Unit->new(
-        app     => $self->app,
-        x       => 500,
-        y       => 500,
-        type    => 'ambusher',
-        direction   => 'right',
-        span        => 0,
-    ));
-
     return $self;
 }
 
@@ -154,11 +126,6 @@ sub draw
 
     $self->button('menu')->draw;
 
-    $self->unit('1')->move;
-    $self->unit('1')->draw;
-
-    my ($mx, $my) = $self->map_xy( $self->unit('1')->x, $self->unit('1')->y );
-    printf "%s : %s \n", $mx, $my;
 
 #    for my $index (0 .. $#{$self->model->levels})
 #    {
@@ -174,37 +141,6 @@ sub draw
 sub player
 {
     return shift()->{player};
-}
-
-=head2 unit $name, $value
-
-Common storage for units. Get $name for unit and typically
-Game::TD::Unit object in $value.
-
-=cut
-
-sub unit
-{
-    my ($self, $name, $value) = @_;
-
-    croak 'Name required'           unless defined $name;
-    $self->{unit}{$name} = $value   if defined $value;
-    return $self->{unit}{$name};
-}
-
-sub map_xy
-{
-    my ($self, $x, $y) = @_;
-
-    my $m_x = int( $x / $self->model->map->tail_width  );
-    my $m_y = int( $y / $self->model->map->tail_height );
-
-    croak 'x not on map'
-        if $m_x < 0 || $m_x > ($self->model->map->width - 1);
-    croak 'y not on map'
-        if $m_y < 0 || $m_y > ($self->model->map->height - 1);
-
-    return ($m_x, $m_y);
 }
 
 1;

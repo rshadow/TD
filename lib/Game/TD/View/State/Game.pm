@@ -258,6 +258,11 @@ sub draw
 
         return;
     }
+
+    # Get active units
+    my $units = $self->model->wave->active;
+    # Draw active units
+    $_->draw for @$units;
 }
 
 1;

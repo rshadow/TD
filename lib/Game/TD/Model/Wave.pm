@@ -51,14 +51,27 @@ sub _init_units
     my ($self, $app) = @_;
     for my $name ($self->names)
     {
-        for my $unit ( $self->path($name) )
+        # Get start position
+        my $x           = $self->map->start($name)->x * $self->map->tail_width;
+        my $y           = $self->map->start($name)->y * $self->map->tail_height;
+        # Get start direction
+        my $direction   = $self->map->start($name)->direction;
+
+        # Subtrac start position on one tail by direction
+        if   ($direction eq 'left')  { $x += $self->map->tail_width; }
+        elsif($direction eq 'right') { $x -= $self->map->tail_width; }
+        elsif($direction eq 'up')    { $y += $self->map->tail_height; }
+        elsif($direction eq 'down')  { $y -= $self->map->tail_height; }
+        else                         { die 'Broken start direction'; }
+
+        for my $unit (@{ $self->path($name) })
         {
             $unit = Game::TD::Unit->new(
                 app         => $app,
                 type        => $unit->{type},
-                x           => $self->map->start($name)->x * $self->map->tail_width,
-                y           => $self->map->start($name)->y * $self->map->tail_height,
-                direction   => $self->map->start($name)->direction,
+                x           => $x,
+                y           => $y,
+                direction   => $direction,
                 span        => $unit->{span},
             );
         }
@@ -89,6 +102,58 @@ sub update
 {
     my ($self, $ticks) = @_;
 
+    # Get active units
+    my $active = $self->active($ticks);
+#    use Data::Dumper;
+#    die Dumper $active;
+    # Move active units
+    $_->move for @$active;
+    $_->direction( $self->map->tail( $self->map_xy($_) )->direction )
+        for @$active;
 }
+
+sub active
+{
+    my ($self, $ticks) = @_;
+
+    if( defined $ticks )
+    {
+        # Drop active list
+        $self->{active} = [];
+
+        # Find active units for all paths and store them
+        for my $name ($self->names)
+        {
+            my @active = grep { $_->span <= $ticks } $self->path($name);
+            @{$self->{active}} = (@{$self->{active}}, @active);
+        }
+    }
+
+    return wantarray ?@{ $self->{active} } : $self->{active};
+}
+
+sub map_xy
+{
+    my ($self, $unit) = @_;
+
+    my $map_x = int( $unit->x / $self->map->tail_width  );
+    my $map_y = int( $unit->y / $self->map->tail_height );
+
+    my $tail_x = $map_x * $self->map->tail_width;
+    my $tail_y = $map_y * $self->map->tail_height;
+
+    if($unit->direction eq 'up')
+    {
+        $map_y += 1 if $unit->y > $tail_y;
+    }
+    elsif($unit->direction eq 'left')
+    {
+        $map_x += 1 if $unit->x > $tail_x;
+    }
+
+    return ($map_x, $map_y);
+}
+
+
 
 1;

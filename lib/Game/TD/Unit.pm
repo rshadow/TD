@@ -95,8 +95,15 @@ sub move
 {
     my ($self, $dt) = @_;
 
+    # Do not move die unit
+    return unless $self->health;
+    return unless $self->speed;
+    return unless $self->direction;
+
+    # Set dt
     $dt //= $self->app->dt;
 
+    # Move unit
     if($self->direction eq 'left')
     {
         $self->x( $self->x - $self->speed * $dt);
