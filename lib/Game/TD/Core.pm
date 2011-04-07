@@ -55,9 +55,6 @@ sub state
 
     if( defined $state )
     {
-        # Remember current state
-        my $last = $self->{state};
-
         # Load controller for new state
         if($state eq 'intro')
         {
@@ -98,6 +95,9 @@ sub state
             ));
         }
 
+
+        # Remember current state
+        my $last       = $self->{state};
         # Set new state
         $self->{state} = $state;
 
@@ -181,20 +181,18 @@ sub event
             $self->app->fullscreen;
         }
     }
+
     # Game events
-    else
-    {
-        my ($quit, $state);
+    my ($quit, $state);
 
-        my $result = $self->ctrl( $self->state )->event( $event );
-        $quit  = delete $result->{quit}  if exists $result->{quit};
-        $state = delete $result->{state} if exists $result->{state};
+    my $result = $self->ctrl( $self->state )->event( $event );
+    $quit  = delete $result->{quit}  if exists $result->{quit};
+    $state = delete $result->{state} if exists $result->{state};
 
-        # Quit if controller want it
-        return                           if $quit;
-        # Goto next state if controller require it
-        $self->state( $state, %$result ) if $state;
-    }
+    # Quit if controller want it
+    return                           if $quit;
+    # Goto next state if controller require it
+    $self->state( $state, %$result ) if $state;
 
     return 1;
 }

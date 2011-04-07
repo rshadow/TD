@@ -159,6 +159,25 @@ sub _init_background
             );
         }
     }
+
+    if( config->param('editor'=>'enable') )
+    {
+        for my $y (0 .. ($self->model->map->height - 1) )
+        {
+            for my $x (0 .. ($self->model->map->width - 1))
+            {
+                my $tail  = $self->model->map->tail($x,$y);
+                my @path = keys(%{$tail->path || {}});
+
+                $self->font('editor_tail')->write_xy(
+                    $self->sprite('background')->surface,
+                    $mleft + $x * $self->model->map->tail_width  + config->param('editor'=>'tail'=>'left'),
+                    $mtop  + $y * $self->model->map->tail_height + config->param('editor'=>'tail'=>'top'),
+                    sprintf("%s:%s%s", $x, $y, join(',', map {s/(\d+)$/$1/} @path)),
+                );
+            }
+        }
+    }
 }
 
 sub _draw_map_tile

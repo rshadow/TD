@@ -39,31 +39,37 @@ sub new
     croak 'Missing required param "y"'          unless defined $opts{y};
     croak 'Missing required param "direction"'  unless defined $opts{direction};
     croak 'Missing required param "span"'       unless defined $opts{span};
+    croak 'Missing required param "path"'       unless defined $opts{path};
 
     my $self = bless \%opts, $class;
 
     # Get from config
-    my %unit = %{ config->param('unit'=>$self->type) };
+    my %unit = %{ config->param('unit'=>$self->type) || {} };
+    %unit = %{ config->param('unit'=>'unknown') } unless %unit;
+
     # Concat
     $self->{$_} = $unit{$_} for qw(speed health);
 
     # Load animation
-    my $images = config->param($self->conf=>$self->type=>'animation'=>'right');
     $self->sprite(unit => SDLx::Sprite::Animated->new(
-        images          => $images,
-        type            => 'circular',
+        images          => $unit{animation}{right},
+        type            => $unit{animation}{type} || 'circular',
         ticks_per_frame => $self->speed * $self->app->dt,
         x               => $self->x,
         y               => $self->y,
     ));
     # Randomize start frame
-    $self->sprite('unit')->next for 0 .. rand scalar @$images;
+    $self->sprite('unit')->next
+        for 0 .. rand scalar @{ $unit{animation}{right} };
     $self->sprite('unit')->start;
+
+    $self->_init_editor if config->param('editor'=>'enable');
 
     return $self;
 }
 
 sub type    {return shift()->{type}     }
+sub path    {return shift()->{path}     }
 sub speed   {return shift()->{speed}    }
 sub health  {return shift()->{health}   }
 
@@ -143,6 +149,13 @@ sub draw
     $self->sprite('unit')->x( $self->x );
     $self->sprite('unit')->y( $self->y );
     $self->sprite('unit')->draw( $self->app );
+
+    $self->font('editor_tail')->write_xy(
+        $self->app,
+        $self->x,
+        $self->y,
+        sprintf('%s %s:%s', $self->direction, $self->x, $self->y),
+    ) if config->param('editor'=>'enable');
 }
 
 1;

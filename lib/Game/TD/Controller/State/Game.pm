@@ -38,6 +38,8 @@ sub new
     die 'Missing required param "player"'   unless defined $opts{player};
     die 'Missing required param "level"'    unless defined $opts{level};
 
+    $opts{pause} //= 0;
+
     my $self = $class->SUPER::new(%opts);
 
     $self->model( Game::TD::Model::State::Game->new(
@@ -68,6 +70,8 @@ sub update
     my ($self) = @_;
 
     my %result;
+
+    return \%result if $self->is_pause;
 
     my $process = $self->model->update;
     $result{state} = 'score' unless $process;
@@ -114,6 +118,15 @@ sub event
 #            }
 #        }
     }
+    elsif($type == SDL_KEYDOWN)
+    {
+        my $sym = $event->key_sym;
+
+        if($sym == SDLK_PAUSE || $sym == SDLK_p)
+        {
+            $self->pause;
+        }
+    }
 
     return \%result;
 }
@@ -122,7 +135,11 @@ sub draw
 {
     my $self = shift;
 
-    $self->view->draw;
+    unless( $self->is_pause )
+    {
+
+        $self->view->draw;
+    }
 
     $self->button('menu')->draw;
 
@@ -143,4 +160,16 @@ sub player
     return shift()->{player};
 }
 
+sub is_pause
+{
+    my $self = shift;
+    return $self->{pause};
+}
+
+sub pause
+{
+    my $self = shift;
+    $self->{pause} = not $self->{pause};
+    return $self->{pause};
+}
 1;

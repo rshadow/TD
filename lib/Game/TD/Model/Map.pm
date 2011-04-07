@@ -74,59 +74,76 @@ sub _init_roads
 {
     my ($self) = @_;
 
-    # Find start and finish tails
-    $self->start($_->{path}{name}, $_)
-        for $self->tail_find_by_path_type('start');
-    $self->finish($_->{path}{name}, $_)
-        for $self->tail_find_by_path_type('finish');
+    # Find start tails
+    for my $tail ( $self->tail_find_by_path_type('start') )
+    {
+        for my $name ( keys %{ $tail->path } )
+        {
+            $self->start($name, $tail);
+        }
+    }
+    # Find finish tails
+    for my $tail ( $self->tail_find_by_path_type('finish') )
+    {
+        for my $name ( keys %{ $tail->path } )
+        {
+            $self->finish($name, $tail);
+        }
+    }
 
     # Set directions: move by road from start to end and set it for each tail
-    for my $name (keys %{ $self->start })
+    for my $name ( keys %{$self->start} )
     {
         my $tail = $self->start($name);
         while( $tail )
         {
             if( $self->tail($tail->x-1, $tail->y)               and
-               !$self->tail($tail->x-1, $tail->y)->next         and
+               !$self->tail($tail->x-1, $tail->y)->next($name)  and
                 $self->tail($tail->x-1, $tail->y)->has_path     and
                 $self->tail($tail->x-1, $tail->y)->has_path_name($name) )
             {
-                $tail->next( $self->tail($tail->x-1, $tail->y) );
-                $tail->direction('left');
+                $tail->next($name, $self->tail($tail->x-1, $tail->y));
+                $tail->direction($name, 'left');
             }
             elsif(
                 $self->tail($tail->x+1, $tail->y)               and
-               !$self->tail($tail->x+1, $tail->y)->next         and
+               !$self->tail($tail->x+1, $tail->y)->next($name)  and
                 $self->tail($tail->x+1, $tail->y)->has_path     and
                 $self->tail($tail->x+1, $tail->y)->has_path_name($name) )
             {
-                $tail->next( $self->tail($tail->x+1, $tail->y) );
-                $tail->direction('right');
+                $tail->next($name, $self->tail($tail->x+1, $tail->y));
+                $tail->direction($name, 'right');
             }
             elsif(
                 $self->tail($tail->x, $tail->y-1)               and
-               !$self->tail($tail->x, $tail->y-1)->next         and
+               !$self->tail($tail->x, $tail->y-1)->next($name)  and
                 $self->tail($tail->x, $tail->y-1)->has_path     and
                 $self->tail($tail->x, $tail->y-1)->has_path_name($name) )
             {
-                $tail->next( $self->tail($tail->x, $tail->y-1) );
-                $tail->direction('up');
+                $tail->next($name, $self->tail($tail->x, $tail->y-1));
+                $tail->direction($name, 'up');
             }
             elsif(
                 $self->tail($tail->x, $tail->y+1)               and
-               !$self->tail($tail->x, $tail->y+1)->next         and
+               !$self->tail($tail->x, $tail->y+1)->next($name)  and
                 $self->tail($tail->x, $tail->y+1)->has_path     and
                 $self->tail($tail->x, $tail->y+1)->has_path_name($name) )
             {
-                $tail->next( $self->tail($tail->x, $tail->y+1) );
-                $tail->direction('down');
+                $tail->next($name, $self->tail($tail->x, $tail->y+1));
+                $tail->direction($name, 'down');
             }
 
             # while not finish
-            last if $tail->has_path_type('finish');
+            last if $tail->has_path_type($name, 'finish');
+
+#            printf "%s - %s:%s",
+#                join( ',', keys %{$tail->path || {}}),
+#                $tail->x,
+#                $tail->y;
+#            print "\n";
 
             # Goto next tail
-            $tail = $tail->next;
+            $tail = $tail->next($name);
         }
     }
 }
@@ -200,7 +217,7 @@ sub tail_find_by_path_type
         for my $x (0 .. $self->width - 1)
         {
             my $tail = $self->tail($x, $y);
-            push @result, $tail if $tail->has_path_type($type);
+            push @result, $tail if $tail->has_path_type(undef, $type);
         }
     }
 

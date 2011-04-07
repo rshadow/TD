@@ -43,6 +43,8 @@ sub new
 
     $self->_init;
 
+    $self->_init_editor if config->param('editor'=>'enable');
+
     return $self;
 }
 
@@ -50,6 +52,7 @@ sub _init
 {
     my $self = shift;
 
+    # Load FPS font params
     $self->font(fps => SDLx::Text->new(
         font    => config->param('common'=>'fps'=>'font'),
         size    => config->param('common'=>'fps'=>'size'),
@@ -68,12 +71,31 @@ sub _init_background
 {
     my ($self, $conf) = @_;
 
+    # Clear background
+    $self->app->draw_rect(
+        SDL::Rect->new(0, 0, $self->app->w, $self->app->h),
+        0x000000FF
+    );
+
     # Load background image from file
     $self->sprite(background => SDLx::Sprite->new(
         image   => config->param($self->conf(caller)=>'background'=>'file')
     ));
 
+    # Draw background
     $self->sprite('background')->draw( $self->app );
+}
+
+sub _init_editor
+{
+    my $self = shift;
+
+    $self->font('editor_tail' => SDLx::Text->new(
+        font    => config->param('editor'=>'tail'=>'font'),
+        size    => config->param('editor'=>'tail'=>'size'),
+        color   => config->color('editor'=>'tail'=>'color'),
+        mode    => 'utf8',
+    ));
 }
 
 =head2

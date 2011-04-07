@@ -6,6 +6,7 @@ package Game::TD::Model::Tail;
 #use base qw(Exporter);
 #our @EXPORT = qw();
 
+use Carp;
 use Scalar::Util qw(weaken);
 
 =head1 Game::TD::Model::Tail
@@ -66,6 +67,13 @@ sub item_mod
     return $self->{item}{mod};
 }
 
+sub path
+{
+    my ($self) = @_;
+    return unless exists $self->{path};
+    return wantarray ? %{$self->{path}} : $self->{path};
+}
+
 sub has_path
 {
     my ($self) = @_;
@@ -74,47 +82,60 @@ sub has_path
 
 sub has_path_name
 {
-    my ($self, $name) = @_;
+    my ($self, $path) = @_;
 
     return 0 unless exists $self->{path};
-    return 1 if exists $self->{path} and ! defined $name;
+    return 1 if exists $self->{path}{$path};
 
-    my @path = ('ARRAY' eq ref $self->{path})
-        ? @{ $self->{path} }
-        :  ( $self->{path} );
-
-    return (grep {$_->{name} eq $name } @path) ? 1 : 0;
+    return 0;
 }
 
 sub has_path_type
 {
-    my ($self, $type) = @_;
+    my ($self, $path, $type) = @_;
 
     return 0 unless exists $self->{path};
 
-    my @path = ('ARRAY' eq ref $self->{path})
-        ? @{ $self->{path} }
-        :  ( $self->{path} );
+    # If defined path then check type for this path
+    if(defined $path)
+    {
+        return 0 unless exists $self->{path}{$path};
+        return 1 if exists $self->{path}{$path}{$type};
+        return 0;
+    }
 
-    return (grep {defined $_->{type} and $_->{type} eq $type } @path) ? 1 : 0;
+    # If path not defined then search for type in all paths
+    for my $key ( keys %{ $self->{path} } )
+    {
+        return 1 if exists $self->{path}{$key}{type} and
+                    $type eq $self->{path}{$key}{type};
+    }
+
+    return 0;
 }
 
 sub direction
 {
-    my ($self, $direction) = @_;
-    $self->{direction} = $direction if defined $direction;
-    return $self->{direction};
+    my ($self, $path, $direction) = @_;
+
+    confess 'Path name not set'   unless defined $path;
+
+    $self->{direction}{$path} = $direction if defined $direction;
+    return $self->{direction}{$path};
 }
 
 sub next
 {
-    my ($self, $tail) = @_;
+    my ($self, $path, $tail) = @_;
+
+    confess 'Path name not set'   unless defined $path;
+
     if( defined $tail )
     {
-        $self->{next} = $tail ;
-        weaken $self->{next};
+        $self->{next}{$path} = $tail ;
+        weaken $self->{next}{$path};
     }
-    return $self->{next};
+    return $self->{next}{$path};
 }
 
 1;

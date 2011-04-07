@@ -55,7 +55,7 @@ sub _init_units
         my $x           = $self->map->start($name)->x * $self->map->tail_width;
         my $y           = $self->map->start($name)->y * $self->map->tail_height;
         # Get start direction
-        my $direction   = $self->map->start($name)->direction;
+        my $direction   = $self->map->start($name)->direction($name);
 
         # Subtrac start position on one tail by direction
         if   ($direction eq 'left')  { $x += $self->map->tail_width; }
@@ -73,6 +73,7 @@ sub _init_units
                 y           => $y,
                 direction   => $direction,
                 span        => $unit->{span},
+                path        => $name,
             );
         }
     }
@@ -108,7 +109,7 @@ sub update
 #    die Dumper $active;
     # Move active units
     $_->move for @$active;
-    $_->direction( $self->map->tail( $self->map_xy($_) )->direction )
+    $_->direction($self->map->tail( $self->map_xy($_) )->direction($_->path) )
         for @$active;
 }
 
