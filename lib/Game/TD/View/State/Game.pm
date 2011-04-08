@@ -78,11 +78,10 @@ sub new
         size    => config->param($self->conf=>'sleep'=>'size'),
         color   => config->color($self->conf=>'sleep'=>'color'),
         mode    => 'utf8',
-        h_align => 'center',
     ));
     $self->dest(sleep => SDL::Rect->new(
-        $self->model->camera->left + $self->model->map->tail_map_width  / 2,
-        $self->model->camera->top  + $self->model->map->tail_map_height / 2,
+        $self->model->camera->left + int($self->model->camera->w / 2),
+        $self->model->camera->top  + int($self->model->camera->h / 2),
         0 ,0
     ));
 
@@ -214,12 +213,12 @@ sub _init_editor
             my $tail  = $self->model->map->tail($x,$y);
             my @path = keys(%{$tail->path || {}});
 
-#            $self->font('editor_tail')->write_xy(
-#                $self->sprite('map')->surface,
-#                $x * $self->model->map->tail_width  + config->param('editor'=>'tail'=>'left'),
-#                $y * $self->model->map->tail_height + config->param('editor'=>'tail'=>'top'),
-#                sprintf("%s:%s%s", $x, $y, join(',', @path)),
-#            );
+            $self->font('editor_tail')->write_xy(
+                $self->sprite('map')->surface,
+                $x * $self->model->map->tail_width,
+                $y * $self->model->map->tail_height,
+                sprintf("%s:%s%s", $x, $y, join(',', @path)),
+            );
         }
     }
 }
@@ -315,8 +314,8 @@ sub draw
         $self->font('sleep')->text($text);
         $self->font('sleep')->write_xy(
             $self->app,
-            int($self->dest('sleep')->x - $self->font('sleep')->w/2),
-            int($self->dest('sleep')->y - $self->font('sleep')->h/2),
+            $self->dest('sleep')->x - int($self->font('sleep')->w/2),
+            $self->dest('sleep')->y - int($self->font('sleep')->h/2),
             $text
         );
 

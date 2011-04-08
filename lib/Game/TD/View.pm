@@ -8,6 +8,7 @@ use Carp;
 
 use SDL;
 use SDLx::Sprite;
+use SDLx::Sound;
 use SDLx::Text;
 
 use Game::TD::Config;
@@ -42,8 +43,6 @@ sub new
     my $self = bless \%opts, $class;
 
     $self->_init;
-
-    $self->_init_editor if config->param('editor'=>'enable');
 
     return $self;
 }
@@ -82,6 +81,18 @@ sub _init_background
         clip    => $window,
         rect    => $window,
     ));
+
+    # Load background music
+#    my $file = config->param($self->conf(caller)=>'background'=>'music');
+#    if($file)
+#    {
+#        my $music = SDLx::Sound->new(
+#            files => { chanell_01 => $file },
+#            loud  => { channel_01 => 100 },
+#        );
+#        $self->sound('music' => $music);
+#        $music->play;
+#    }
 
     # Draw background
     $self->sprite('background')->draw( $self->app );
@@ -141,6 +152,15 @@ sub sprite
     return $self->{sprite}{$name};
 }
 
+sub sound
+{
+    my ($self, $name, $value) = @_;
+
+    die 'Name required'                unless defined $name;
+    $self->{sound}{$name} = $value     if defined $value;
+    return $self->{sound}{sound};
+}
+
 sub dest
 {
     my ($self, $name, $value) = @_;
@@ -173,6 +193,7 @@ DESTROY
     undef $self->{dest}{$_}     for keys %{ $self->{dest}   };
     undef $self->{font}{$_}     for keys %{ $self->{font}   };
     undef $self->{sprite}{$_}   for keys %{ $self->{sprite} };
+    undef $self->{sound}{$_}    for keys %{ $self->{sound}  };
     undef $self->{model};
     undef $self->{app};
 }

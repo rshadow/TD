@@ -90,8 +90,37 @@ sub event
     my $type = $event->type;
 
     # Just send event to buttons
-    if($type == SDL_MOUSEMOTION or $type == SDL_MOUSEBUTTONDOWN)
+    if($type == SDL_MOUSEMOTION)
     {
+        # Send to buttons
+        $self->button('menu')->event( $event );
+        $self->button('pause')->event( $event );
+
+        # Get mouse position and screen params
+        my $x       = $event->motion_x;
+        my $y       = $event->motion_y;
+        my $width   = $self->app->surface->w;
+        my $height  = $self->app->surface->h;
+        # Sensetive border
+        my $border  = config->param('common'=>'camera'=>'border');
+
+        # Scroll camera on mouse
+        ($x <= $border)
+            ? $self->model->camera->move('left')
+            : $self->model->camera->stop('left');
+        ($x >= ($width-$border))
+            ? $self->model->camera->move('right')
+            : $self->model->camera->stop('right');
+        ($y <= $border)
+            ? $self->model->camera->move('up')
+            : $self->model->camera->stop('up');
+        ($y >= ($height-$border))
+            ? $self->model->camera->move('down')
+            : $self->model->camera->stop('down');
+    }
+    elsif($type == SDL_MOUSEBUTTONDOWN)
+    {
+        # Send to buttons
         $self->button('menu')->event( $event );
         $self->button('pause')->event( $event );
     }
