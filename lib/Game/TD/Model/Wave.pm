@@ -35,13 +35,11 @@ sub new
 
     croak 'Missing required param "wave"'    unless defined $opts{wave};
     croak 'Missing required param "map"'     unless defined $opts{map};
-
-    # black magic for unit objects - they incapsulate mvc =(
-    my $app = delete $opts{app};
+    croak 'Missing required param "dt"'      unless defined $opts{dt};
 
     my $self = bless \%opts, $class;
 
-    $self->_init_units($app);
+    $self->_init_units;
 
     return $self;
 }
@@ -49,6 +47,7 @@ sub new
 sub _init_units
 {
     my ($self, $app) = @_;
+
     for my $name ($self->names)
     {
         # Get start position
@@ -67,7 +66,6 @@ sub _init_units
         for my $unit (@{ $self->path($name) })
         {
             $unit = Game::TD::Unit->new(
-                app         => $app,
                 type        => $unit->{type},
                 x           => $x,
                 y           => $y,
@@ -75,6 +73,9 @@ sub _init_units
                 span        => $unit->{span},
                 path        => $name,
             );
+
+            # Store type
+            $self->types( $unit->type );
         }
     }
 }
@@ -98,6 +99,7 @@ sub path
 }
 
 sub map { return shift()->{map} }
+sub dt  { return shift()->{dt};   }
 
 sub update
 {
@@ -111,7 +113,7 @@ sub update
 #    use Data::Dumper;
 #    die Dumper $active;
     # Move active units
-    $_->move for @$active;
+    $_->move( $self->dt ) for @$active;
 
     for my $unit ( @$active )
     {
@@ -177,6 +179,11 @@ sub map_xy
     return ($map_x, $map_y);
 }
 
-
+sub types
+{
+    my ($self, $type) = @_;
+    $self->{types}{$type}++ if defined $type;
+    return wantarray ? %{$self->{types}} : $self->{types};
+}
 
 1;

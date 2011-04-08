@@ -12,7 +12,6 @@ use SDLx::Sprite;
 use SDLx::Text;
 
 use Game::TD::Config;
-use Game::TD::Model::Camera;
 
 =head1 Game::TD::View::State::Game
 
@@ -41,13 +40,11 @@ sub new
     my $self = $class->SUPER::new(%opts);
 
     $self->_init_background;
-
-    # Create camera
-    $self->camera(Game::TD::Model::Camera->new(
-        map => $self->model->map,
-    ));
-
     $self->_init_map;
+    $self->_init_editor if config->param('editor'=>'enable');
+    $self->_init_items;
+    $self->_init_units;
+
 
     # Health counter font
     $self->font(health => SDLx::Text->new(
@@ -75,10 +72,6 @@ sub new
         0 ,0
     ));
 
-    # Zero coordinates for map
-    my $mleft = config->param($self->conf=>'map'=>'left');
-    my $mtop  = config->param($self->conf=>'map'=>'top');
-
     # Sleep font
     $self->font(sleep => SDLx::Text->new(
         font    => config->param($self->conf=>'sleep'=>'font'),
@@ -88,8 +81,8 @@ sub new
         h_align => 'center',
     ));
     $self->dest(sleep => SDL::Rect->new(
-        $mleft + $self->model->map->tail_map_width  / 2,
-        $mtop  + $self->model->map->tail_map_height / 2,
+        $self->model->camera->left + $self->model->map->tail_map_width  / 2,
+        $self->model->camera->top  + $self->model->map->tail_map_height / 2,
         0 ,0
     ));
 
@@ -126,18 +119,14 @@ sub _init_map
 {
     my ($self) = @_;
 
-    # Zero coordinates for map
-    my $left = config->param($self->conf=>'map'=>'left');
-    my $top  = config->param($self->conf=>'map'=>'top');
-
     $self->sprite('map' => SDLx::Sprite->new(
-        clip    => $self->camera->rect,
-        rect    =>
-            SDL::Rect->new($left, $top, $self->camera->w, $self->camera->h),
+        clip    => $self->model->camera->clip,
+        rect    => $self->model->camera->rect,
         width   => $self->model->map->tail_map_width,
         height  => $self->model->map->tail_map_height,
     ));
 
+    # Init map by filling color
     $self->sprite('map')->surface->draw_rect(
         SDL::Rect->new(
             0, 0,
@@ -162,6 +151,11 @@ sub _init_map
             );
         }
     }
+}
+
+sub _init_items
+{
+    my ($self) = @_;
 
     # Draw items on background
     for my $y (0 .. ($self->model->map->height - 1) )
@@ -182,23 +176,50 @@ sub _init_map
             );
         }
     }
+}
 
-    if( config->param('editor'=>'enable') )
+sub _init_units
+{
+    my ($self) = @_;
+
+    for my $type ( keys %{ $self->model->wave->types } )
     {
-        for my $y (0 .. ($self->model->map->height - 1) )
+        # Load user sprite if not defined
+        unless( defined $self->sprite($type) )
         {
-            for my $x (0 .. ($self->model->map->width - 1))
-            {
-                my $tail  = $self->model->map->tail($x,$y);
-                my @path = keys(%{$tail->path || {}});
+            $self->sprite($type => SDLx::Sprite::Animated->new(
+                images          =>
+                    config->param('unit'=>$type=>'animation'=>'right'),
+                type            =>
+                    config->param('unit'=>$type=>'animation'=>'type') ||
+                    'circular',
+                ticks_per_frame =>
+                    int( $self->app->min_t * 1000 / 2 ),
+            ));
+            $self->sprite($type)->start;
+        }
+    }
+}
 
-                $self->font('editor_tail')->write_xy(
-                    $self->sprite('map')->surface,
-                    $x * $self->model->map->tail_width  + config->param('editor'=>'tail'=>'left'),
-                    $y * $self->model->map->tail_height + config->param('editor'=>'tail'=>'top'),
-                    sprintf("%s:%s%s", $x, $y, join(',', map {s/(\d+)$/$1/} @path)),
-                );
-            }
+sub _init_editor
+{
+    my ($self) = @_;
+
+    $self->SUPER::_init_editor;
+
+    for my $y (0 .. ($self->model->map->height - 1) )
+    {
+        for my $x (0 .. ($self->model->map->width - 1))
+        {
+            my $tail  = $self->model->map->tail($x,$y);
+            my @path = keys(%{$tail->path || {}});
+
+#            $self->font('editor_tail')->write_xy(
+#                $self->sprite('map')->surface,
+#                $x * $self->model->map->tail_width  + config->param('editor'=>'tail'=>'left'),
+#                $y * $self->model->map->tail_height + config->param('editor'=>'tail'=>'top'),
+#                sprintf("%s:%s%s", $x, $y, join(',', @path)),
+#            );
         }
     }
 }
@@ -260,6 +281,9 @@ sub draw
 
     # Draw background
     $self->sprite('background')->draw( $self->app );
+    # Draw map
+    $self->sprite('map')->clip($self->model->camera->clip);
+    $self->sprite('map')->rect($self->model->camera->rect);
     $self->sprite('map')->draw( $self->app );
 
     # Draw health counter
@@ -299,16 +323,26 @@ sub draw
         return;
     }
 
-    # Get active units
-    my $units = $self->model->wave->active;
     # Draw active units
-    $_->draw for @$units;
+    my $units = $self->model->wave->active;
+    for my $unit ( @$units )
+    {
+#        TODO: Need randomize start farme for new units
+#        # Randomize start frame
+#        $self->sprite('unit')->next
+#            for 0 .. rand scalar @{ $unit{animation}{right} };
+
+        $self->sprite($unit->type)->x( $unit->x - $self->model->camera->x );
+        $self->sprite($unit->type)->y( $unit->y - $self->model->camera->y );
+        $self->sprite($unit->type)->draw( $self->app );
+
+        $self->font('editor_tail')->write_xy(
+            $self->app,
+            $unit->x - $self->model->camera->x,
+            $unit->y - $self->model->camera->y,
+            sprintf('%s %s:%s', $unit->direction || 'die', $unit->x, $unit->y),
+        ) if config->param('editor'=>'enable');
+    }
 }
 
-sub camera
-{
-    my ($self, $camera) = @_;
-    $self->{camera} = $camera if defined $camera;
-    return $self->{camera};
-}
 1;

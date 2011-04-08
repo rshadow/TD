@@ -46,9 +46,6 @@ sub new
         num     => $opts{level},
         player  => $self->player,
         dt      => $self->app->dt,
-
-        # black magic for unit objects - they incapsulate mvc =(
-        app     => $self->app,
     ));
 
     $self->view( Game::TD::View::State::Game->new(
@@ -136,9 +133,25 @@ sub event
     {
         my $sym = $event->key_sym;
 
-        if($sym == SDLK_PAUSE || $sym == SDLK_p)
+        if($sym == SDLK_PAUSE    || $sym == SDLK_p)
         {
             $self->pause;
+        }
+        elsif($sym == SDLK_UP    || $sym == SDLK_w)
+        {
+            $self->model->camera->move('key', 'up');
+        }
+        elsif($sym == SDLK_LEFT  || $sym == SDLK_a)
+        {
+            $self->model->camera->move('key', 'left');
+        }
+        elsif($sym == SDLK_DOWN  || $sym == SDLK_s)
+        {
+            $self->model->camera->move('key', 'down');
+        }
+        elsif($sym == SDLK_RIGHT || $sym == SDLK_d)
+        {
+            $self->model->camera->move('key', 'right');
         }
     }
 

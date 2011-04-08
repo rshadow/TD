@@ -3,7 +3,7 @@ use warnings;
 use utf8;
 
 package Game::TD::Unit;
-use base qw(Game::TD::View);
+#use base qw(Game::TD::View);
 #use base qw(Exporter);
 #our @EXPORT = qw();
 
@@ -32,8 +32,6 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    croak 'Missing required param "app"'        unless defined $opts{app};
-
     croak 'Missing required param "type"'       unless defined $opts{type};
     croak 'Missing required param "x"'          unless defined $opts{x};
     croak 'Missing required param "y"'          unless defined $opts{y};
@@ -49,21 +47,6 @@ sub new
 
     # Concat
     $self->{$_} = $unit{$_} for qw(speed health);
-
-    # Load animation
-    $self->sprite(unit => SDLx::Sprite::Animated->new(
-        images          => $unit{animation}{right},
-        type            => $unit{animation}{type} || 'circular',
-        ticks_per_frame => $self->speed * $self->app->dt,
-        x               => $self->x,
-        y               => $self->y,
-    ));
-    # Randomize start frame
-    $self->sprite('unit')->next
-        for 0 .. rand scalar @{ $unit{animation}{right} };
-    $self->sprite('unit')->start;
-
-    $self->_init_editor if config->param('editor'=>'enable');
 
     return $self;
 }
@@ -109,9 +92,6 @@ sub move
     return unless $self->speed;
     return unless $self->direction;
 
-    # Set dt
-    $dt //= $self->app->dt;
-
     # Move unit
     if($self->direction eq 'left')
     {
@@ -140,22 +120,6 @@ sub span
     my ($self, $span) = @_;
     $self->{span} = $span if defined $span;
     return $self->{span};
-}
-
-sub draw
-{
-    my $self = shift;
-
-    $self->sprite('unit')->x( $self->x );
-    $self->sprite('unit')->y( $self->y );
-    $self->sprite('unit')->draw( $self->app );
-
-    $self->font('editor_tail')->write_xy(
-        $self->app,
-        $self->x,
-        $self->y,
-        sprintf('%s %s:%s', $self->direction || 'die', $self->x, $self->y),
-    ) if config->param('editor'=>'enable');
 }
 
 sub is_die

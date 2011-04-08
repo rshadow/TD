@@ -71,15 +71,16 @@ sub _init_background
 {
     my ($self, $conf) = @_;
 
+    my $window = SDL::Rect->new(0, 0, $self->app->w, $self->app->h);
+
     # Clear background
-    $self->app->draw_rect(
-        SDL::Rect->new(0, 0, $self->app->w, $self->app->h),
-        0x000000FF
-    );
+    $self->app->draw_rect($window, 0x000000FF);
 
     # Load background image from file
     $self->sprite(background => SDLx::Sprite->new(
-        image   => config->param($self->conf(caller)=>'background'=>'file')
+        image   => config->param($self->conf(caller)=>'background'=>'file'),
+        clip    => $window,
+        rect    => $window,
     ));
 
     # Draw background

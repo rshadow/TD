@@ -9,6 +9,7 @@ use Carp;
 use Game::TD::Config;
 use Game::TD::Model::Wave;
 use Game::TD::Model::Map;
+use Game::TD::Model::Camera;
 
 =head1 Game::TD::Model::State::Game
 
@@ -36,9 +37,7 @@ sub new
 
     croak 'Missing required param "num"'    unless defined $opts{num};
     croak 'Missing required param "player"' unless defined $opts{player};
-
-    # black magic for unit objects - they incapsulate mvc =(
-    my $app = delete $opts{app};
+    croak 'Missing required param "dt"'     unless defined $opts{dt};
 
     my $self = $class->SUPER::new(%opts);
 
@@ -55,10 +54,11 @@ sub new
     $self->wave( Game::TD::Model::Wave->new(
         wave    => delete $level{wave},
         map     => $self->map,
-
-        # black magic for unit objects - they incapsulate mvc =(
-        app     => $app,
+        dt      => $self->dt,
     ));
+
+    # Create camera
+    $self->camera(Game::TD::Model::Camera->new( map => $self->map ));
 
     # Concat
     $self->{$_} = $level{$_} for keys %level;
@@ -123,6 +123,8 @@ Return level board position
 =cut
 
 sub num       { return shift()->{num};   }
+
+sub dt        { return shift()->{dt};   }
 
 =head2 name
 
@@ -221,6 +223,13 @@ sub map
     my ($self, $map) = @_;
     $self->{map} = $map if defined $map;
     return $self->{map};
+}
+
+sub camera
+{
+    my ($self, $camera) = @_;
+    $self->{camera} = $camera if defined $camera;
+    return $self->{camera};
 }
 
 1;
