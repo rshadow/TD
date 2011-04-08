@@ -154,8 +154,23 @@ sub draw
         $self->app,
         $self->x,
         $self->y,
-        sprintf('%s %s:%s', $self->direction, $self->x, $self->y),
+        sprintf('%s %s:%s', $self->direction || 'die', $self->x, $self->y),
     ) if config->param('editor'=>'enable');
+}
+
+sub is_die
+{
+    my ($self) = @_;
+    return $self->{health} ?0 :1;
+}
+
+sub die
+{
+    my ($self, $type) = @_;
+
+    $self->{health}     = 0;
+    $self->{speed}      = 0;
+    $self->{direction}  = undef;
 }
 
 1;

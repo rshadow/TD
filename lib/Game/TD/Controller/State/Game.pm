@@ -62,6 +62,12 @@ sub new
         conf    => $self->conf,
     ));
 
+    $self->button('pause' => Game::TD::Button->new(
+        name    => 'pause',
+        app     => $self->app,
+        conf    => $self->conf,
+    ));
+
     return $self;
 }
 
@@ -90,6 +96,7 @@ sub event
     if($type == SDL_MOUSEMOTION or $type == SDL_MOUSEBUTTONDOWN)
     {
         $self->button('menu')->event( $event );
+        $self->button('pause')->event( $event );
 #        for my $index (0 .. $#{$self->model->levels})
 #        {
 #            my $name = 'level' . $index;
@@ -104,6 +111,13 @@ sub event
         {
             $result{state} = 'menu';
         }
+
+        $state = $self->button('pause')->event( $event );
+        if( $state eq 'up' )
+        {
+            $self->pause;
+        }
+
 #        else
 #        {
 #            for my $index (0 .. $#{$self->model->levels})
@@ -142,6 +156,7 @@ sub draw
     }
 
     $self->button('menu')->draw;
+    $self->button('pause')->draw;
 
 
 #    for my $index (0 .. $#{$self->model->levels})
@@ -170,6 +185,9 @@ sub pause
 {
     my $self = shift;
     $self->{pause} = not $self->{pause};
+
+    # TODO: Pause timers
+
     return $self->{pause};
 }
 1;

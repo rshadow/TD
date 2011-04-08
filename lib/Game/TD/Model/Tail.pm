@@ -3,11 +3,14 @@ use warnings;
 use utf8;
 
 package Game::TD::Model::Tail;
-#use base qw(Exporter);
-#our @EXPORT = qw();
+use base qw(Exporter);
+our @EXPORT = qw(TAIL_WIDTH TAIL_HEIGHT);
 
 use Carp;
 use Scalar::Util qw(weaken);
+
+use constant TAIL_WIDTH     => 50;
+use constant TAIL_HEIGHT    => 50;
 
 =head1 Game::TD::Model::Tail
 

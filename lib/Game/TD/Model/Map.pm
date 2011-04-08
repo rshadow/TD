@@ -4,9 +4,6 @@ use utf8;
 
 package Game::TD::Model::Map;
 
-use constant TAIL_WIDTH     => 50;
-use constant TAIL_HEIGHT    => 50;
-
 use Carp;
 use Game::TD::Model::Tail;
 

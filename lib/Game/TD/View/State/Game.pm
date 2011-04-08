@@ -12,6 +12,7 @@ use SDLx::Sprite;
 use SDLx::Text;
 
 use Game::TD::Config;
+use Game::TD::Model::Camera;
 
 =head1 Game::TD::View::State::Game
 
@@ -40,6 +41,13 @@ sub new
     my $self = $class->SUPER::new(%opts);
 
     $self->_init_background;
+
+    # Create camera
+    $self->camera(Game::TD::Model::Camera->new(
+        map => $self->model->map,
+    ));
+
+    $self->_init_map;
 
     # Health counter font
     $self->font(health => SDLx::Text->new(
@@ -90,10 +98,8 @@ sub new
 
 sub _init_background
 {
-    my ($self, $conf) = @_;
-
-    # Load starndart background image
-    $self->SUPER::_init_background( $self->conf );
+    my ($self) = @_;
+    $self->SUPER::_init_background;
 
     # Level title font
     $self->font(title => SDLx::Text->new(
@@ -107,19 +113,40 @@ sub _init_background
         config->param($self->conf=>'title'=>'ftop'),
         0 ,0
     ));
-    # Draw title on background
+    # Draw title on map
     $self->font('title')->write_xy(
         $self->sprite('background')->surface,
         $self->dest('title')->x,
         $self->dest('title')->y,
         $self->model->title,
     );
+}
+
+sub _init_map
+{
+    my ($self) = @_;
 
     # Zero coordinates for map
-    my $mleft = config->param($self->conf=>'map'=>'left');
-    my $mtop  = config->param($self->conf=>'map'=>'top');
+    my $left = config->param($self->conf=>'map'=>'left');
+    my $top  = config->param($self->conf=>'map'=>'top');
 
-    # Draw map tiles on background
+    $self->sprite('map' => SDLx::Sprite->new(
+        clip    => $self->camera->rect,
+        rect    =>
+            SDL::Rect->new($left, $top, $self->camera->w, $self->camera->h),
+        width   => $self->model->map->tail_map_width,
+        height  => $self->model->map->tail_map_height,
+    ));
+
+    $self->sprite('map')->surface->draw_rect(
+        SDL::Rect->new(
+            0, 0,
+            $self->model->map->tail_map_width,
+            $self->model->map->tail_map_height),
+        0xFFFF00FF
+    );
+
+    # Draw tiles on map
     for my $y (0 .. ($self->model->map->height - 1) )
     {
         for my $x (0 .. ($self->model->map->width - 1))
@@ -127,11 +154,9 @@ sub _init_background
             my $tail = $self->model->map->tail($x,$y);
 
             $self->_draw_map_tile(
-                to      => 'background',
+                to      => 'map',
                 type    => $tail->{type},
                 mod     => $tail->{mod},
-                mleft   => $mleft,
-                mtop    => $mtop,
                 x       => $x,
                 y       => $y,
             );
@@ -149,11 +174,9 @@ sub _init_background
             next unless exists $tail->{item};
 
             $self->_draw_map_tile(
-                to      => 'background',
+                to      => 'map',
                 type    => $tail->{item}{type},
                 mod     => $tail->{item}{mod},
-                mleft   => $mleft,
-                mtop    => $mtop,
                 x       => $x,
                 y       => $y,
             );
@@ -170,9 +193,9 @@ sub _init_background
                 my @path = keys(%{$tail->path || {}});
 
                 $self->font('editor_tail')->write_xy(
-                    $self->sprite('background')->surface,
-                    $mleft + $x * $self->model->map->tail_width  + config->param('editor'=>'tail'=>'left'),
-                    $mtop  + $y * $self->model->map->tail_height + config->param('editor'=>'tail'=>'top'),
+                    $self->sprite('map')->surface,
+                    $x * $self->model->map->tail_width  + config->param('editor'=>'tail'=>'left'),
+                    $y * $self->model->map->tail_height + config->param('editor'=>'tail'=>'top'),
                     sprintf("%s:%s%s", $x, $y, join(',', map {s/(\d+)$/$1/} @path)),
                 );
             }
@@ -198,9 +221,6 @@ sub _draw_map_tile
     # Logical coordinates
     my $x       = $tile{x};
     my $y       = $tile{y};
-    # Map shift
-    my $mleft   = $tile{mleft} || 0;
-    my $mtop    = $tile{mtop}  || 0;
 
     my $name = $type . $mod;
 
@@ -218,8 +238,8 @@ sub _draw_map_tile
         ($self->sprite($name)->h - $self->model->map->tail_height) / 2);
 
     $self->sprite($name)->rect(SDL::Rect->new(
-        $mleft + $self->model->map->tail_width  * $x - $dx,
-        $mtop  + $self->model->map->tail_height * $y - $dy,
+        $self->model->map->tail_width  * $x - $dx,
+        $self->model->map->tail_height * $y - $dy,
         $self->sprite($name)->w,
         $self->sprite($name)->h
     ));
@@ -240,6 +260,7 @@ sub draw
 
     # Draw background
     $self->sprite('background')->draw( $self->app );
+    $self->sprite('map')->draw( $self->app );
 
     # Draw health counter
     $self->font('health')->write_xy(
@@ -284,4 +305,10 @@ sub draw
     $_->draw for @$units;
 }
 
+sub camera
+{
+    my ($self, $camera) = @_;
+    $self->{camera} = $camera if defined $camera;
+    return $self->{camera};
+}
 1;

@@ -103,14 +103,35 @@ sub update
 {
     my ($self, $ticks) = @_;
 
+    my %result;
+
     # Get active units
     my $active = $self->active($ticks);
+
 #    use Data::Dumper;
 #    die Dumper $active;
     # Move active units
     $_->move for @$active;
-    $_->direction($self->map->tail( $self->map_xy($_) )->direction($_->path) )
-        for @$active;
+
+    for my $unit ( @$active )
+    {
+        # Get current tail for unit
+        my $tail = $self->map->tail( $self->map_xy($unit) );
+
+        # If no tail - unit move from map
+        unless ($tail)
+        {
+            $result{damage} += $unit->health;
+            $unit->die('reach');
+        }
+        else
+        {
+            # Try change direction as in tail
+            $unit->direction($tail->direction($unit->path) );
+        }
+    }
+
+    return %result;
 }
 
 sub active
@@ -125,7 +146,8 @@ sub active
         # Find active units for all paths and store them
         for my $name ($self->names)
         {
-            my @active = grep { $_->span <= $ticks } $self->path($name);
+            my @active =
+                grep { $_->span <= $ticks and !$_->is_die } $self->path($name);
             @{$self->{active}} = (@{$self->{active}}, @active);
         }
     }

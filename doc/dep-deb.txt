@@ -1,2 +1,0 @@
-perl 						5.10
-libsdl-perl					SDL

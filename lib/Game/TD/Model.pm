@@ -50,6 +50,12 @@ sub timer
     return $self->{timer}{$name};
 }
 
+sub timers
+{
+    my ($self) = @_;
+    return wantarray ?%{$self->{timer}} : $self->{timer};
+}
+
 DESTROY
 {
     my $self = shift;
