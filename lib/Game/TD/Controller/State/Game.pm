@@ -94,11 +94,6 @@ sub event
     {
         $self->button('menu')->event( $event );
         $self->button('pause')->event( $event );
-#        for my $index (0 .. $#{$self->model->levels})
-#        {
-#            my $name = 'level' . $index;
-#            $self->button($name)->event( $event );
-#        }
     }
     # Respond to button up state
     elsif($type == SDL_MOUSEBUTTONUP)
@@ -114,20 +109,6 @@ sub event
         {
             $self->pause;
         }
-
-#        else
-#        {
-#            for my $index (0 .. $#{$self->model->levels})
-#            {
-#                my $name = 'level' . $index;
-#                my $state = $self->button($name)->event( $event );
-#                if( $state eq 'up' )
-#                {
-#                    $result{state} = 'game';
-#                    $result{level} = $index;
-#                }
-#            }
-#        }
     }
     elsif($type == SDL_KEYDOWN)
     {
@@ -139,19 +120,40 @@ sub event
         }
         elsif($sym == SDLK_UP    || $sym == SDLK_w)
         {
-            $self->model->camera->move('key', 'up');
+            $self->model->camera->move('up');
         }
         elsif($sym == SDLK_LEFT  || $sym == SDLK_a)
         {
-            $self->model->camera->move('key', 'left');
+            $self->model->camera->move('left');
         }
         elsif($sym == SDLK_DOWN  || $sym == SDLK_s)
         {
-            $self->model->camera->move('key', 'down');
+            $self->model->camera->move('down');
         }
         elsif($sym == SDLK_RIGHT || $sym == SDLK_d)
         {
-            $self->model->camera->move('key', 'right');
+            $self->model->camera->move('right');
+        }
+    }
+    elsif($type == SDL_KEYUP)
+    {
+        my $sym = $event->key_sym;
+
+        if($sym == SDLK_UP    || $sym == SDLK_w)
+        {
+            $self->model->camera->stop('up');
+        }
+        elsif($sym == SDLK_LEFT  || $sym == SDLK_a)
+        {
+            $self->model->camera->stop('left');
+        }
+        elsif($sym == SDLK_DOWN  || $sym == SDLK_s)
+        {
+            $self->model->camera->stop('down');
+        }
+        elsif($sym == SDLK_RIGHT || $sym == SDLK_d)
+        {
+            $self->model->camera->stop('right');
         }
     }
 

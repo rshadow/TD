@@ -78,6 +78,9 @@ sub update
 {
     my ($self) = @_;
 
+    # Update camera
+    $self->camera->update;
+
     # Sleep timer
     if( $self->left)
     {

@@ -44,6 +44,7 @@ sub new
     $opts{speed}    //= config->param('common'=>'camera'=>'speed');
     $opts{left}     //= config->param('game'=>'map'=>'left');
     $opts{top}      //= config->param('game'=>'map'=>'top');
+    $opts{move}     //= {};
 
     my $self = bless \%opts, $class;
 
@@ -93,38 +94,54 @@ sub h
     return $self->height * $self->map->tail_height;
 }
 
+sub is_move
+{
+    my ($self, $direction) = @_;
+    return exists $self->{move}{$direction};
+}
+
 sub move
 {
-    my ($self, $type, $direction) = @_;
+    my ($self, $direction) = @_;
+    $self->{move}{$direction} = 1 if defined $direction;
+    return $self->{move}{$direction};
+}
 
-    if($type eq 'key')
+sub stop
+{
+    my ($self, $direction) = @_;
+    delete $self->{move}{$direction};
+}
+
+sub update
+{
+    my ($self) = @_;
+
+    if($self->is_move('up'))
     {
-        my $speed = config->param('common'=>'camera'=>'speed');
-
-        if($direction eq 'up')
-        {
-            $self->y( $self->y - $speed );
-            $self->y( 0 ) if $self->y <= 0;
-        }
-        elsif($direction eq 'down')
-        {
-            $self->y( $self->y + $speed );
-            my $bottom = $self->map->tail_map_height - $self->h;
-            $self->y( $bottom ) if $self->y >= $bottom;
-        }
-        elsif($direction eq 'left')
-        {
-            $self->x( $self->x - $speed );
-            $self->x( 0 ) if $self->x <= 0;
-        }
-        elsif($direction eq 'right')
-        {
-            $self->x( $self->x + $speed );
-            my $right = $self->map->tail_map_width - $self->w;
-            $self->x( $right ) if $self->x >= $right;
-        }
+        $self->y( $self->y - $self->speed );
+        $self->y( 0 ) if $self->y <= 0;
     }
 
+    if($self->is_move('down'))
+    {
+        $self->y( $self->y + $self->speed );
+        my $bottom = $self->map->tail_map_height - $self->h;
+        $self->y( $bottom ) if $self->y >= $bottom;
+    }
+
+    if($self->is_move('left'))
+    {
+        $self->x( $self->x - $self->speed );
+        $self->x( 0 ) if $self->x <= 0;
+    }
+
+    if($self->is_move('right'))
+    {
+        $self->x( $self->x + $self->speed );
+        my $right = $self->map->tail_map_width - $self->w;
+        $self->x( $right ) if $self->x >= $right;
+    }
 }
 
 1;
