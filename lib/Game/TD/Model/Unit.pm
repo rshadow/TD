@@ -2,13 +2,9 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::Unit;
-#use base qw(Game::TD::View);
-#use base qw(Exporter);
-#our @EXPORT = qw();
+package Game::TD::Model::Unit;
 
 use Carp;
-use SDLx::Sprite::Animated;
 
 use Game::TD::Config;
 
@@ -38,6 +34,7 @@ sub new
     croak 'Missing required param "direction"'  unless defined $opts{direction};
     croak 'Missing required param "span"'       unless defined $opts{span};
     croak 'Missing required param "path"'       unless defined $opts{path};
+    croak 'Missing required param "index"'      unless defined $opts{index};
 
     my $self = bless \%opts, $class;
 
@@ -55,6 +52,7 @@ sub type    {return shift()->{type}     }
 sub path    {return shift()->{path}     }
 sub speed   {return shift()->{speed}    }
 sub health  {return shift()->{health}   }
+sub index   {return shift()->{index}    }
 
 sub conf
 {

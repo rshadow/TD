@@ -12,7 +12,6 @@ use Game::TD::Config;
 use Game::TD::Model::State::Game;
 use Game::TD::View::State::Game;
 use Game::TD::Button;
-use Game::TD::Unit;
 
 =head1 NAME
 

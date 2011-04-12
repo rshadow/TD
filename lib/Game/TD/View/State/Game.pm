@@ -9,6 +9,7 @@ use Carp;
 use SDL;
 use SDL::Rect;
 use SDLx::Sprite;
+use SDLx::Sprite::Animated;
 use SDLx::Text;
 
 use Game::TD::Config;
@@ -42,10 +43,11 @@ sub new
     $self->_init_viewport;
     $self->_init_background;
     $self->_init_map;
-    $self->_init_editor if config->param('editor'=>'enable');
     $self->_init_items;
     $self->_init_units;
     $self->_init_text;
+
+    $self->_init_editor if config->param('editor'=>'enable');
 
     return $self;
 }
@@ -165,31 +167,31 @@ sub _init_items
         }
     }
 
-#    # Draw items on background
-#    for my $y (0 .. ($self->model->map->height - 1) )
-#    {
-#        for my $x (0 .. ($self->model->map->width - 1))
-#        {
-#            my $tail = $self->model->map->tail($x,$y);
-#
-#            # If exists item then load it
-#            next unless exists $tail->{item};
-#
-#            $self->_draw_map_tile(
-#                to      => 'map',
-#                type    => $tail->{item}{type},
-#                mod     => $tail->{item}{mod},
-#                x       => $x,
-#                y       => $y,
-#            );
-#        }
-#    }
+    # Draw items on map
+    for my $y (0 .. ($self->model->map->height - 1) )
+    {
+        for my $x (0 .. ($self->model->map->width - 1))
+        {
+            # Get item and draw it if exists
+            my $tail  = $self->model->map->tail($x,$y);
+            next unless $tail->has_item;
+
+            $self->_draw_type(
+                $self->sprite('map')->surface,
+                $x,
+                $y,
+                $tail->item_type,
+                $tail->item_mod,
+            );
+        }
+    }
 }
 
 sub _init_units
 {
     my ($self) = @_;
 
+    # Load sufraces for each unit type
     for my $type ( keys %{ $self->model->wave->types } )
     {
         # Load unit sprite if not defined
@@ -204,7 +206,30 @@ sub _init_units
                 ticks_per_frame =>
                     int( $self->app->min_t * 1000 / 2 ),
             ));
-            $self->sprite($type)->start;
+        }
+    }
+
+    # Create animation for each unit
+    for my $path ($self->model->wave->names)
+    {
+        for my $unit (@{ $self->model->wave->path($path) })
+        {
+            my $name = $unit->type . $unit->index;
+
+            $self->sprite($name => SDLx::Sprite::Animated->new(
+                surface         => $self->sprite($unit->type)->surface,
+                type            => $self->sprite($unit->type)->type,
+                ticks_per_frame => $self->sprite($unit->type)->ticks_per_frame,
+                step_x          => $self->sprite($unit->type)->step_x,
+                step_y          => $self->sprite($unit->type)->step_y,
+                width           => $self->sprite($unit->type)->clip->w,
+                height          => $self->sprite($unit->type)->clip->h,
+            ));
+            # Randomize start frame
+            $self->sprite($name)->next
+                for 0 .. rand scalar @{ config->param('unit'=>$unit->type=>'animation'=>'right') };
+            # Run animation
+            $self->sprite($name)->start;
         }
     }
 }
@@ -220,13 +245,16 @@ sub _init_editor
         for my $x (0 .. ($self->model->map->width - 1))
         {
             my $tail  = $self->model->map->tail($x,$y);
-            my @path = keys(%{$tail->path || {}});
+            my @path = map {$_=~s/\D//g; $_} keys(%{$tail->path || {}});
 
             $self->font('editor_tail')->write_xy(
                 $self->sprite('map')->surface,
                 $x * $self->model->map->tail_width,
                 $y * $self->model->map->tail_height,
-                sprintf("%s:%s%s", $x, $y, join(',', @path)),
+                sprintf("%s:%s%s",
+                    $x, $y,
+                    (@path) ? ' ['.join(',', @path).']' :''
+                ),
             );
         }
     }
@@ -276,51 +304,6 @@ sub _init_text
     ));
 }
 
-#sub _draw_map_tile
-#{
-#    my ($self, %tile) = @_;
-#
-#    croak 'Missing required parameter "to"'     unless defined $tile{to};
-#    croak 'Missing required parameter "type"'   unless defined $tile{type};
-#    croak 'Missing required parameter "mod"'    unless defined $tile{mod};
-#    croak 'Missing required parameter "x"'      unless defined $tile{x};
-#    croak 'Missing required parameter "y"'      unless defined $tile{y};
-#
-#    # Name of destanation surface
-#    my $to      = $tile{to};
-#    # Tile type
-#    my $type    = $tile{type};
-#    my $mod     = $tile{mod};
-#    # Logical coordinates
-#    my $x       = $tile{x};
-#    my $y       = $tile{y};
-#
-#    my $name = $type . $mod;
-#
-#    # Load item tile if not defined
-#    unless( defined $self->sprite($name) )
-#    {
-#        $self->sprite($name => SDLx::Sprite->new(
-#            image => config->param('img'=>$type=>$mod=>'file'),
-#        ));
-#    }
-#
-#    my $dx = int(
-#        ($self->sprite($name)->w - $self->model->map->tail_width)  / 2);
-#    my $dy = int(
-#        ($self->sprite($name)->h - $self->model->map->tail_height) / 2);
-#
-#    $self->sprite($name)->rect(SDL::Rect->new(
-#        $self->model->map->tail_width  * $x - $dx,
-#        $self->model->map->tail_height * $y - $dy,
-#        $self->sprite($name)->w,
-#        $self->sprite($name)->h
-#    ));
-#
-#    # Apply item tile to background
-#    $self->sprite($name)->draw( $self->sprite($to)->surface );
-#}
-
 sub _draw_type
 {
     my ($self, $surface, $x, $y, $type, $mod) = @_;
@@ -366,68 +349,43 @@ sub draw
     $self->sprite('map')->clip($self->model->camera->clip);
     $self->sprite('map')->draw( $self->sprite('viewport')->surface );
 
+    # Draw units
+    $self->_draw_units;
+
+#    # Draw items on viwport
+#    for my $y (0 .. ($self->model->map->height - 1) )
 #    {
-#        $self->_draw_sleep;
-#        return;
-#    }
-
-#    # Draw active units
-#    my $units = $self->model->wave->active;
-#    for my $unit ( @$units )
-#    {
-##        TODO: Need randomize start farme for new units
-##        # Randomize start frame
-##        $self->sprite('unit')->next
-##            for 0 .. rand scalar @{ $unit{animation}{right} };
+#        for my $x (0 .. ($self->model->map->width - 1))
+#        {
+#            # Get item and draw it if exists
+#            my $tail  = $self->model->map->tail($x,$y);
+##            if( $tail->has_item )
+##            {
+##                $self->_draw_type(
+##                    $self->sprite('viewport')->surface,
+##                    $x,
+##                    $y,
+##                    $tail->item_type,
+##                    $tail->item_mod,
+##                );
+##            }
 #
-#        $self->sprite($unit->type)->x( $unit->x - $self->model->camera->x );
-#        $self->sprite($unit->type)->y( $unit->y - $self->model->camera->y );
-#        $self->sprite($unit->type)->draw( $self->sprite('viewport')->surface );
+#            next unless $tail->has_path;
+#            # get units and draw them
+#            my @units = $self->model->wave->unit_xy($x,$y,@$active);
+#            next unless @units;
 #
-#        $self->font('editor_tail')->write_xy(
-#            $self->sprite('viewport')->surface,
-#            $unit->x - $self->model->camera->x,
-#            $unit->y - $self->model->camera->y,
-#            sprintf('%s %s:%s', $unit->direction || 'die', $unit->x, $unit->y),
-#        ) if config->param('editor'=>'enable');
+#            for my $unit (@units)
+#            {
+#                $self->sprite($unit->type)->x( $unit->x - $self->model->camera->x );
+#                $self->sprite($unit->type)->y( $unit->y - $self->model->camera->y );
+#                $self->sprite($unit->type)->draw( $self->sprite('viewport')->surface );
+#            }
+#        }
 #    }
-
-    my $active = $self->model->wave->active;
-
-    # Draw items on viwport
-    for my $y (0 .. ($self->model->map->height - 1) )
-    {
-        for my $x (0 .. ($self->model->map->width - 1))
-        {
-            # Get item and draw it if exists
-            my $tail  = $self->model->map->tail($x,$y);
-            if( $tail->has_item )
-            {
-                $self->_draw_type(
-                    $self->sprite('viewport')->surface,
-                    $x,
-                    $y,
-                    $tail->item_type,
-                    $tail->item_mod,
-                );
-            }
-
-            next unless $tail->has_path;
-            # get units and draw them
-            my @units = $self->model->wave->unit_xy($x,$y,@$active);
-            next unless @units;
-
-            for my $unit (@units)
-            {
-                $self->sprite($unit->type)->x( $unit->x - $self->model->camera->x );
-                $self->sprite($unit->type)->y( $unit->y - $self->model->camera->y );
-                $self->sprite($unit->type)->draw( $self->sprite('viewport')->surface );
-            }
-        }
-    }
 
     # Draw counters
-    $self->_draw_text;
+    $self->_draw_panel;
 
     # Draw sleep in center of screen
     $self->_draw_sleep if $self->model->left;
@@ -436,7 +394,35 @@ sub draw
     $self->sprite('viewport')->draw($self->app);
 }
 
-sub _draw_text
+sub _draw_units
+{
+    my ($self) = @_;
+
+    my $active = $self->model->wave->active;
+    # Draw active units
+    for my $unit ( @$active )
+    {
+        my $name = $unit->type . $unit->index;
+
+        my $dx = int(
+            ( $self->sprite($name)->clip->w - $self->model->map->tail_width)  / 2);
+        my $dy = int(
+            ( $self->sprite($name)->clip->h - $self->model->map->tail_height) / 2);
+
+        $self->sprite($name)->x( $unit->x - $dx - $self->model->camera->x );
+        $self->sprite($name)->y( $unit->y - $dy - $self->model->camera->y );
+        $self->sprite($name)->draw( $self->sprite('viewport')->surface );
+
+        $self->font('editor_tail')->write_xy(
+            $self->sprite('viewport')->surface,
+            $unit->x - $dx - $self->model->camera->x,
+            $unit->y - $dy - $self->model->camera->y,
+            sprintf('%s %s:%s', $unit->direction || 'die', $unit->x, $unit->y),
+        ) if config->param('editor'=>'enable');
+    }
+}
+
+sub _draw_panel
 {
     my ($self) = @_;
 

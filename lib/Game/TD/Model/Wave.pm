@@ -7,7 +7,7 @@ package Game::TD::Model::Wave;
 #our @EXPORT = qw();
 
 use Carp;
-use Game::TD::Unit;
+use Game::TD::Model::Unit;
 
 =head1 Game::TD::Model::Wave
 
@@ -63,16 +63,21 @@ sub _init_units
         elsif($direction eq 'down')  { $y -= $self->map->tail_height; }
         else                         { die 'Broken start direction'; }
 
-        for my $unit (@{ $self->path($name) })
+        for my $index (0 .. $#{ $self->path($name) })
         {
-            $unit = Game::TD::Unit->new(
+            my $unit = $self->path($name)->[$index];
+
+            $unit = Game::TD::Model::Unit->new(
                 type        => $unit->{type},
                 x           => $x,
                 y           => $y,
                 direction   => $direction,
                 span        => $unit->{span},
                 path        => $name,
+                index       => $index,
             );
+
+            $self->path($name)->[$index] = $unit;
 
             # Store type
             $self->types( $unit->type );
