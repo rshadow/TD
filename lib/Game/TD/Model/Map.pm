@@ -58,11 +58,16 @@ sub _init_tile
     {
         for my $x (0 .. $self->width - 1)
         {
-            $self->map->[$y][$x] = Game::TD::Model::Tail->new(
+            my $tile = Game::TD::Model::Tail->new(
                 x => $x,
                 y => $y,
                 %{ $self->map->[$y][$x] },
             );
+            $self->map->[$y][$x] = $tile;
+
+            # Store types
+            $self->tile_types( $tile->type,      $tile->mod      );
+            $self->item_types( $tile->item_type, $tile->item_mod );
         }
     }
 }
@@ -219,6 +224,20 @@ sub tail_find_by_path_type
     }
 
     return wantarray ? @result : \@result;
+}
+
+sub tile_types
+{
+    my ($self, $type, $mod) = @_;
+    $self->{tile_types}{$type}{$mod}++ if defined $type and defined $mod;
+    return wantarray ? %{$self->{tile_types}} : $self->{tile_types};
+}
+
+sub item_types
+{
+    my ($self, $type, $mod) = @_;
+    $self->{item_types}{$type}{$mod}++ if defined $type and defined $mod;
+    return wantarray ? %{$self->{item_types}} : $self->{item_types};
 }
 
 1;

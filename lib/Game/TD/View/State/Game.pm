@@ -39,51 +39,13 @@ sub new
 
     my $self = $class->SUPER::new(%opts);
 
+    $self->_init_viewport;
     $self->_init_background;
     $self->_init_map;
     $self->_init_editor if config->param('editor'=>'enable');
     $self->_init_items;
     $self->_init_units;
-
-
-    # Health counter font
-    $self->font(health => SDLx::Text->new(
-        font    => config->param($self->conf=>'health'=>'font'),
-        size    => config->param($self->conf=>'health'=>'size'),
-        color   => config->color($self->conf=>'health'=>'color'),
-        mode    => 'utf8',
-    ));
-    $self->dest(health => SDL::Rect->new(
-        config->param($self->conf=>'health'=>'fleft'),
-        config->param($self->conf=>'health'=>'ftop'),
-        0 ,0
-    ));
-
-    # Score font
-    $self->font(score => SDLx::Text->new(
-        font    => config->param($self->conf=>'score'=>'font'),
-        size    => config->param($self->conf=>'score'=>'size'),
-        color   => config->color($self->conf=>'score'=>'color'),
-        mode    => 'utf8',
-    ));
-    $self->dest(score => SDL::Rect->new(
-        config->param($self->conf=>'score'=>'fleft'),
-        config->param($self->conf=>'score'=>'ftop'),
-        0 ,0
-    ));
-
-    # Sleep font
-    $self->font(sleep => SDLx::Text->new(
-        font    => config->param($self->conf=>'sleep'=>'font'),
-        size    => config->param($self->conf=>'sleep'=>'size'),
-        color   => config->color($self->conf=>'sleep'=>'color'),
-        mode    => 'utf8',
-    ));
-    $self->dest(sleep => SDL::Rect->new(
-        $self->model->camera->left + int($self->model->camera->w / 2),
-        $self->model->camera->top  + int($self->model->camera->h / 2),
-        0 ,0
-    ));
+    $self->_init_text;
 
     return $self;
 }
@@ -114,13 +76,30 @@ sub _init_background
     );
 }
 
+sub _init_viewport
+{
+    my ($self) = @_;
+
+    $self->sprite('viewport' => SDLx::Sprite->new(
+#        clip    => $self->model->camera->clip,
+        rect    => $self->model->camera->rect,
+        width   => $self->model->camera->clip->w,
+        height  => $self->model->camera->clip->h,
+    ));
+
+    $self->sprite('viewport')->surface->draw_rect(
+        $self->model->camera->clip,
+        0xFF00FFFF
+    );
+}
+
 sub _init_map
 {
     my ($self) = @_;
 
     $self->sprite('map' => SDLx::Sprite->new(
         clip    => $self->model->camera->clip,
-        rect    => $self->model->camera->rect,
+#        rect    => $self->model->camera->rect,
         width   => $self->model->map->tail_map_width,
         height  => $self->model->map->tail_map_height,
     ));
@@ -134,6 +113,21 @@ sub _init_map
         0xFFFF00FF
     );
 
+    # Get types of tiles on this map
+    my %types = $self->model->map->tile_types;
+    # Load sprites for all this types
+    for my $type (keys %types)
+    {
+        for my $mod (keys %{$types{$type}})
+        {
+            my $name = $type.$mod;
+
+            $self->sprite($name => SDLx::Sprite->new(
+                image => config->param('img'=>$type=>$mod=>'file'),
+            ));
+        }
+    }
+
     # Draw tiles on map
     for my $y (0 .. ($self->model->map->height - 1) )
     {
@@ -141,12 +135,12 @@ sub _init_map
         {
             my $tail = $self->model->map->tail($x,$y);
 
-            $self->_draw_map_tile(
-                to      => 'map',
-                type    => $tail->{type},
-                mod     => $tail->{mod},
-                x       => $x,
-                y       => $y,
+            $self->_draw_type(
+                $self->sprite('map')->surface,
+                $x,
+                $y,
+                $tail->type,
+                $tail->mod,
             );
         }
     }
@@ -156,25 +150,40 @@ sub _init_items
 {
     my ($self) = @_;
 
-    # Draw items on background
-    for my $y (0 .. ($self->model->map->height - 1) )
+    # Get items of tiles on this map
+    my %types = $self->model->map->item_types;
+    # Load sprites for all this types
+    for my $type (keys %types)
     {
-        for my $x (0 .. ($self->model->map->width - 1))
+        for my $mod (keys %{$types{$type}})
         {
-            my $tail = $self->model->map->tail($x,$y);
+            my $name = $type.$mod;
 
-            # If exists item then load it
-            next unless exists $tail->{item};
-
-            $self->_draw_map_tile(
-                to      => 'map',
-                type    => $tail->{item}{type},
-                mod     => $tail->{item}{mod},
-                x       => $x,
-                y       => $y,
-            );
+            $self->sprite($name => SDLx::Sprite->new(
+                image => config->param('img'=>$type=>$mod=>'file'),
+            ));
         }
     }
+
+#    # Draw items on background
+#    for my $y (0 .. ($self->model->map->height - 1) )
+#    {
+#        for my $x (0 .. ($self->model->map->width - 1))
+#        {
+#            my $tail = $self->model->map->tail($x,$y);
+#
+#            # If exists item then load it
+#            next unless exists $tail->{item};
+#
+#            $self->_draw_map_tile(
+#                to      => 'map',
+#                type    => $tail->{item}{type},
+#                mod     => $tail->{item}{mod},
+#                x       => $x,
+#                y       => $y,
+#            );
+#        }
+#    }
 }
 
 sub _init_units
@@ -183,7 +192,7 @@ sub _init_units
 
     for my $type ( keys %{ $self->model->wave->types } )
     {
-        # Load user sprite if not defined
+        # Load unit sprite if not defined
         unless( defined $self->sprite($type) )
         {
             $self->sprite($type => SDLx::Sprite::Animated->new(
@@ -223,34 +232,106 @@ sub _init_editor
     }
 }
 
-sub _draw_map_tile
+sub _init_text
 {
-    my ($self, %tile) = @_;
+    my ($self) = @_;
 
-    croak 'Missing required parameter "to"'     unless defined $tile{to};
-    croak 'Missing required parameter "type"'   unless defined $tile{type};
-    croak 'Missing required parameter "mod"'    unless defined $tile{mod};
-    croak 'Missing required parameter "x"'      unless defined $tile{x};
-    croak 'Missing required parameter "y"'      unless defined $tile{y};
+    # Health counter font
+    $self->font(health => SDLx::Text->new(
+        font    => config->param($self->conf=>'health'=>'font'),
+        size    => config->param($self->conf=>'health'=>'size'),
+        color   => config->color($self->conf=>'health'=>'color'),
+        mode    => 'utf8',
+    ));
+    $self->dest(health => SDL::Rect->new(
+        config->param($self->conf=>'health'=>'fleft'),
+        config->param($self->conf=>'health'=>'ftop'),
+        0 ,0
+    ));
 
-    # Name of destanation surface
-    my $to      = $tile{to};
-    # Tile type
-    my $type    = $tile{type};
-    my $mod     = $tile{mod};
-    # Logical coordinates
-    my $x       = $tile{x};
-    my $y       = $tile{y};
+    # Score font
+    $self->font(score => SDLx::Text->new(
+        font    => config->param($self->conf=>'score'=>'font'),
+        size    => config->param($self->conf=>'score'=>'size'),
+        color   => config->color($self->conf=>'score'=>'color'),
+        mode    => 'utf8',
+    ));
+    $self->dest(score => SDL::Rect->new(
+        config->param($self->conf=>'score'=>'fleft'),
+        config->param($self->conf=>'score'=>'ftop'),
+        0 ,0
+    ));
+
+    # Sleep font
+    $self->font(sleep => SDLx::Text->new(
+        font    => config->param($self->conf=>'sleep'=>'font'),
+        size    => config->param($self->conf=>'sleep'=>'size'),
+        color   => config->color($self->conf=>'sleep'=>'color'),
+        mode    => 'utf8',
+    ));
+    $self->dest(sleep => SDL::Rect->new(
+        $self->model->camera->left + int($self->model->camera->w / 2),
+        $self->model->camera->top  + int($self->model->camera->h / 2),
+        0 ,0
+    ));
+}
+
+#sub _draw_map_tile
+#{
+#    my ($self, %tile) = @_;
+#
+#    croak 'Missing required parameter "to"'     unless defined $tile{to};
+#    croak 'Missing required parameter "type"'   unless defined $tile{type};
+#    croak 'Missing required parameter "mod"'    unless defined $tile{mod};
+#    croak 'Missing required parameter "x"'      unless defined $tile{x};
+#    croak 'Missing required parameter "y"'      unless defined $tile{y};
+#
+#    # Name of destanation surface
+#    my $to      = $tile{to};
+#    # Tile type
+#    my $type    = $tile{type};
+#    my $mod     = $tile{mod};
+#    # Logical coordinates
+#    my $x       = $tile{x};
+#    my $y       = $tile{y};
+#
+#    my $name = $type . $mod;
+#
+#    # Load item tile if not defined
+#    unless( defined $self->sprite($name) )
+#    {
+#        $self->sprite($name => SDLx::Sprite->new(
+#            image => config->param('img'=>$type=>$mod=>'file'),
+#        ));
+#    }
+#
+#    my $dx = int(
+#        ($self->sprite($name)->w - $self->model->map->tail_width)  / 2);
+#    my $dy = int(
+#        ($self->sprite($name)->h - $self->model->map->tail_height) / 2);
+#
+#    $self->sprite($name)->rect(SDL::Rect->new(
+#        $self->model->map->tail_width  * $x - $dx,
+#        $self->model->map->tail_height * $y - $dy,
+#        $self->sprite($name)->w,
+#        $self->sprite($name)->h
+#    ));
+#
+#    # Apply item tile to background
+#    $self->sprite($name)->draw( $self->sprite($to)->surface );
+#}
+
+sub _draw_type
+{
+    my ($self, $surface, $x, $y, $type, $mod) = @_;
+
+    croak 'Missing required parameter "surface"'    unless defined $surface;
+    croak 'Missing required parameter "type"'       unless defined $type;
+    croak 'Missing required parameter "mod"'        unless defined $mod;
+    croak 'Missing required parameter "x"'          unless defined $x;
+    croak 'Missing required parameter "y"'          unless defined $y;
 
     my $name = $type . $mod;
-
-    # Load item tile if not defined
-    unless( defined $self->sprite($name) )
-    {
-        $self->sprite($name => SDLx::Sprite->new(
-            image => config->param('img'=>$type=>$mod=>'file'),
-        ));
-    }
 
     my $dx = int(
         ($self->sprite($name)->w - $self->model->map->tail_width)  / 2);
@@ -258,14 +339,14 @@ sub _draw_map_tile
         ($self->sprite($name)->h - $self->model->map->tail_height) / 2);
 
     $self->sprite($name)->rect(SDL::Rect->new(
-        $self->model->map->tail_width  * $x - $dx,
-        $self->model->map->tail_height * $y - $dy,
+        $self->model->map->tail_width  * $x - $dx - $self->model->camera->x,
+        $self->model->map->tail_height * $y - $dy - $self->model->camera->y,
         $self->sprite($name)->w,
         $self->sprite($name)->h
     ));
 
     # Apply item tile to background
-    $self->sprite($name)->draw( $self->sprite($to)->surface );
+    $self->sprite($name)->draw( $surface );
 }
 
 =head2 draw
@@ -280,10 +361,84 @@ sub draw
 
     # Draw background
     $self->sprite('background')->draw( $self->app );
-    # Draw map
+
+    # Draw map on viewport
     $self->sprite('map')->clip($self->model->camera->clip);
-    $self->sprite('map')->rect($self->model->camera->rect);
-    $self->sprite('map')->draw( $self->app );
+    $self->sprite('map')->draw( $self->sprite('viewport')->surface );
+
+#    {
+#        $self->_draw_sleep;
+#        return;
+#    }
+
+#    # Draw active units
+#    my $units = $self->model->wave->active;
+#    for my $unit ( @$units )
+#    {
+##        TODO: Need randomize start farme for new units
+##        # Randomize start frame
+##        $self->sprite('unit')->next
+##            for 0 .. rand scalar @{ $unit{animation}{right} };
+#
+#        $self->sprite($unit->type)->x( $unit->x - $self->model->camera->x );
+#        $self->sprite($unit->type)->y( $unit->y - $self->model->camera->y );
+#        $self->sprite($unit->type)->draw( $self->sprite('viewport')->surface );
+#
+#        $self->font('editor_tail')->write_xy(
+#            $self->sprite('viewport')->surface,
+#            $unit->x - $self->model->camera->x,
+#            $unit->y - $self->model->camera->y,
+#            sprintf('%s %s:%s', $unit->direction || 'die', $unit->x, $unit->y),
+#        ) if config->param('editor'=>'enable');
+#    }
+
+    my $active = $self->model->wave->active;
+
+    # Draw items on viwport
+    for my $y (0 .. ($self->model->map->height - 1) )
+    {
+        for my $x (0 .. ($self->model->map->width - 1))
+        {
+            # Get item and draw it if exists
+            my $tail  = $self->model->map->tail($x,$y);
+            if( $tail->has_item )
+            {
+                $self->_draw_type(
+                    $self->sprite('viewport')->surface,
+                    $x,
+                    $y,
+                    $tail->item_type,
+                    $tail->item_mod,
+                );
+            }
+
+            next unless $tail->has_path;
+            # get units and draw them
+            my @units = $self->model->wave->unit_xy($x,$y,@$active);
+            next unless @units;
+
+            for my $unit (@units)
+            {
+                $self->sprite($unit->type)->x( $unit->x - $self->model->camera->x );
+                $self->sprite($unit->type)->y( $unit->y - $self->model->camera->y );
+                $self->sprite($unit->type)->draw( $self->sprite('viewport')->surface );
+            }
+        }
+    }
+
+    # Draw counters
+    $self->_draw_text;
+
+    # Draw sleep in center of screen
+    $self->_draw_sleep if $self->model->left;
+
+    # Draw viewport
+    $self->sprite('viewport')->draw($self->app);
+}
+
+sub _draw_text
+{
+    my ($self) = @_;
 
     # Draw health counter
     $self->font('health')->write_xy(
@@ -304,44 +459,23 @@ sub draw
             config->param($self->conf=>'score'=>'text') || '',
             $self->model->player->score,
     );
-
-    # Draw sleep in center of screen
-    if( $self->model->left )
-    {
-        my $text = int($self->model->left / 1000);
-        $text = 'Go!' if $text < 1;
-
-        $self->font('sleep')->text($text);
-        $self->font('sleep')->write_xy(
-            $self->app,
-            $self->dest('sleep')->x - int($self->font('sleep')->w/2),
-            $self->dest('sleep')->y - int($self->font('sleep')->h/2),
-            $text
-        );
-
-        return;
-    }
-
-    # Draw active units
-    my $units = $self->model->wave->active;
-    for my $unit ( @$units )
-    {
-#        TODO: Need randomize start farme for new units
-#        # Randomize start frame
-#        $self->sprite('unit')->next
-#            for 0 .. rand scalar @{ $unit{animation}{right} };
-
-        $self->sprite($unit->type)->x( $unit->x - $self->model->camera->x );
-        $self->sprite($unit->type)->y( $unit->y - $self->model->camera->y );
-        $self->sprite($unit->type)->draw( $self->app );
-
-        $self->font('editor_tail')->write_xy(
-            $self->app,
-            $unit->x - $self->model->camera->x,
-            $unit->y - $self->model->camera->y,
-            sprintf('%s %s:%s', $unit->direction || 'die', $unit->x, $unit->y),
-        ) if config->param('editor'=>'enable');
-    }
 }
+
+sub _draw_sleep
+{
+    my ($self) = @_;
+
+    my $text = int($self->model->left / 1000);
+    $text = 'Go!' if $text < 1;
+
+    $self->font('sleep')->text($text);
+    $self->font('sleep')->write_xy(
+        $self->sprite('viewport')->surface,
+        $self->dest('sleep')->x - int($self->font('sleep')->w/2),
+        $self->dest('sleep')->y - int($self->font('sleep')->h/2),
+        $text
+    );
+}
+
 
 1;

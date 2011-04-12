@@ -157,6 +157,12 @@ sub active
     return wantarray ?@{ $self->{active} } : $self->{active};
 }
 
+=head2 map_xy $unit
+
+Get logical x and y on map for $unit
+
+=cut
+
 sub map_xy
 {
     my ($self, $unit) = @_;
@@ -177,6 +183,26 @@ sub map_xy
     }
 
     return ($map_x, $map_y);
+}
+
+=head2 unit_xy $x, $y, @units
+
+Verify is locical map $x $y have some untits from @units and return this units
+
+=cut
+
+sub unit_xy
+{
+    my ($self, $x, $y, @units) = @_;
+
+    my @result;
+    for my $unit (@units)
+    {
+        my ($map_x, $map_y) = $self->map_xy($unit);
+        push @result, $unit if $map_x == $x and $map_y == $y;
+    }
+
+    return wantarray ?@result :\@result;
 }
 
 sub types
