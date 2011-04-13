@@ -102,10 +102,10 @@ sub _init_editor
 {
     my $self = shift;
 
-    $self->font('editor_tail' => SDLx::Text->new(
-        font    => config->param('editor'=>'tail'=>'font'),
-        size    => config->param('editor'=>'tail'=>'size'),
-        color   => config->color('editor'=>'tail'=>'color'),
+    $self->font('editor_tile' => SDLx::Text->new(
+        font    => config->param('editor'=>'tile'=>'font'),
+        size    => config->param('editor'=>'tile'=>'size'),
+        color   => config->color('editor'=>'tile'=>'color'),
         mode    => 'utf8',
     ));
 }

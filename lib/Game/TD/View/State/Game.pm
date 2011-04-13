@@ -102,16 +102,16 @@ sub _init_map
     $self->sprite('map' => SDLx::Sprite->new(
         clip    => $self->model->camera->clip,
 #        rect    => $self->model->camera->rect,
-        width   => $self->model->map->tail_map_width,
-        height  => $self->model->map->tail_map_height,
+        width   => $self->model->map->tile_map_width,
+        height  => $self->model->map->tile_map_height,
     ));
 
     # Init map by filling color
     $self->sprite('map')->surface->draw_rect(
         SDL::Rect->new(
             0, 0,
-            $self->model->map->tail_map_width,
-            $self->model->map->tail_map_height),
+            $self->model->map->tile_map_width,
+            $self->model->map->tile_map_height),
         0xFFFF00FF
     );
 
@@ -135,14 +135,14 @@ sub _init_map
     {
         for my $x (0 .. ($self->model->map->width - 1))
         {
-            my $tail = $self->model->map->tail($x,$y);
+            my $tile = $self->model->map->tile($x,$y);
 
             $self->_draw_type(
                 $self->sprite('map')->surface,
                 $x,
                 $y,
-                $tail->type,
-                $tail->mod,
+                $tile->type,
+                $tile->mod,
             );
         }
     }
@@ -173,16 +173,16 @@ sub _init_items
         for my $x (0 .. ($self->model->map->width - 1))
         {
             # Get item and draw it if exists
-            my $tail  = $self->model->map->tail($x,$y);
-            next unless $tail->has_item;
-            next if $tail->item_active;
+            my $tile  = $self->model->map->tile($x,$y);
+            next unless $tile->has_item;
+            next if $tile->item_active;
 
             $self->_draw_type(
                 $self->sprite('map')->surface,
                 $x,
                 $y,
-                $tail->item_type,
-                $tail->item_mod,
+                $tile->item_type,
+                $tile->item_mod,
             );
         }
     }
@@ -245,13 +245,13 @@ sub _init_editor
     {
         for my $x (0 .. ($self->model->map->width - 1))
         {
-            my $tail  = $self->model->map->tail($x,$y);
-            my @path = map {$_=~s/\D//g; $_} keys(%{$tail->path || {}});
+            my $tile  = $self->model->map->tile($x,$y);
+            my @path = map {$_=~s/\D//g; $_} keys(%{$tile->path || {}});
 
-            $self->font('editor_tail')->write_xy(
+            $self->font('editor_tile')->write_xy(
                 $self->sprite('map')->surface,
-                $x * $self->model->map->tail_width,
-                $y * $self->model->map->tail_height,
+                $x * $self->model->map->tile_width,
+                $y * $self->model->map->tile_height,
                 sprintf("%s:%s%s",
                     $x, $y,
                     (@path) ? ' ['.join(',', @path).']' :''
@@ -318,13 +318,13 @@ sub _draw_type
     my $name = $type . $mod;
 
     my $dx = int(
-        ($self->sprite($name)->w - $self->model->map->tail_width)  / 2);
+        ($self->sprite($name)->w - $self->model->map->tile_width)  / 2);
     my $dy = int(
-        ($self->sprite($name)->h - $self->model->map->tail_height) / 2);
+        ($self->sprite($name)->h - $self->model->map->tile_height) / 2);
 
     $self->sprite($name)->rect(SDL::Rect->new(
-        $self->model->map->tail_width  * $x - $dx - $self->model->camera->x,
-        $self->model->map->tail_height * $y - $dy - $self->model->camera->y,
+        $self->model->map->tile_width  * $x - $dx - $self->model->camera->x,
+        $self->model->map->tile_height * $y - $dy - $self->model->camera->y,
         $self->sprite($name)->w,
         $self->sprite($name)->h
     ));
@@ -359,19 +359,19 @@ sub draw
 #        for my $x (0 .. ($self->model->map->width - 1))
 #        {
 #            # Get item and draw it if exists
-#            my $tail  = $self->model->map->tail($x,$y);
-##            if( $tail->has_item )
+#            my $tile  = $self->model->map->tile($x,$y);
+##            if( $tile->has_item )
 ##            {
 ##                $self->_draw_type(
 ##                    $self->sprite('viewport')->surface,
 ##                    $x,
 ##                    $y,
-##                    $tail->item_type,
-##                    $tail->item_mod,
+##                    $tile->item_type,
+##                    $tile->item_mod,
 ##                );
 ##            }
 #
-#            next unless $tail->has_path;
+#            next unless $tile->has_path;
 #            # get units and draw them
 #            my @units = $self->model->wave->unit_xy($x,$y,@$active);
 #            next unless @units;
@@ -406,15 +406,15 @@ sub _draw_units
         my $name = $unit->type . $unit->index;
 
         my $dx = int(
-            ( $self->sprite($name)->clip->w - $self->model->map->tail_width)  / 2);
+            ( $self->sprite($name)->clip->w - $self->model->map->tile_width)  / 2);
         my $dy = int(
-            ( $self->sprite($name)->clip->h - $self->model->map->tail_height) / 2);
+            ( $self->sprite($name)->clip->h - $self->model->map->tile_height) / 2);
 
         $self->sprite($name)->x( $unit->x - $dx - $self->model->camera->x );
         $self->sprite($name)->y( $unit->y - $dy - $self->model->camera->y );
         $self->sprite($name)->draw( $self->sprite('viewport')->surface );
 
-        $self->font('editor_tail')->write_xy(
+        $self->font('editor_tile')->write_xy(
             $self->sprite('viewport')->surface,
             $unit->x - $dx - $self->model->camera->x,
             $unit->y - $dy - $self->model->camera->y,

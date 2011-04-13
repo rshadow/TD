@@ -5,7 +5,7 @@ use utf8;
 package Game::TD::Model::Map;
 
 use Carp;
-use Game::TD::Model::Tail;
+use Game::TD::Model::Tile;
 
 use Game::TD::Config;
 
@@ -42,8 +42,8 @@ sub new
     $self->{height} = scalar @{ $self->map };
 
     # Set pixel width
-    $self->{tail_map_width}  = $self->width  * $self->tail_width;
-    $self->{tail_map_height} = $self->height * $self->tail_height;
+    $self->{tile_map_width}  = $self->width  * $self->tile_width;
+    $self->{tile_map_height} = $self->height * $self->tile_height;
 
     $self->_init_tile;
     $self->_init_roads;
@@ -55,7 +55,7 @@ sub _init_tile
 {
     my ($self) = @_;
 
-    # Add coordinates in tail for simpless
+    # Add coordinates in tile for simpless
     for my $y (0 .. $self->height - 1)
     {
         for my $x (0 .. $self->width - 1)
@@ -67,7 +67,7 @@ sub _init_tile
                     config->param('map'=>$tile->{item}{type}=>
                         $tile->{item}{mod}=>'active');
 
-            $tile = Game::TD::Model::Tail->new(
+            $tile = Game::TD::Model::Tile->new(
                 x => $x,
                 y => $y,
                 %$tile,
@@ -93,76 +93,76 @@ sub _init_roads
 {
     my ($self) = @_;
 
-    # Find start tails
-    for my $tail ( $self->tail_find_by_path_type('start') )
+    # Find start tiles
+    for my $tile ( $self->tile_find_by_path_type('start') )
     {
-        for my $name ( keys %{ $tail->path } )
+        for my $name ( keys %{ $tile->path } )
         {
-            $self->start($name, $tail);
+            $self->start($name, $tile);
         }
     }
-    # Find finish tails
-    for my $tail ( $self->tail_find_by_path_type('finish') )
+    # Find finish tiles
+    for my $tile ( $self->tile_find_by_path_type('finish') )
     {
-        for my $name ( keys %{ $tail->path } )
+        for my $name ( keys %{ $tile->path } )
         {
-            $self->finish($name, $tail);
+            $self->finish($name, $tile);
         }
     }
 
-    # Set directions: move by road from start to end and set it for each tail
+    # Set directions: move by road from start to end and set it for each tile
     for my $name ( keys %{$self->start} )
     {
-        my $tail = $self->start($name);
-        while( $tail )
+        my $tile = $self->start($name);
+        while( $tile )
         {
-            if( $self->tail($tail->x-1, $tail->y)               and
-               !$self->tail($tail->x-1, $tail->y)->next($name)  and
-                $self->tail($tail->x-1, $tail->y)->has_path     and
-                $self->tail($tail->x-1, $tail->y)->has_path_name($name) )
+            if( $self->tile($tile->x-1, $tile->y)               and
+               !$self->tile($tile->x-1, $tile->y)->next($name)  and
+                $self->tile($tile->x-1, $tile->y)->has_path     and
+                $self->tile($tile->x-1, $tile->y)->has_path_name($name) )
             {
-                $tail->next($name, $self->tail($tail->x-1, $tail->y));
-                $tail->direction($name, 'left');
+                $tile->next($name, $self->tile($tile->x-1, $tile->y));
+                $tile->direction($name, 'left');
             }
             elsif(
-                $self->tail($tail->x+1, $tail->y)               and
-               !$self->tail($tail->x+1, $tail->y)->next($name)  and
-                $self->tail($tail->x+1, $tail->y)->has_path     and
-                $self->tail($tail->x+1, $tail->y)->has_path_name($name) )
+                $self->tile($tile->x+1, $tile->y)               and
+               !$self->tile($tile->x+1, $tile->y)->next($name)  and
+                $self->tile($tile->x+1, $tile->y)->has_path     and
+                $self->tile($tile->x+1, $tile->y)->has_path_name($name) )
             {
-                $tail->next($name, $self->tail($tail->x+1, $tail->y));
-                $tail->direction($name, 'right');
+                $tile->next($name, $self->tile($tile->x+1, $tile->y));
+                $tile->direction($name, 'right');
             }
             elsif(
-                $self->tail($tail->x, $tail->y-1)               and
-               !$self->tail($tail->x, $tail->y-1)->next($name)  and
-                $self->tail($tail->x, $tail->y-1)->has_path     and
-                $self->tail($tail->x, $tail->y-1)->has_path_name($name) )
+                $self->tile($tile->x, $tile->y-1)               and
+               !$self->tile($tile->x, $tile->y-1)->next($name)  and
+                $self->tile($tile->x, $tile->y-1)->has_path     and
+                $self->tile($tile->x, $tile->y-1)->has_path_name($name) )
             {
-                $tail->next($name, $self->tail($tail->x, $tail->y-1));
-                $tail->direction($name, 'up');
+                $tile->next($name, $self->tile($tile->x, $tile->y-1));
+                $tile->direction($name, 'up');
             }
             elsif(
-                $self->tail($tail->x, $tail->y+1)               and
-               !$self->tail($tail->x, $tail->y+1)->next($name)  and
-                $self->tail($tail->x, $tail->y+1)->has_path     and
-                $self->tail($tail->x, $tail->y+1)->has_path_name($name) )
+                $self->tile($tile->x, $tile->y+1)               and
+               !$self->tile($tile->x, $tile->y+1)->next($name)  and
+                $self->tile($tile->x, $tile->y+1)->has_path     and
+                $self->tile($tile->x, $tile->y+1)->has_path_name($name) )
             {
-                $tail->next($name, $self->tail($tail->x, $tail->y+1));
-                $tail->direction($name, 'down');
+                $tile->next($name, $self->tile($tile->x, $tile->y+1));
+                $tile->direction($name, 'down');
             }
 
             # while not finish
-            last if $tail->has_path_type($name, 'finish');
+            last if $tile->has_path_type($name, 'finish');
 
 #            printf "%s - %s:%s",
-#                join( ',', keys %{$tail->path || {}}),
-#                $tail->x,
-#                $tail->y;
+#                join( ',', keys %{$tile->path || {}}),
+#                $tile->x,
+#                $tile->y;
 #            print "\n";
 
-            # Goto next tail
-            $tail = $tail->next($name);
+            # Goto next tile
+            $tile = $tile->next($name);
         }
     }
 }
@@ -173,59 +173,59 @@ sub height  {return shift()->{height}}
 
 sub start
 {
-    my ($self, $name, $tail) = @_;
-    $self->{start}{$name} = $tail if defined $tail;
+    my ($self, $name, $tile) = @_;
+    $self->{start}{$name} = $tile if defined $tile;
     return $self->{start}{$name}  if defined $name;
     return wantarray ?%{ $self->{start} } :$self->{start};
 }
 
 sub finish
 {
-    my ($self, $name, $tail) = @_;
-    $self->{finish}{$name} = $tail if defined $tail;
+    my ($self, $name, $tile) = @_;
+    $self->{finish}{$name} = $tile if defined $tile;
     return $self->{finish}{$name}  if defined $name;
     return wantarray ?%{ $self->{finish} } :$self->{finish};
 }
 
-=head2 tail_map_width
+=head2 tile_map_width
 
 Get map width in pixel
 
 =cut
 
-sub tail_map_width   {return shift()->{tail_map_width}}
+sub tile_map_width   {return shift()->{tile_map_width}}
 
-=head2 tail_map_height
+=head2 tile_map_height
 
 Get map height in pixel
 
 =cut
 
-sub tail_map_height  {return shift()->{tail_map_height}}
+sub tile_map_height  {return shift()->{tile_map_height}}
 
-sub tail
+sub tile
 {
     my ($self, $x, $y) = @_;
     return $self->map->[$y][$x];
 }
 
-=head2 tail_width
+=head2 tile_width
 
-Get tail width in pixel
-
-=cut
-
-sub tail_width  { return TAIL_WIDTH  }
-
-=head2 tail_height
-
-Get tail height in pixel
+Get tile width in pixel
 
 =cut
 
-sub tail_height { return TAIL_HEIGHT }
+sub tile_width  { return TILE_WIDTH  }
 
-sub tail_find_by_path_type
+=head2 tile_height
+
+Get tile height in pixel
+
+=cut
+
+sub tile_height { return TILE_HEIGHT }
+
+sub tile_find_by_path_type
 {
     my ($self, $type) = @_;
 
@@ -235,8 +235,8 @@ sub tail_find_by_path_type
     {
         for my $x (0 .. $self->width - 1)
         {
-            my $tail = $self->tail($x, $y);
-            push @result, $tail if $tail->has_path_type(undef, $type);
+            my $tile = $self->tile($x, $y);
+            push @result, $tile if $tile->has_path_type(undef, $type);
         }
     }
 

@@ -85,13 +85,13 @@ sub y
 sub w
 {
     my $self = shift;
-    return $self->width * $self->map->tail_width;
+    return $self->width * $self->map->tile_width;
 }
 
 sub h
 {
     my $self = shift;
-    return $self->height * $self->map->tail_height;
+    return $self->height * $self->map->tile_height;
 }
 
 sub is_move
@@ -126,7 +126,7 @@ sub update
     if($self->is_move('down'))
     {
         $self->y( $self->y + $self->speed );
-        my $bottom = $self->map->tail_map_height - $self->h;
+        my $bottom = $self->map->tile_map_height - $self->h;
         $self->y( $bottom ) if $self->y >= $bottom;
     }
 
@@ -139,7 +139,7 @@ sub update
     if($self->is_move('right'))
     {
         $self->x( $self->x + $self->speed );
-        my $right = $self->map->tail_map_width - $self->w;
+        my $right = $self->map->tile_map_width - $self->w;
         $self->x( $right ) if $self->x >= $right;
     }
 }

@@ -2,17 +2,17 @@ use strict;
 use warnings;
 use utf8;
 
-package Game::TD::Model::Tail;
+package Game::TD::Model::Tile;
 use base qw(Exporter);
-our @EXPORT = qw(TAIL_WIDTH TAIL_HEIGHT);
+our @EXPORT = qw(TILE_WIDTH TILE_HEIGHT);
 
 use Carp;
 use Scalar::Util qw(weaken);
 
-use constant TAIL_WIDTH     => 50;
-use constant TAIL_HEIGHT    => 50;
+use constant TILE_WIDTH     => 50;
+use constant TILE_HEIGHT    => 50;
 
-=head1 Game::TD::Model::Tail
+=head1 Game::TD::Model::Tile
 
 Описание_модуля
 
@@ -136,13 +136,13 @@ sub direction
 
 sub next
 {
-    my ($self, $path, $tail) = @_;
+    my ($self, $path, $tile) = @_;
 
     confess 'Path name not set'   unless defined $path;
 
-    if( defined $tail )
+    if( defined $tile )
     {
-        $self->{next}{$path} = $tail ;
+        $self->{next}{$path} = $tile ;
         weaken $self->{next}{$path};
     }
     return $self->{next}{$path};

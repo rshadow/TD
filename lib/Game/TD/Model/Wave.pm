@@ -51,16 +51,16 @@ sub _init_units
     for my $name ($self->names)
     {
         # Get start position
-        my $x           = $self->map->start($name)->x * $self->map->tail_width;
-        my $y           = $self->map->start($name)->y * $self->map->tail_height;
+        my $x           = $self->map->start($name)->x * $self->map->tile_width;
+        my $y           = $self->map->start($name)->y * $self->map->tile_height;
         # Get start direction
         my $direction   = $self->map->start($name)->direction($name);
 
-        # Subtrac start position on one tail by direction
-        if   ($direction eq 'left')  { $x += $self->map->tail_width; }
-        elsif($direction eq 'right') { $x -= $self->map->tail_width; }
-        elsif($direction eq 'up')    { $y += $self->map->tail_height; }
-        elsif($direction eq 'down')  { $y -= $self->map->tail_height; }
+        # Subtrac start position on one tile by direction
+        if   ($direction eq 'left')  { $x += $self->map->tile_width; }
+        elsif($direction eq 'right') { $x -= $self->map->tile_width; }
+        elsif($direction eq 'up')    { $y += $self->map->tile_height; }
+        elsif($direction eq 'down')  { $y -= $self->map->tile_height; }
         else                         { die 'Broken start direction'; }
 
         for my $index (0 .. $#{ $self->path($name) })
@@ -122,19 +122,19 @@ sub update
 
     for my $unit ( @$active )
     {
-        # Get current tail for unit
-        my $tail = $self->map->tail( $self->map_xy($unit) );
+        # Get current tile for unit
+        my $tile = $self->map->tile( $self->map_xy($unit) );
 
-        # If no tail - unit move from map
-        unless ($tail)
+        # If no tile - unit move from map
+        unless ($tile)
         {
             $result{damage} += $unit->health;
             $unit->die('reach');
         }
         else
         {
-            # Try change direction as in tail
-            $unit->direction($tail->direction($unit->path) );
+            # Try change direction as in tile
+            $unit->direction($tile->direction($unit->path) );
         }
     }
 
@@ -172,19 +172,19 @@ sub map_xy
 {
     my ($self, $unit) = @_;
 
-    my $map_x = int( $unit->x / $self->map->tail_width  );
-    my $map_y = int( $unit->y / $self->map->tail_height );
+    my $map_x = int( $unit->x / $self->map->tile_width  );
+    my $map_y = int( $unit->y / $self->map->tile_height );
 
-    my $tail_x = $map_x * $self->map->tail_width;
-    my $tail_y = $map_y * $self->map->tail_height;
+    my $tile_x = $map_x * $self->map->tile_width;
+    my $tile_y = $map_y * $self->map->tile_height;
 
     if($unit->direction eq 'up')
     {
-        $map_y += 1 if $unit->y > $tail_y;
+        $map_y += 1 if $unit->y > $tile_y;
     }
     elsif($unit->direction eq 'left')
     {
-        $map_x += 1 if $unit->x > $tail_x;
+        $map_x += 1 if $unit->x > $tile_x;
     }
 
     return ($map_x, $map_y);
