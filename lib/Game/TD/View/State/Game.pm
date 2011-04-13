@@ -125,7 +125,7 @@ sub _init_map
             my $name = $type.$mod;
 
             $self->sprite($name => SDLx::Sprite->new(
-                image => config->param('img'=>$type=>$mod=>'file'),
+                image => config->param('map'=>$type=>$mod=>'file'),
             ));
         }
     }
@@ -162,7 +162,7 @@ sub _init_items
             my $name = $type.$mod;
 
             $self->sprite($name => SDLx::Sprite->new(
-                image => config->param('img'=>$type=>$mod=>'file'),
+                image => config->param('map'=>$type=>$mod=>'file'),
             ));
         }
     }
@@ -175,6 +175,7 @@ sub _init_items
             # Get item and draw it if exists
             my $tail  = $self->model->map->tail($x,$y);
             next unless $tail->has_item;
+            next if $tail->item_active;
 
             $self->_draw_type(
                 $self->sprite('map')->surface,

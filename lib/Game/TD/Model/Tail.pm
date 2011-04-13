@@ -70,6 +70,13 @@ sub item_mod
     return $self->{item}{mod};
 }
 
+sub item_active
+{
+    my ($self) = @_;
+    return undef unless exists $self->{item};
+    return ($self->{item}{active}) ?1 :0;
+}
+
 sub path
 {
     my ($self) = @_;

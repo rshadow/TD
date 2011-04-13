@@ -246,7 +246,7 @@ map => [
         { type => 'grass', mod => 'semi-dry'    },
         { type => 'grass', mod => 'semi-dry2'   },
         { type => 'grass', mod => 'semi-dry'    },
-        { type => 'grass', mod => 'semi-dry'    },
+        { type => 'grass', mod => 'semi-dry',   item => {type => 'forest', mod => 'great-tree2'},    },
         { type => 'grass', mod => 'semi-dry2',  item => {type => 'flat', mod => 'road-clean'}, path => {path2 => { name => 'path2' }} },
         { type => 'grass', mod => 'semi-dry'    },
         { type => 'grass', mod => 'semi-dry'    },
