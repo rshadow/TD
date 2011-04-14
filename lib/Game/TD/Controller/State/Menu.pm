@@ -100,8 +100,7 @@ sub event
         for my $index (0 .. $#{$self->model->items})
         {
             my $name  = $self->model->items->[$index]{name};
-            my $state = $self->button($name)->event( $event );
-            if( $state eq 'up' )
+            if( $self->button($name)->event( $event ) eq 'up' )
             {
                 $result{state} = 'board'    if $name eq 'play';
                 $result{state} = 'score'    if $name eq 'score';

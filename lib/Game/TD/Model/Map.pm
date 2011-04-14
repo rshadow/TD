@@ -61,12 +61,6 @@ sub _init_tile
         for my $x (0 .. $self->width - 1)
         {
             my $tile = $self->map->[$y][$x];
-
-            $tile->{item}{active} = 1
-                if exists $tile->{item} and
-                    config->param('map'=>$tile->{item}{type}=>
-                        $tile->{item}{mod}=>'active');
-
             $tile = Game::TD::Model::Tile->new(
                 x => $x,
                 y => $y,
@@ -77,14 +71,9 @@ sub _init_tile
 
             # Cache tile types
             $self->tile_types( $tile->type,      $tile->mod      );
-
-            if( $tile->has_item )
-            {
-                # Cache item types
-                $self->item_types( $tile->item_type, $tile->item_mod );
-                # Cache links on active items
-                $self->tile_active( $tile ) if $tile->item_active;
-            }
+            # Cache item types
+            $self->item_types( $tile->item_type, $tile->item_mod )
+                if $tile->has_item
         }
     }
 }
@@ -248,13 +237,6 @@ sub tile_types
     my ($self, $type, $mod) = @_;
     $self->{tile}{types}{$type}{$mod}++ if defined $type and defined $mod;
     return wantarray ? %{$self->{tile}{types}} : $self->{tile}{types};
-}
-
-sub tile_active
-{
-    my ($self, $tile) = @_;
-    push @{$self->{item}{active}}, $tile if defined $tile;
-    return wantarray ? @{$self->{item}{active}} : $self->{item}{active};
 }
 
 sub item_types

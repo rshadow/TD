@@ -42,41 +42,24 @@ sub new
 
     $self->_init_viewport;
     $self->_init_background;
+    $self->_init_sleep;
     $self->_init_map;
     $self->_init_items;
     $self->_init_units;
-    $self->_init_text;
+    $self->_init_panel;
+    $self->_init_towers;
 
     $self->_init_editor if config->param('editor'=>'enable');
 
     return $self;
 }
 
-sub _init_background
-{
-    my ($self) = @_;
-    $self->SUPER::_init_background;
-
-    # Level title font
-    $self->font(title => SDLx::Text->new(
-        font    => config->param($self->conf=>'title'=>'font'),
-        size    => config->param($self->conf=>'title'=>'size'),
-        color   => config->color($self->conf=>'title'=>'color'),
-        mode    => 'utf8',
-    ));
-    $self->dest(title => SDL::Rect->new(
-        config->param($self->conf=>'title'=>'fleft'),
-        config->param($self->conf=>'title'=>'ftop'),
-        0 ,0
-    ));
-    # Draw title on map
-    $self->font('title')->write_xy(
-        $self->sprite('background')->surface,
-        $self->dest('title')->x,
-        $self->dest('title')->y,
-        $self->model->title,
-    );
-}
+#sub _init_background
+#{
+#    my ($self) = @_;
+#    $self->SUPER::_init_background;
+#
+#}
 
 sub _init_viewport
 {
@@ -175,7 +158,6 @@ sub _init_items
             # Get item and draw it if exists
             my $tile  = $self->model->map->tile($x,$y);
             next unless $tile->has_item;
-            next if $tile->item_active;
 
             $self->_draw_type(
                 $self->sprite('map')->surface,
@@ -235,6 +217,24 @@ sub _init_units
     }
 }
 
+sub _init_sleep
+{
+    my ($self) = @_;
+
+    # Sleep font
+    $self->font(sleep => SDLx::Text->new(
+        font    => config->param($self->conf=>'sleep'=>'font'),
+        size    => config->param($self->conf=>'sleep'=>'size'),
+        color   => config->color($self->conf=>'sleep'=>'color'),
+        mode    => 'utf8',
+    ));
+    $self->dest(sleep => SDL::Rect->new(
+        $self->model->camera->left + int($self->model->camera->w / 2),
+        $self->model->camera->top  + int($self->model->camera->h / 2),
+        0 ,0
+    ));
+}
+
 sub _init_editor
 {
     my ($self) = @_;
@@ -261,9 +261,48 @@ sub _init_editor
     }
 }
 
-sub _init_text
+sub _init_panel
 {
     my ($self) = @_;
+
+    $self->sprite('panel' => SDLx::Sprite->new(
+        surface => SDLx::Surface->new(
+            width   => config->param($self->conf=>'panel'=>'width'),
+            height  => config->param($self->conf=>'panel'=>'height'),
+        ),
+        rect    => SDL::Rect->new(
+            config->param('common'=>'window'=>'width') -
+                config->param($self->conf=>'panel'=>'width'),
+            config->param('common'=>'window'=>'height') -
+                config->param($self->conf=>'panel'=>'height'),
+            config->param($self->conf=>'panel'=>'width'),
+            config->param($self->conf=>'panel'=>'height')),
+    ));
+    $self->sprite('panel')->surface->draw_rect(
+        SDL::Rect->new(
+            0, 0,
+            $self->sprite('panel')->w,
+            $self->sprite('panel')->h),
+        0xFF0000FF
+    );
+
+    $self->sprite('panel_background' => SDLx::Sprite->new(
+        image   => config->param($self->conf=>'panel'=>'file'),
+        clip    => $self->sprite('panel')->clip,
+    ));
+
+    # Level title font
+    $self->font(title => SDLx::Text->new(
+        font    => config->param($self->conf=>'title'=>'font'),
+        size    => config->param($self->conf=>'title'=>'size'),
+        color   => config->color($self->conf=>'title'=>'color'),
+        mode    => 'utf8',
+    ));
+    $self->dest(title => SDL::Rect->new(
+        config->param($self->conf=>'title'=>'fleft'),
+        config->param($self->conf=>'title'=>'ftop'),
+        0 ,0
+    ));
 
     # Health counter font
     $self->font(health => SDLx::Text->new(
@@ -290,19 +329,14 @@ sub _init_text
         config->param($self->conf=>'score'=>'ftop'),
         0 ,0
     ));
+}
 
-    # Sleep font
-    $self->font(sleep => SDLx::Text->new(
-        font    => config->param($self->conf=>'sleep'=>'font'),
-        size    => config->param($self->conf=>'sleep'=>'size'),
-        color   => config->color($self->conf=>'sleep'=>'color'),
-        mode    => 'utf8',
-    ));
-    $self->dest(sleep => SDL::Rect->new(
-        $self->model->camera->left + int($self->model->camera->w / 2),
-        $self->model->camera->top  + int($self->model->camera->h / 2),
-        0 ,0
-    ));
+sub _init_towers
+{
+    my ($self) = @_;
+
+#    my @names = keys %{ config->param('tower') };
+#    die Dumper @names;
 }
 
 sub _draw_type
@@ -331,6 +365,8 @@ sub _draw_type
 
     # Apply item tile to background
     $self->sprite($name)->draw( $surface );
+
+    return;
 }
 
 =head2 draw
@@ -339,60 +375,38 @@ Draw intro
 
 =cut
 
+sub prepare
+{
+    my ($self) = @_;
+
+    # Draw map on viewport
+    $self->sprite('map')->clip($self->model->camera->clip);
+    $self->sprite('map')->draw( $self->sprite('viewport')->surface );
+
+    # Draw units on viewport
+    $self->_draw_units;
+
+    # Draw sleep in center of viewport
+    $self->_draw_sleep if $self->model->left;
+
+    # Draw text and buttons on panel
+    $self->_draw_panel;
+
+    return 1;
+}
+
 sub draw
 {
     my ($self) = @_;
 
     # Draw background
     $self->sprite('background')->draw( $self->app );
-
-    # Draw map on viewport
-    $self->sprite('map')->clip($self->model->camera->clip);
-    $self->sprite('map')->draw( $self->sprite('viewport')->surface );
-
-    # Draw units
-    $self->_draw_units;
-
-#    # Draw items on viwport
-#    for my $y (0 .. ($self->model->map->height - 1) )
-#    {
-#        for my $x (0 .. ($self->model->map->width - 1))
-#        {
-#            # Get item and draw it if exists
-#            my $tile  = $self->model->map->tile($x,$y);
-##            if( $tile->has_item )
-##            {
-##                $self->_draw_type(
-##                    $self->sprite('viewport')->surface,
-##                    $x,
-##                    $y,
-##                    $tile->item_type,
-##                    $tile->item_mod,
-##                );
-##            }
-#
-#            next unless $tile->has_path;
-#            # get units and draw them
-#            my @units = $self->model->wave->unit_xy($x,$y,@$active);
-#            next unless @units;
-#
-#            for my $unit (@units)
-#            {
-#                $self->sprite($unit->type)->x( $unit->x - $self->model->camera->x );
-#                $self->sprite($unit->type)->y( $unit->y - $self->model->camera->y );
-#                $self->sprite($unit->type)->draw( $self->sprite('viewport')->surface );
-#            }
-#        }
-#    }
-
-    # Draw counters
-    $self->_draw_panel;
-
-    # Draw sleep in center of screen
-    $self->_draw_sleep if $self->model->left;
-
     # Draw viewport
     $self->sprite('viewport')->draw($self->app);
+    # Draw panel
+    $self->sprite('panel')->draw($self->app);
+
+    return 1;
 }
 
 sub _draw_units
@@ -421,15 +435,27 @@ sub _draw_units
             sprintf('%s %s:%s', $unit->direction || 'die', $unit->x, $unit->y),
         ) if config->param('editor'=>'enable');
     }
+
+    return 1;
 }
 
 sub _draw_panel
 {
     my ($self) = @_;
 
+    $self->sprite('panel_background')->draw($self->sprite('panel')->surface);
+
+    # Draw title on panel
+    $self->font('title')->write_xy(
+        $self->sprite('panel')->surface,
+        $self->dest('title')->x,
+        $self->dest('title')->y,
+        $self->model->title,
+    );
+
     # Draw health counter
     $self->font('health')->write_xy(
-        $self->app,
+        $self->sprite('panel')->surface,
         $self->dest('health')->x,
         $self->dest('health')->y,
         sprintf '%s %s',
@@ -439,13 +465,15 @@ sub _draw_panel
 
     # Draw score
     $self->font('score')->write_xy(
-        $self->app,
+        $self->sprite('panel')->surface,
         $self->dest('score')->x,
         $self->dest('score')->y,
         sprintf '%s %s',
             config->param($self->conf=>'score'=>'text') || '',
             $self->model->player->score,
     );
+
+    return 1;
 }
 
 sub _draw_sleep
@@ -462,6 +490,8 @@ sub _draw_sleep
         $self->dest('sleep')->y - int($self->font('sleep')->h/2),
         $text
     );
+
+    return 1;
 }
 
 

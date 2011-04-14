@@ -98,8 +98,7 @@ sub event
     # Respond to button up state
     elsif($type == SDL_MOUSEBUTTONUP)
     {
-        my $state = $self->button('menu')->event( $event );
-        if( $state eq 'up' )
+        if( $self->button('menu')->event( $event ) eq 'up' )
         {
             $result{state} = 'menu';
         }
@@ -108,8 +107,7 @@ sub event
             for my $level (0 .. $#{$self->model->levels})
             {
                 my $name = 'level' . $level;
-                my $state = $self->button($name)->event( $event );
-                if( $state eq 'up' )
+                if( $self->button($name)->event( $event ) eq 'up' )
                 {
                     $result{state} = 'game';
                     $result{level} = $level;

@@ -11,6 +11,7 @@ use SDL::Event;
 use Game::TD::Config;
 use Game::TD::Model::State::Game;
 use Game::TD::View::State::Game;
+use Game::TD::Model::Panel;
 use Game::TD::Button;
 
 =head1 NAME
@@ -47,6 +48,10 @@ sub new
         dt      => $self->app->dt,
     ));
 
+    $self->panel( Game::TD::Model::Panel->new(
+        visible => 1,
+    ));
+
     $self->view( Game::TD::View::State::Game->new(
         app     => $self->app,
         model   => $self->model
@@ -56,13 +61,27 @@ sub new
         name    => 'menu',
         app     => $self->app,
         conf    => $self->conf,
+        parent  => $self->view->sprite('panel'),
     ));
 
     $self->button('pause' => Game::TD::Button->new(
         name    => 'pause',
         app     => $self->app,
         conf    => $self->conf,
+        parent  => $self->view->sprite('panel'),
     ));
+
+    my @names = keys %{ config->param('tower') };
+    for my $tower ( @names )
+    {
+        $self->button($tower => Game::TD::Button->new(
+            name    => $tower,
+            app     => $self->app,
+            conf    => $self->conf,
+            file    => config->param('tower'=>$tower=>'button'=>'file'),
+            parent  => $self->view->sprite('panel'),
+        ));
+    }
 
     return $self;
 }
@@ -95,6 +114,9 @@ sub event
         $self->button('menu')->event( $event );
         $self->button('pause')->event( $event );
 
+        my @names = keys %{ config->param('tower') };
+        $self->button($_)->event( $event ) for @names;
+
         # Get mouse position and screen params
         my $x       = $event->motion_x;
         my $y       = $event->motion_y;
@@ -122,20 +144,29 @@ sub event
         # Send to buttons
         $self->button('menu')->event( $event );
         $self->button('pause')->event( $event );
+
+        my @names = keys %{ config->param('tower') };
+        $self->button($_)->event( $event ) for @names;
     }
     # Respond to button up state
     elsif($type == SDL_MOUSEBUTTONUP)
     {
-        my $state = $self->button('menu')->event( $event );
-        if( $state eq 'up' )
+        if( $self->button('menu')->event( $event ) eq 'up' )
         {
             $result{state} = 'menu';
         }
 
-        $state = $self->button('pause')->event( $event );
-        if( $state eq 'up' )
+        if( $self->button('pause')->event( $event ) eq 'up' )
         {
             $self->pause;
+        }
+
+        my @names = keys %{ config->param('tower') };
+        for my $name ( @names )
+        {
+            if( $self->button($name)->event( $event ) eq 'up' )
+            {
+            }
         }
     }
     elsif($type == SDL_KEYDOWN)
@@ -194,28 +225,43 @@ sub draw
 
     unless( $self->is_pause )
     {
+        $self->view->prepare;
 
-        $self->view->draw;
+        my @names = keys %{ config->param('tower') };
+        $self->button($_)->draw for @names;
     }
 
     $self->button('menu')->draw;
     $self->button('pause')->draw;
 
-
-#    for my $index (0 .. $#{$self->model->levels})
-#    {
-#        my $name = 'level' . $index;
-#        $self->button($name)->draw;
-#    }
+    $self->view->draw;
 
     return 1;
 }
 
+=head2 player
 
+Return player object
+
+=cut
 
 sub player
 {
     return shift()->{player};
+}
+
+=head2 panel $value
+
+Set panel object if set $value or return if $value not set.
+
+=cut
+
+sub panel
+{
+    my ($self, $value) = @_;
+
+    $self->{panel} = $value  if defined $value;
+    return $self->{panel};
 }
 
 sub is_pause
@@ -233,4 +279,5 @@ sub pause
 
     return $self->{pause};
 }
+
 1;

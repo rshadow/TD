@@ -44,10 +44,10 @@ sub new
     my $self = bless \%opts, $class;
 
     # Get params from config by conf name and button name
-    $self->{left}   = int(config->param($self->conf=>$self->name=>'left'));
-    $self->{top}    = int(config->param($self->conf=>$self->name=>'top'));
-    $self->{file}   = config->param($self->conf=>$self->name=>'file');
-    $self->{text}   = config->param($self->conf=>$self->name=>'text');
+    $self->{left}   //= int(config->param($self->conf=>$self->name=>'left') || 0);
+    $self->{top}    //= int(config->param($self->conf=>$self->name=>'top')  || 0);
+    $self->{file}   //= config->param($self->conf=>$self->name=>'file');
+    $self->{text}   //= config->param($self->conf=>$self->name=>'text');
 
     $self->sprite(background => SDLx::Sprite->new(image => $self->file));
 
@@ -86,7 +86,7 @@ sub new
     ));
 
     # If button have text then load font for it
-    if( length $self->text )
+    if( $self->text and length $self->text )
     {
         my $font  = config->param($self->conf=>$self->name=>'font');
         my $size  = config->param($self->conf=>$self->name=>'size');
@@ -164,7 +164,9 @@ sub event
 
 sub draw
 {
-    my $self = shift;
+    my ($self) = @_;
+
+    my $surface = ($self->parent) ?$self->parent->surface :$self->app;
 
     # Get clip for current state
     my $state = $self->state;
@@ -173,10 +175,10 @@ sub draw
         if $self->disable;
 
     $self->sprite('background')->clip( $self->clip($state) );
-    $self->sprite('background')->draw($self->app);
+    $self->sprite('background')->draw( $surface );
 
     $self->font('text')->write_xy(
-        $self->app,
+        $surface,
         $self->dest('text')->x,
         $self->dest('text')->y,
     ) if $self->font('text');
@@ -193,11 +195,15 @@ Check if $x and $y coordinates within button rect
 sub is_over
 {
     my ($self, $x, $y) = @_;
+
+    my ($dx, $dy) = ($self->parent)
+        ?($self->parent->x, $self->parent->y) :(0,0);
+
     return 1 if
-        $x > $self->left                &&
-        $x < $self->left + $self->width &&
-        $y > $self->top                 &&
-        $y < $self->top + $self->height;
+        $x >= $dx + $self->left                &&
+        $x <  $dx + $self->left + $self->width &&
+        $y >= $dy + $self->top                 &&
+        $y <  $dy + $self->top + $self->height;
     return 0;
 }
 
@@ -209,6 +215,7 @@ sub top     {return shift()->{top}   }
 sub width   {return shift()->{width} }
 sub height  {return shift()->{height}}
 sub text    {return shift()->{text}  }
+sub parent  {return shift()->{parent}}
 
 sub clip
 {
