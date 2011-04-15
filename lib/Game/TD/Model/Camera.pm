@@ -11,9 +11,6 @@ use SDL::Rect;
 
 use Game::TD::Config;
 
-use constant CAMERA_WIDTH   => 15;
-use constant CAMERA_HEIGHT  => 15;
-
 =head1 NAME
 
 Game::TD::Model::Camera - Модуль
@@ -42,8 +39,10 @@ sub new
     $opts{x}        //= 0;
     $opts{y}        //= 0;
     $opts{speed}    //= config->param('common'=>'camera'=>'speed');
-    $opts{left}     //= config->param('game'=>'map'=>'left');
-    $opts{top}      //= config->param('game'=>'map'=>'top');
+    $opts{w}        //= config->param('common'=>'camera'=>'width');
+    $opts{h}        //= config->param('common'=>'camera'=>'height');
+    $opts{left}     //= config->param('common'=>'camera'=>'left');
+    $opts{top}      //= config->param('common'=>'camera'=>'top');
     $opts{move}     //= {};
 
     my $self = bless \%opts, $class;
@@ -56,10 +55,10 @@ sub new
 sub map         { return shift()->{map} }
 sub rect        { return shift()->{rect} }
 sub speed       { return shift()->{speed} }
-sub width       { return CAMERA_WIDTH }
-sub height      { return CAMERA_HEIGHT }
 sub left        { return shift()->{left} }
 sub top         { return shift()->{top} }
+sub w           { return shift()->{w} }
+sub h           { return shift()->{h} }
 
 sub clip
 {
@@ -82,17 +81,17 @@ sub y
 }
 
 
-sub w
-{
-    my $self = shift;
-    return $self->width * $self->map->tile_width;
-}
-
-sub h
-{
-    my $self = shift;
-    return $self->height * $self->map->tile_height;
-}
+#sub w
+#{
+#    my $self = shift;
+#    return $self->width * $self->map->tile_width;
+#}
+#
+#sub h
+#{
+#    my $self = shift;
+#    return $self->height * $self->map->tile_height;
+#}
 
 sub is_move
 {

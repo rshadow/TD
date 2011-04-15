@@ -54,12 +54,12 @@ sub new
     return $self;
 }
 
-#sub _init_background
-#{
-#    my ($self) = @_;
+sub _init_background
+{
+    my ($self) = @_;
 #    $self->SUPER::_init_background;
-#
-#}
+
+}
 
 sub _init_viewport
 {
@@ -400,7 +400,7 @@ sub draw
     my ($self) = @_;
 
     # Draw background
-    $self->sprite('background')->draw( $self->app );
+#    $self->sprite('background')->draw( $self->app );
     # Draw viewport
     $self->sprite('viewport')->draw($self->app);
     # Draw panel
