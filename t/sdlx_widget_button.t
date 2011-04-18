@@ -1,82 +1,81 @@
 #!/usr/bin/perl
 
-=head1 sdlx_widget_button.t
-
-Тест SDLx::Widget::Button
-
-=cut
-
 use warnings;
 use strict;
 use utf8;
 use open qw(:std :utf8);
 use lib qw(lib ../lib);
 
-use Test::More tests    => 2;
+use Test::More tests    => 8;
 use Encode              qw(encode_utf8 decode_utf8);
 
-################################################################################
-# Тест подключений
-################################################################################
-
 BEGIN {
-    # Подготовка объекта тестирования для работы с utf8
     my $builder = Test::More->builder;
     binmode $builder->output,         ':encoding(UTF-8)';
     binmode $builder->failure_output, ':encoding(UTF-8)';
     binmode $builder->todo_output,    ':encoding(UTF-8)';
 
-    note "*** Тест SDLx::Widget::Button ***";
+    note "*** Test SDLx::Widget::Button ***";
     use_ok 'SDL';
     use_ok 'SDL::Event';
     use_ok 'SDL::Rect';
     use_ok 'SDLx::App';
     use_ok 'SDLx::Widget::Button';
     use_ok 'SDLx::Surface';
+    use_ok 'SDL::Color';
 }
 
-################################################################################
-# Тесты
-################################################################################
-my $app = SDLx::App->new();
+# Create App
+my $app = SDLx::App->new(
+    width   => 640,
+    height  => 480,
+);
+$app->draw_rect([0,0,640,480],   0x333333FF);
 
-my $surface = SDLx::Surface->new(width => 600, height => 100);
-$surface->draw_rect([0,0,100,100],   0xFF0000FF);
-$surface->draw_rect([100,0,100,100], 0x00FF00FF);
-$surface->draw_rect([200,0,100,100], 0x0000FFFF);
-$surface->draw_rect([300,0,100,100], 0xFFFF00FF);
-$surface->draw_rect([400,0,100,100], 0x999999FF);
-$surface->draw_rect([500,0,100,100], 0x666666FF);
+# Create button surface
+my $surface = SDLx::Surface->new(width => 10*100, height => 600);
 
-# Проверим нормальное создание объекта
+# Fill button surface and make sequences
+my $color_from = 128;
+my %sequences;
+for(my $i = 0; $i < 10; $i ++ )
+{
+    my $color = $color_from + $i * 8;
+    $surface->draw_rect([100 * $i,0,  100,100], SDL::Color->new($color, 0, 0));
+    $surface->draw_rect([100 * $i,100,100,100], SDL::Color->new(0, $color, 0));
+    $surface->draw_rect([100 * $i,200,100,100], SDL::Color->new(0, 0, $color));
+    $surface->draw_rect([100 * $i,300,100,100], SDL::Color->new($color, 0, $color));
+    $surface->draw_rect([100 * $i,400,100,100], SDL::Color->new($color, $color, $color));
+    $surface->draw_rect([100 * $i,500,100,100], 0x666666FF);
+
+    push @{$sequences{over}},   [100 * $i,   0];
+    push @{$sequences{out}},    [100 * $i, 100];
+    push @{$sequences{down}},   [100 * $i, 200];
+    push @{$sequences{up}},     [100 * $i, 300];
+    push @{$sequences{d_over}}, [100 * $i, 400];
+    push @{$sequences{d_out}},  [100 * $i, 500];
+}
+
+# Create button
 my $button = SDLx::Widget::Button->new(
     surface     => $surface,
-    step_x      => 100,
-    step_y      => 100,
-#    sequences   => {
-#        over    => [[0,0]],
-#        out     => [[100,0]],
-#        down    => [[200,0]],
-#        up      => [[300,0]],
-#        d_over  => [[400,0]],
-#        d_out   => [[500,0]],
-#    },
-    rect        => SDL::Rect->new(300,300,100,100),
-#    clip        => SDL::Rect->new(0,0,100,100),
-    parent      => $app,
-#    width       => 100,
-#    height      => 100,
-    ticks_per_frame => 25,
+    step_x      => 1,
+    step_y      => 1,
+    sequences   => \%sequences,
+    rect        => SDL::Rect->new(0,0,100,100),
+    ticks_per_frame => 5,
     type        => 'circular',
     sequence    => 'out',
-);
 
-note explain $button;
-$button->start;
+    disable     => 0,
+    parent      => $app,
+);
 ok $button, 'created';
+$button->start;
 
 note 'Run app too see results';
 
+# Add application handlers and run application
 $app->add_event_handler( sub{
     my ($event, $application) = @_;
     exit if $event->type eq SDL_QUIT;
@@ -85,8 +84,8 @@ $app->add_event_handler( sub{
 
 $app->add_show_handler( sub{
     my ($delta, $application) = @_;
-    $surface->blit( $app );
-    $button->draw($app);
+#    $surface->blit( $app, undef, [0,180,0,0]  );
+    $button->draw;
     $app->flip;
 });
 

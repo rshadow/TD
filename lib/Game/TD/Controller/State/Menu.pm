@@ -10,7 +10,8 @@ use SDL::Event;
 use Game::TD::Config;
 use Game::TD::Model::State::Menu;
 use Game::TD::View::State::Menu;
-use Game::TD::Button;
+#use Game::TD::Button;
+use SDLx::Widget::Button;
 
 =head1 NAME
 
@@ -49,10 +50,15 @@ sub new
     {
         my $name  = $self->model->items->[$index]{name};
 
-        $self->button($name => Game::TD::Button->new(
-            name    => $name,
-            app     => $self->app,
-            conf    => $self->conf,
+        $self->button($name => SDLx::Widget::Button->new(
+            image   => config->param($self->conf=>$name=>'file'),
+            step_x  => 1,
+            step_y  => 1,
+            parent  => $self->app,
+            rect    =>
+                SDL::Rect->new(@{config->param($self->conf=>$name=>'rect')}),
+            sequence  => 'out',
+            sequences => config->param($self->conf=>$name=>'sequences'),
         ));
     }
 

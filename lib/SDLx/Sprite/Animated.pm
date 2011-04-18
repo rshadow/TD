@@ -8,7 +8,7 @@ use SDL::Video;
 use SDL::Rect;
 use SDLx::Sprite;
 use SDLx::Validate;
-
+use Data::Dumper;
 use base 'SDLx::Sprite';
 
 # inside out
@@ -69,8 +69,8 @@ sub new {
         $h = $height;
 
         $options{surface} = $full;
-        $options{step_x}  = $w      unless exists $options{step_x};
-        $options{step_y}  = $h      unless exists $options{step_y};
+#        $options{step_x}  = $w      unless exists $options{step_x};
+#        $options{step_y}  = $h      unless exists $options{step_y};
     }
 
     my $self = $class->SUPER::new(%options);
@@ -91,6 +91,7 @@ sub new {
     } else {
         $self->_init_default_sequence();
     }
+
     $self->sequence( $options{sequence} ) if exists $options{sequence};
 
     $_ticks{ refaddr $self}     = 0;
@@ -258,6 +259,8 @@ sub _sequence {
 
 sub _frame {
     my $self = shift;
+#    die Dumper $_current_frame{ refaddr $self},
+#    $self->_sequence->[0];
     return $self->_sequence->[ $_current_frame{ refaddr $self} - 1 ];
 }
 
@@ -352,6 +355,16 @@ sub _update_clip {
     my $clip  = $self->clip;
     my $frame = $self->_frame;
 
+#    use Data::Dumper;
+#die Dumper $self,
+#    [$self->clip->x,$self->clip->y,$self->clip->w,$self->clip->h],
+#    [$self->rect->x,$self->rect->y,$self->rect->w,$self->rect->h],
+#    $frame,
+#
+#    $_offset_x{ refaddr $self},
+#    $frame->[0],
+#    $_step_x{ refaddr $self};
+
     $clip->x( $_offset_x{ refaddr $self} + $frame->[0] * $_step_x{ refaddr $self} );
     $clip->y( $_offset_y{ refaddr $self} + $frame->[1] * $_step_y{ refaddr $self} );
 }
@@ -371,6 +384,11 @@ sub draw {
     $_ticks{ refaddr $self}++;
     $self->next if $_started{ refaddr $self} && $_ticks{ refaddr $self} % $_ticks_per_frame{ refaddr $self} == 0;
 
+#die Dumper $self->surface,
+#    [$self->clip->x,$self->clip->y,$self->clip->w,$self->clip->h],
+#     $surface,
+#    [$self->rect->x,$self->rect->y,$self->rect->w,$self->rect->h]
+#    if $self->sequence eq 'over';
     SDL::Video::blit_surface( $self->surface, $self->clip, $surface, $self->rect );
 
     return $self;

@@ -10,19 +10,75 @@ use Carp;
 use SDL;
 use SDL::Event;
 use SDL::Events;
+use SDLx::App;
 use SDLx::Text;
-
-use Game::TD::Config;
 
 =head1 NAME
 
-Game::TD::Model::Button - Модуль
+Game::TD::Model::Button - Simple rectangle button
 
 =head1 SYNOPSIS
 
-  use Game::TD::Model::Button;
+    use Game::TD::Model::Button;
+
+    # Create application
+    $app = SDLx::App->new;
+
+    # Create button from image file.
+    my $button = SDLx::Widget::Button->new(
+        image       => 'button.png',
+        step_x      => 1,
+        step_y      => 1,
+        sequences   => {
+            over    => [[0,0]],
+            out     => [[100,0]],
+            down    => [[200,0]],
+            up      => [[300,0]],
+            d_over  => [[400,0]],
+            d_out   => [[500,0]],
+        },
+        rect        => SDL::Rect->new(0,0,100,100),
+
+        # Set application surface as parent
+        parent      => $app,
+        # Button disabled (by default button enabled)
+        disable     => 1,
+
+    );
+
+    # Set button handlers
+    $app->add_event_handler( sub{
+        my ($event, $app) = @_;
+        exit if $event->type eq SDL_QUIT;
+        # Send events to button and react on left mouse button up
+        if($button->event( $event ) eq 'up')
+        {
+            ...
+        }
+    });
+
+    $app->add_show_handler( sub{
+        # Draw button
+        $button->draw;
+        $app->flip;
+    });
+
+    # Run application
+    $app->run;
 
 =head1 DESCRIPTION
+
+This is simple rectangle button to use in SDL application. SDLx::Widget::Button
+based on SDLx::Sprite::Animated package and take all of it`s methods and
+options.
+
+You need to set named sequence for each button state for draw:
+over - mouse corsor outside the button,
+out  - mouse cirsor on button,
+down - left "mouse button" pressed on button,
+up   - left "mouse button" unpressed on button.
+Sequence d_over and d_out is optional. If you want disable/enable button then
+this sequences.
 
 =cut
 
@@ -30,91 +86,108 @@ Game::TD::Model::Button - Модуль
 
 =cut
 
+=head2 new %opts
+
+This constrictor take options from SDLx::Sprite::Animated, except:
+
+=item parent
+
+This is SDLx::App or SDLx::Surface to draw button on it.
+
+=item disable
+
+Flag to disable button. Disabled button has it`s own sequences for draw and not
+react on mouse button click.
+
+=back
+
+=cut
+
 sub new
 {
     my ($class, %opts) = @_;
 
-    confess 'Need SDLx::App or SDLx::Surface as parent'
-        unless defined $opts{parent};
+    my $parent  = delete $opts{parent};
+    my $disable = delete $opts{disable} // 0;
 
-#    $opts{disable} //= 0;
+    confess 'Need SDLx::App or SDLx::Surface as parent'
+        unless defined $parent;
 
     my $self = $class->SUPER::new(%opts);
 
-    $self->parent( $opts{parent} );
-    $self->disable( $opts{disable} // 0 );
-    $self->state('out');
-    $self->sequence('out');
+    $self->parent( $parent );
+    $self->disable( $disable );
+
+    $self->sequence( ($self->disable) ?'d_out' :'out' );
 
     return $self;
 }
 
-sub state
-{
-    my ($self, $state) = @_;
-    $self->{state} = $state if defined $state;
-    return $self->{state};
-}
+=head2 draw $event
+
+Event handler. Update button sequence on user $event (SDL::Event object):
+move mouse, click buttons.
+
+=cut
 
 sub event
 {
-    my ($self, $event, $app) = @_;
+    my ($self, $event) = @_;
 
-    my $type = $event->type;
+    my $type        = $event->type;
+    my $sequence    = $self->sequence;
+    my $prev        = $sequence;
 
     if($type == SDL_MOUSEMOTION)
     {
         if( $self->is_over($event->motion_x, $event->motion_y) )
         {
-            $self->state('over') unless $self->state eq 'down';
+            $sequence = 'over' unless $sequence eq 'down';
         }
         else
         {
-            $self->state('out')
+            $sequence = 'out';
         }
     }
     elsif($type == SDL_MOUSEBUTTONDOWN && ! $self->disable)
     {
         if( $event->button_button == SDL_BUTTON_LEFT )
         {
-            $self->state('down')
+            $sequence = 'down'
                 if $self->is_over($event->button_x, $event->button_y);
         }
     }
     elsif($type == SDL_MOUSEBUTTONUP && ! $self->disable)
     {
         # Check 'down' for prevent press from another state
-        if($self->state eq 'down')
+        if($sequence eq 'down')
         {
             if( $event->button_button == SDL_BUTTON_LEFT )
             {
-                $self->state('up')
+                $sequence = 'up'
                     if $self->is_over($event->button_x, $event->button_y);
             }
         }
     }
 
-    return $self->state;
+    # Update sequence if state changed
+    $self->sequence( ($self->disable) ?"d_$sequence" :$sequence )
+        if $prev ne $sequence;
+
+    return $sequence;
 }
+
+=head2 draw $surface
+
+Draw button on $surface. By default $surface gets from parent.
+
+=cut
 
 sub draw
 {
     my ($self, $surface) = @_;
 
-    $surface //= $self->parent;
-
-    my $sequence = $self->state;
-    $sequence = 'd_'.$sequence if $self->disable;
-    $self->sequence( $sequence );
-#use Data::Dumper;
-#die Dumper $surface, $self->parent, $sequence;
-    $self->SUPER::draw($surface);
-
-#    $self->font('text')->write_xy(
-#        $self->parent->surface,
-#        $self->dest('text')->x,
-#        $self->dest('text')->y,
-#    ) if $self->font('text');
+    $self->SUPER::draw($surface // $self->parent);
 
     return 1;
 }
@@ -140,16 +213,28 @@ sub is_over
     return 0;
 }
 
+=head2 parent $parent
+
+Get or set $parent surface.
+
+=cut
+
 sub parent  {
     my ($self, $parent) = @_;
     $self->{parent} = $parent if defined $parent;
     return $self->{parent};
 }
 
+=head2 disable $disable
+
+Disable or enable button by $disable bool flag.
+
+=cut
+
 sub disable
 {
     my ($self, $disable) = @_;
-    $self->{disable} = $disable if defined $disable;
+    $self->{disable} = ($disable) ?1 :0 if defined $disable;
     return $self->{disable};
 }
 
