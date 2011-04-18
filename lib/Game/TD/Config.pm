@@ -132,29 +132,4 @@ sub param
     return $result;
 }
 
-=head2 color $name, @path
-
-Same as param function but return SDL compatible value for color
-
-=cut
-
-sub color
-{
-    my ($self, $name, @path) = @_;
-    my $result = $self->param($name, @path);
-    if('HASH' eq ref $result)
-    {
-        return [$result->{r}, $result->{g}, $result->{b}];
-    }
-    elsif('ARRAY' eq ref $result)
-    {
-        return $result;
-    }
-    else
-    {
-        $result =~ m/([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})/;
-        return [hex($1), hex($2), hex($3)];
-    }
-}
-
 1;

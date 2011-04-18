@@ -55,7 +55,7 @@ sub _init
     $self->font(fps => SDLx::Text->new(
         font    => config->param('common'=>'fps'=>'font'),
         size    => config->param('common'=>'fps'=>'size'),
-        color   => config->color('common'=>'fps'=>'color'),
+        color   => config->param('common'=>'fps'=>'color'),
         mode    => 'utf8',
     ));
 
@@ -105,7 +105,7 @@ sub _init_editor
     $self->font('editor_tile' => SDLx::Text->new(
         font    => config->param('editor'=>'tile'=>'font'),
         size    => config->param('editor'=>'tile'=>'size'),
-        color   => config->color('editor'=>'tile'=>'color'),
+        color   => config->param('editor'=>'tile'=>'color'),
         mode    => 'utf8',
     ));
 }

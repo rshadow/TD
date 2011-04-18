@@ -11,7 +11,6 @@ use SDL::Event;
 use Game::TD::Config;
 use Game::TD::Model::State::Board;
 use Game::TD::View::State::Board;
-use Game::TD::Button;
 
 =head1 NAME
 
@@ -51,20 +50,10 @@ sub new
     {
         my $name = 'level' . $level;
         my $disable = ($level <= $self->player->level) ? 0 : 1;
-
-        $self->button($name => Game::TD::Button->new(
-            name    => $name,
-            app     => $self->app,
-            conf    => $self->conf,
-            disable => $disable,
-        ));
+        $self->button($name, $self->conf, $self->app, disable => $disable);
     }
 
-    $self->button('menu' => Game::TD::Button->new(
-        name    => 'menu',
-        app     => $self->app,
-        conf    => $self->conf,
-    ));
+    $self->button('menu', $self->conf, $self->app);
 
     return $self;
 }

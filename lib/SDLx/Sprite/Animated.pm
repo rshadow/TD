@@ -57,7 +57,10 @@ sub new {
             push @sprites, $sprite;
         }
 
-        my $full = SDLx::Surface->new(width=>$width, height=>$height, color => 0xFF);
+        my $full = SDLx::Surface->new(
+            width   => $width,
+            height  => $height,
+            color   => 0x000000FF);
 
         my $x = 0;
         for (@sprites) {

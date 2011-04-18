@@ -57,6 +57,7 @@ sub new
 sub _init_background
 {
     my ($self) = @_;
+    # Not need if panel and viewport take all of screen
 #    $self->SUPER::_init_background;
 
 }
@@ -225,7 +226,7 @@ sub _init_sleep
     $self->font(sleep => SDLx::Text->new(
         font    => config->param($self->conf=>'sleep'=>'font'),
         size    => config->param($self->conf=>'sleep'=>'size'),
-        color   => config->color($self->conf=>'sleep'=>'color'),
+        color   => config->param($self->conf=>'sleep'=>'color'),
         mode    => 'utf8',
     ));
     $self->dest(sleep => SDL::Rect->new(
@@ -295,7 +296,7 @@ sub _init_panel
     $self->font(title => SDLx::Text->new(
         font    => config->param($self->conf=>'title'=>'font'),
         size    => config->param($self->conf=>'title'=>'size'),
-        color   => config->color($self->conf=>'title'=>'color'),
+        color   => config->param($self->conf=>'title'=>'color'),
         mode    => 'utf8',
     ));
     $self->dest(title => SDL::Rect->new(
@@ -308,7 +309,7 @@ sub _init_panel
     $self->font(health => SDLx::Text->new(
         font    => config->param($self->conf=>'health'=>'font'),
         size    => config->param($self->conf=>'health'=>'size'),
-        color   => config->color($self->conf=>'health'=>'color'),
+        color   => config->param($self->conf=>'health'=>'color'),
         mode    => 'utf8',
     ));
     $self->dest(health => SDL::Rect->new(
@@ -321,7 +322,7 @@ sub _init_panel
     $self->font(score => SDLx::Text->new(
         font    => config->param($self->conf=>'score'=>'font'),
         size    => config->param($self->conf=>'score'=>'size'),
-        color   => config->color($self->conf=>'score'=>'color'),
+        color   => config->param($self->conf=>'score'=>'color'),
         mode    => 'utf8',
     ));
     $self->dest(score => SDL::Rect->new(
@@ -400,6 +401,7 @@ sub draw
     my ($self) = @_;
 
     # Draw background
+    # Not need if panel and viewport take all of screen
 #    $self->sprite('background')->draw( $self->app );
     # Draw viewport
     $self->sprite('viewport')->draw($self->app);

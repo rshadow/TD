@@ -10,6 +10,7 @@ use Carp;
 use SDL;
 use SDL::Event;
 use SDL::Events;
+use SDL::Rect;
 use SDLx::App;
 use SDLx::Text;
 
@@ -94,10 +95,19 @@ This constrictor take options from SDLx::Sprite::Animated, except:
 
 This is SDLx::App or SDLx::Surface to draw button on it.
 
+=item prect
+
+Coordinates SDL::Rect of parent surface. Set it if parent surface has offset.
+
 =item disable
 
 Flag to disable button. Disabled button has it`s own sequences for draw and not
 react on mouse button click.
+
+=item text
+
+If you wish to draw txt on button, just create SDLx::Text object and set this
+option.
 
 =back
 
@@ -107,8 +117,12 @@ sub new
 {
     my ($class, %opts) = @_;
 
+    # Main opts
     my $parent  = delete $opts{parent};
+    my $prect   = delete $opts{prect}   // SDL::Rect->new(0,0,0,0);
     my $disable = delete $opts{disable} // 0;
+    # Text opts
+    my $text    = delete $opts{text};
 
     confess 'Need SDLx::App or SDLx::Surface as parent'
         unless defined $parent;
@@ -116,7 +130,9 @@ sub new
     my $self = $class->SUPER::new(%opts);
 
     $self->parent( $parent );
+    $self->prect( $prect );
     $self->disable( $disable );
+    $self->text( $text ) if $text;
 
     $self->sequence( ($self->disable) ?'d_out' :'out' );
 
@@ -188,6 +204,11 @@ sub draw
     my ($self, $surface) = @_;
 
     $self->SUPER::draw($surface // $self->parent);
+    $self->text->write_xy(
+        $surface // $self->parent,
+        $self->rect->x,
+        $self->rect->y)
+            if $self->text;
 
     return 1;
 }
@@ -202,7 +223,7 @@ sub is_over
 {
     my ($self, $x, $y) = @_;
 
-    my ($dx, $dy) = (0,0);#($self->parent->x, $self->parent->y);
+    my ($dx, $dy) = ($self->prect->x, $self->prect->y);
 
     return 1 if
         $x >= $dx + $self->rect->x                  &&
@@ -219,10 +240,18 @@ Get or set $parent surface.
 
 =cut
 
-sub parent  {
+sub parent
+{
     my ($self, $parent) = @_;
     $self->{parent} = $parent if defined $parent;
     return $self->{parent};
+}
+
+sub prect
+{
+    my ($self, $rect) = @_;
+    $self->{prect} = $rect if defined $rect;
+    return $self->{prect};
 }
 
 =head2 disable $disable
@@ -236,6 +265,13 @@ sub disable
     my ($self, $disable) = @_;
     $self->{disable} = ($disable) ?1 :0 if defined $disable;
     return $self->{disable};
+}
+
+sub text
+{
+    my ($self, $text) = @_;
+    $self->{text} = $text if defined $text;
+    return $self->{text};
 }
 
 1;

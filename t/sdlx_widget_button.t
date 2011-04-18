@@ -63,12 +63,21 @@ my $button = SDLx::Widget::Button->new(
     step_y      => 1,
     sequences   => \%sequences,
     rect        => SDL::Rect->new(0,0,100,100),
-    ticks_per_frame => 5,
-    type        => 'circular',
+    ticks_per_frame => 4,
+    type        => 'reverse',
     sequence    => 'out',
 
     disable     => 0,
     parent      => $app,
+
+    text        => SDLx::Text->new(
+        font    => '/usr/share/fonts/truetype/freefont/FreeSans.ttf',
+        size    => 12,
+        color   => 0xFFFFFFFF,
+        mode    => 'utf8',
+        h_align => 'left',
+        text    => 'button',
+    ),
 );
 ok $button, 'created';
 $button->start;
@@ -84,7 +93,7 @@ $app->add_event_handler( sub{
 
 $app->add_show_handler( sub{
     my ($delta, $application) = @_;
-#    $surface->blit( $app, undef, [0,180,0,0]  );
+    $button->text->text( $button->sequence );
     $button->draw;
     $app->flip;
 });

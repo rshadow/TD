@@ -7,6 +7,11 @@ package Game::TD::Controller;
 use Carp;
 use SDL;
 use SDL::Event;
+use Game::TD::Config;
+
+use SDLx::Text;
+use SDLx::Widget::Button;
+
 
 =head1 Game::TD::Model
 
@@ -146,16 +151,45 @@ sub model
 =head2 button $name, $value
 
 Common storage for buttons on screen. Get $name for button and typically
-Game::TD::Button object in $value.
+SDLx::Widget::Button object in $value.
 
 =cut
 
 sub button
 {
-    my ($self, $name, $value) = @_;
+    my ($self, $name, $conf, $surface, %opts) = @_;
 
     croak 'Name required'             unless defined $name;
-    $self->{button}{$name} = $value   if defined $value;
+
+    if(defined $conf and defined $surface)
+    {
+        $opts{image}    = config->param($conf=>'buttons'=>$name=>'image')
+            if config->param($conf=>'buttons'=>$name=>'image');
+        $opts{images}   = config->param($conf=>'buttons'=>$name=>'images')
+            if config->param($conf=>'buttons'=>$name=>'images');
+        $opts{step_x}   = 1;
+        $opts{step_y}   = 1;
+        $opts{parent}   = $surface;
+        $opts{rect}     = SDL::Rect->new(
+                @{config->param($conf=>'buttons'=>$name=>'rect')} );
+        $opts{sequences} = config->param($conf=>'buttons'=>$name=>'sequences');
+
+        my $text  = config->param($conf=>'buttons'=>$name=>'text') || '';
+        if(length $text )
+        {
+            $opts{text}  = SDLx::Text->new(
+                font    => config->param($conf=>'buttons'=>$name=>'font'),
+                size    => config->param($conf=>'buttons'=>$name=>'size'),
+                color   => config->param($conf=>'buttons'=>$name=>'color'),
+                mode    => 'utf8',
+                h_align => 'left',
+                text    => $text,
+            );
+        }
+
+        $self->{button}{$name} = SDLx::Widget::Button->new(%opts);
+    }
+
     return $self->{button}{$name};
 }
 

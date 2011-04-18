@@ -12,7 +12,6 @@ use Game::TD::Config;
 use Game::TD::Model::State::Game;
 use Game::TD::View::State::Game;
 use Game::TD::Model::Panel;
-use Game::TD::Button;
 
 =head1 NAME
 
@@ -57,30 +56,16 @@ sub new
         model   => $self->model
     ));
 
-    $self->button('menu' => Game::TD::Button->new(
-        name    => 'menu',
-        app     => $self->app,
-        conf    => $self->conf,
-        parent  => $self->view->sprite('panel'),
-    ));
+    $self->button('menu',  $self->conf, $self->view->sprite('panel')->surface,
+        prect => $self->view->sprite('panel')->rect);
+    $self->button('pause', $self->conf, $self->view->sprite('panel')->surface,
+        prect => $self->view->sprite('panel')->rect);
 
-    $self->button('pause' => Game::TD::Button->new(
-        name    => 'pause',
-        app     => $self->app,
-        conf    => $self->conf,
-        parent  => $self->view->sprite('panel'),
-    ));
-
-    my @names = keys %{ config->param('tower') };
+    my @names = keys %{ config->param('tower'=>'towers') };
     for my $tower ( @names )
     {
-        $self->button($tower => Game::TD::Button->new(
-            name    => $tower,
-            app     => $self->app,
-            conf    => $self->conf,
-            file    => config->param('tower'=>$tower=>'button'=>'file'),
-            parent  => $self->view->sprite('panel'),
-        ));
+        $self->button($tower, 'tower', $self->view->sprite('panel')->surface,
+            prect => $self->view->sprite('panel')->rect);
     }
 
     return $self;
@@ -114,7 +99,7 @@ sub event
         $self->button('menu')->event( $event );
         $self->button('pause')->event( $event );
 
-        my @names = keys %{ config->param('tower') };
+        my @names = keys %{ config->param('tower'=>'towers') };
         $self->button($_)->event( $event ) for @names;
 
         # Get mouse position and screen params
@@ -145,7 +130,7 @@ sub event
         $self->button('menu')->event( $event );
         $self->button('pause')->event( $event );
 
-        my @names = keys %{ config->param('tower') };
+        my @names = keys %{ config->param('tower'=>'towers') };
         $self->button($_)->event( $event ) for @names;
     }
     # Respond to button up state
@@ -161,7 +146,7 @@ sub event
             $self->pause;
         }
 
-        my @names = keys %{ config->param('tower') };
+        my @names = keys %{ config->param('tower'=>'towers') };
         for my $name ( @names )
         {
             if( $self->button($name)->event( $event ) eq 'up' )
@@ -227,7 +212,7 @@ sub draw
     {
         $self->view->prepare;
 
-        my @names = keys %{ config->param('tower') };
+        my @names = keys %{ config->param('tower'=>'towers') };
         $self->button($_)->draw for @names;
     }
 
