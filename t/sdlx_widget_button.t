@@ -68,6 +68,7 @@ my $button = SDLx::Widget::Button->new(
     sequence    => 'out',
 
     disable     => 0,
+    app         => $app,
     parent      => $app,
 
     text        => SDLx::Text->new(
@@ -78,23 +79,28 @@ my $button = SDLx::Widget::Button->new(
         h_align => 'left',
         text    => 'button',
     ),
+    sub {
+        my ($self) = @_;
+        $self->text->text( 'PRESSED!' );
+    }
 );
 ok $button, 'created';
 $button->start;
+$button->show;
 
 note 'Run app too see results';
 
-# Add application handlers and run application
+## Add application handlers and run application
 $app->add_event_handler( sub{
     my ($event, $application) = @_;
     exit if $event->type eq SDL_QUIT;
-    $button->event( $event, $app );
+#    $button->event( $event, $app );
 });
-
+#
 $app->add_show_handler( sub{
     my ($delta, $application) = @_;
-    $button->text->text( $button->sequence );
-    $button->draw;
+#    $button->text->text( $button->sequence );
+#    $button->draw;
     $app->flip;
 });
 

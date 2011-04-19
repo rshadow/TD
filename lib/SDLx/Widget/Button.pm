@@ -115,20 +115,27 @@ option.
 
 sub new
 {
-    my ($class, %opts) = @_;
+    my $callback = pop @_;
+    my $class    = shift @_;
+    my %opts     = @_;
 
     # Main opts
-    my $parent  = delete $opts{parent};
+    my $app     = delete $opts{app};
+    my $parent  = delete $opts{parent}  // $app;
     my $prect   = delete $opts{prect}   // SDL::Rect->new(0,0,0,0);
     my $disable = delete $opts{disable} // 0;
     # Text opts
     my $text    = delete $opts{text};
 
-    confess 'Need SDLx::App or SDLx::Surface as parent'
+    confess 'Missing app parameter. Must be SDLx::App' unless defined $app;
+    confess 'Missing parent parameter. Must be SDLx::App or SDLx::Surface'
         unless defined $parent;
 
     my $self = $class->SUPER::new(%opts);
 
+    $self->{callback} = $callback;
+
+    $self->app( $app );
     $self->parent( $parent );
     $self->prect( $prect );
     $self->disable( $disable );
@@ -139,6 +146,26 @@ sub new
     return $self;
 }
 
+sub app
+{
+    my ($self, $app) = @_;
+    $self->{app} = $app if defined $app;
+    return $self->{app};
+}
+
+sub show
+{
+    my $self = shift;
+    $self->app->add_event_handler(sub {
+        my ($event, $app) = @_;
+        $self->event_handler($event);
+    });
+    $self->app->add_show_handler(sub {
+        my ($delta, $app) = @_;
+        $self->draw_handler;
+    });
+}
+
 =head2 draw $event
 
 Event handler. Update button sequence on user $event (SDL::Event object):
@@ -146,7 +173,7 @@ move mouse, click buttons.
 
 =cut
 
-sub event
+sub event_handler
 {
     my ($self, $event) = @_;
 
@@ -190,7 +217,9 @@ sub event
     $self->sequence( ($self->disable) ?"d_$sequence" :$sequence )
         if $prev ne $sequence;
 
-    return $sequence;
+    $self->{callback}->($self) if $sequence eq 'up';
+
+    return;
 }
 
 =head2 draw $surface
@@ -199,11 +228,15 @@ Draw button on $surface. By default $surface gets from parent.
 
 =cut
 
-sub draw
+sub draw_handler
 {
     my ($self, $surface) = @_;
 
-    $self->SUPER::draw($surface // $self->parent);
+#    use Data::Dumper;
+#    die Dumper $surface, $self->parent;
+
+    $self->draw($surface // $self->parent);
+
     $self->text->write_xy(
         $surface // $self->parent,
         $self->rect->x,
