@@ -20,7 +20,7 @@ Game::TD::Model::Button - Simple rectangle button
 
 =head1 SYNOPSIS
 
-    use Game::TD::Model::Button;
+    use SDLx::Widget::Button;
 
     # Create application
     $app = SDLx::App->new;
