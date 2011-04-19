@@ -48,6 +48,7 @@ sub new
     {
         my $name  = $self->model->items->[$index]{name};
         $self->button($name, $self->conf, $self->app);
+        $self->button($name)->show;
     }
 
     return $self;
@@ -82,11 +83,11 @@ sub event
     # Just send event to buttons
     if($type == SDL_MOUSEMOTION or $type == SDL_MOUSEBUTTONDOWN)
     {
-        for my $index (0 .. $#{$self->model->items})
-        {
-            my $name  = $self->model->items->[$index]{name};
-            $self->button($name)->event( $event );
-        }
+#        for my $index (0 .. $#{$self->model->items})
+#        {
+#            my $name  = $self->model->items->[$index]{name};
+#            $self->button($name)->event( $event );
+#        }
     }
     # Respond to button up state
     elsif($type == SDL_MOUSEBUTTONUP)
