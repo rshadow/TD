@@ -27,6 +27,7 @@ Game::TD::Model::Button - Simple rectangle button
 
     # Create button from image file.
     my $button = SDLx::Widget::Button->new(
+        # Similarly SDLx::Sprite::Animated
         image       => 'button.png',
         step_x      => 1,
         step_y      => 1,
@@ -40,29 +41,18 @@ Game::TD::Model::Button - Simple rectangle button
         },
         rect        => SDL::Rect->new(0,0,100,100),
 
-        # Set application surface as parent
-        parent      => $app,
+        # Set application. All handlers will be automatical add in application.
+        app         => $app,
         # Button disabled (by default button enabled)
         disable     => 1,
-
-    );
-
-    # Set button handlers
-    $app->add_event_handler( sub{
-        my ($event, $app) = @_;
-        exit if $event->type eq SDL_QUIT;
-        # Send events to button and react on left mouse button up
-        if($button->event( $event ) eq 'up')
-        {
-            ...
+        # Set some text on button (optional)
+        text        => SDLx::Text->new(...),
+        # Make some job on click
+        cb          => sub {
+            my ($self, $state) = @_;
+            if($sequence eq 'up') { ... }
         }
-    });
-
-    $app->add_show_handler( sub{
-        # Draw button
-        $button->draw;
-        $app->flip;
-    });
+    );
 
     # Run application
     $app->run;
@@ -91,6 +81,16 @@ this sequences.
 
 This constrictor take options from SDLx::Sprite::Animated, except:
 
+=over
+
+=item app
+
+SDLx::App object to add handlers for draw and event
+
+=item cb
+
+Callback function called on button state change
+
 =item parent
 
 This is SDLx::App or SDLx::Surface to draw button on it.
@@ -115,12 +115,11 @@ option.
 
 sub new
 {
-    my $callback = pop @_;
-    my $class    = shift @_;
-    my %opts     = @_;
+    my ($class, %opts) = @_;
 
     # Main opts
     my $app     = delete $opts{app};
+    my $cb      = delete $opts{cb}      // sub{};
     my $parent  = delete $opts{parent}  // $app;
     my $prect   = delete $opts{prect}   // SDL::Rect->new(0,0,0,0);
     my $disable = delete $opts{disable} // 0;
@@ -133,7 +132,7 @@ sub new
 
     my $self = $class->SUPER::new(%opts);
 
-    $self->{callback} = $callback;
+    $self->{callback} = $cb;
 
     $self->app( $app );
     $self->parent( $parent );
@@ -146,6 +145,12 @@ sub new
     return $self;
 }
 
+=head2 app $app
+
+Get or set $app SDLx::App object.
+
+=cut
+
 sub app
 {
     my ($self, $app) = @_;
@@ -153,20 +158,28 @@ sub app
     return $self->{app};
 }
 
+=head2 show
+
+Invoke this method after create button to add event and show handlers in app.
+
+=cut
+
 sub show
 {
     my $self = shift;
+
     $self->app->add_event_handler(sub {
         my ($event, $app) = @_;
         $self->event_handler($event);
     });
+
     $self->app->add_show_handler(sub {
         my ($delta, $app) = @_;
         $self->draw_handler;
     });
 }
 
-=head2 draw $event
+=head2 event_handler $event
 
 Event handler. Update button sequence on user $event (SDL::Event object):
 move mouse, click buttons.
@@ -213,16 +226,17 @@ sub event_handler
         }
     }
 
-    # Update sequence if state changed
-    $self->sequence( ($self->disable) ?"d_$sequence" :$sequence )
-        if $prev ne $sequence;
-
-    $self->{callback}->($self) if $sequence eq 'up';
+    if( $prev ne $sequence )
+    {
+        # Update sequence if state changed
+        $self->sequence( ($self->disable) ?"d_$sequence" :$sequence );
+        $self->{callback}->($self, $sequence);
+    }
 
     return;
 }
 
-=head2 draw $surface
+=head2 draw_handler $surface
 
 Draw button on $surface. By default $surface gets from parent.
 
@@ -232,18 +246,10 @@ sub draw_handler
 {
     my ($self, $surface) = @_;
 
-#    use Data::Dumper;
-#    die Dumper $surface, $self->parent;
-
     $self->draw($surface // $self->parent);
+    $self->text->write_to($surface // $self->parent) if $self->text;
 
-    $self->text->write_xy(
-        $surface // $self->parent,
-        $self->rect->x,
-        $self->rect->y)
-            if $self->text;
-
-    return 1;
+    return;
 }
 
 =head2 is_over $x, $y
@@ -280,6 +286,13 @@ sub parent
     return $self->{parent};
 }
 
+=head2 prect $rect
+
+Get or set offset $rect of parent surface. Use it if parent surface has offset.
+This rect not effec how to draw button, but react on mouse will wrong.
+
+=cut
+
 sub prect
 {
     my ($self, $rect) = @_;
@@ -289,7 +302,8 @@ sub prect
 
 =head2 disable $disable
 
-Disable or enable button by $disable bool flag.
+Disable or enable button by $disable bool flag. Remember: you need d_over and
+d_out sequences to correct draw disabled button.
 
 =cut
 
@@ -300,6 +314,12 @@ sub disable
     return $self->{disable};
 }
 
+=head2 text $text
+
+Get or set $text for button. This is SDLx::Text object.
+
+=cut
+
 sub text
 {
     my ($self, $text) = @_;
@@ -308,3 +328,21 @@ sub text
 }
 
 1;
+__END__
+
+=head1 BUGS AND LIMITATIONS
+
+=over 4
+
+=item * SDLx::Text align work not correct
+
+=back
+
+=head1 AUTHORS
+
+Roman V. Nikolaev C<< <rshadow@rambler.ru> >>
+
+=head1 SEE ALSO
+
+L<< SDLx::App >>, L<< SDLx::Controller >>, L<< SDLx::Text >>,
+L<< SDLx::Widget >>

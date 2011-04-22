@@ -68,7 +68,7 @@ sub new {
             $x += $_->w;
         }
 
-        $w = $width / scalar @sprites;
+        $w = $width / scalar(@sprites);
         $h = $height;
 
         $options{surface} = $full;

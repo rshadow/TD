@@ -163,6 +163,7 @@ sub button
 
     if(defined $conf and defined $surface)
     {
+        $opts{app}      = $self->app,
         $opts{image}    = config->param($conf=>'buttons'=>$name=>'image')
             if config->param($conf=>'buttons'=>$name=>'image');
         $opts{images}   = config->param($conf=>'buttons'=>$name=>'images')
@@ -182,8 +183,10 @@ sub button
                 size    => config->param($conf=>'buttons'=>$name=>'size'),
                 color   => config->param($conf=>'buttons'=>$name=>'color'),
                 mode    => 'utf8',
-                h_align => 'left',
+                h_align => 'center',
+                v_align => 'middle',
                 text    => $text,
+                rect    => $opts{rect},
             );
         }
 

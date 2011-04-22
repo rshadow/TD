@@ -44,10 +44,17 @@ sub new
         model   => $self->model
     ));
 
+    $self->app->add_show_handler( sub{ $self->view->draw } );
+
     for my $index (0 .. $#{$self->model->items})
     {
         my $name  = $self->model->items->[$index]{name};
-        $self->button($name, $self->conf, $self->app);
+        $self->button(
+            $name,
+            $self->conf,
+            $self->app,
+            cb => sub { my ($self, $state) = @_; print "$state\n"; }
+        );
         $self->button($name)->show;
     }
 
@@ -92,16 +99,16 @@ sub event
     # Respond to button up state
     elsif($type == SDL_MOUSEBUTTONUP)
     {
-        for my $index (0 .. $#{$self->model->items})
-        {
-            my $name  = $self->model->items->[$index]{name};
-            if( $self->button($name)->event( $event ) eq 'up' )
-            {
-                $result{state} = 'board'    if $name eq 'play';
-                $result{state} = 'score'    if $name eq 'score';
-                $result{quit}  = 1          if $name eq 'exit';
-            }
-        }
+#        for my $index (0 .. $#{$self->model->items})
+#        {
+#            my $name  = $self->model->items->[$index]{name};
+#            if( $self->button($name)->event( $event ) eq 'up' )
+#            {
+#                $result{state} = 'board'    if $name eq 'play';
+#                $result{state} = 'score'    if $name eq 'score';
+#                $result{quit}  = 1          if $name eq 'exit';
+#            }
+#        }
     }
 
     return \%result;
@@ -113,11 +120,11 @@ sub draw
 
     $self->view->draw;
 
-    for my $index (0 .. $#{$self->model->items})
-    {
-        my $name  = $self->model->items->[$index]{name};
-        $self->button($name)->draw;
-    }
+#    for my $index (0 .. $#{$self->model->items})
+#    {
+#        my $name  = $self->model->items->[$index]{name};
+#        $self->button($name)->draw;
+#    }
 
     return 1;
 }
