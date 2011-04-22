@@ -95,13 +95,6 @@ sub event
     # Just send event to buttons
     if($type == SDL_MOUSEMOTION)
     {
-        # Send to buttons
-        $self->button('menu')->event( $event );
-        $self->button('pause')->event( $event );
-
-        my @names = keys %{ config->param('tower'=>'towers') };
-        $self->button($_)->event( $event ) for @names;
-
         # Get mouse position and screen params
         my $x       = $event->motion_x;
         my $y       = $event->motion_y;
@@ -123,36 +116,6 @@ sub event
         ($y >= ($height-$border))
             ? $self->model->camera->move('down')
             : $self->model->camera->stop('down');
-    }
-    elsif($type == SDL_MOUSEBUTTONDOWN)
-    {
-        # Send to buttons
-        $self->button('menu')->event( $event );
-        $self->button('pause')->event( $event );
-
-        my @names = keys %{ config->param('tower'=>'towers') };
-        $self->button($_)->event( $event ) for @names;
-    }
-    # Respond to button up state
-    elsif($type == SDL_MOUSEBUTTONUP)
-    {
-        if( $self->button('menu')->event( $event ) eq 'up' )
-        {
-            $result{state} = 'menu';
-        }
-
-        if( $self->button('pause')->event( $event ) eq 'up' )
-        {
-            $self->pause;
-        }
-
-        my @names = keys %{ config->param('tower'=>'towers') };
-        for my $name ( @names )
-        {
-            if( $self->button($name)->event( $event ) eq 'up' )
-            {
-            }
-        }
     }
     elsif($type == SDL_KEYDOWN)
     {
@@ -201,6 +164,24 @@ sub event
         }
     }
 
+    if( $self->button('menu')->event_handler( $event ) eq 'up' )
+    {
+        $result{state} = 'menu';
+    }
+
+    if( $self->button('pause')->event_handler( $event ) eq 'up' )
+    {
+        $self->pause;
+    }
+
+    my @names = keys %{ config->param('tower'=>'towers') };
+    for my $name ( @names )
+    {
+        if( $self->button($name)->event_handler( $event ) eq 'up' )
+        {
+        }
+    }
+
     return \%result;
 }
 
@@ -213,11 +194,11 @@ sub draw
         $self->view->prepare;
 
         my @names = keys %{ config->param('tower'=>'towers') };
-        $self->button($_)->draw for @names;
+        $self->button($_)->draw_handler for @names;
     }
 
-    $self->button('menu')->draw;
-    $self->button('pause')->draw;
+    $self->button('menu')->draw_handler;
+    $self->button('pause')->draw_handler;
 
     $self->view->draw;
 

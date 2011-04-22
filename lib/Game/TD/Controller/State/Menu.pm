@@ -49,13 +49,7 @@ sub new
     for my $index (0 .. $#{$self->model->items})
     {
         my $name  = $self->model->items->[$index]{name};
-        $self->button(
-            $name,
-            $self->conf,
-            $self->app,
-            cb => sub { my ($self, $state) = @_; print "$state\n"; }
-        );
-        $self->button($name)->show;
+        $self->button($name, $self->conf, $self->app );
     }
 
     return $self;
@@ -63,14 +57,7 @@ sub new
 
 sub update
 {
-    my ($self) = @_;
-
-    my %result;
-
-#    my $process = $self->model->update;
-#    $result{state} = 'menu' unless $process;
-
-    return \%result;
+    return {};
 }
 
 sub event
@@ -80,35 +67,15 @@ sub event
     my %result;
     my $type = $event->type;
 
-#    # On any key press event go to menu
-#    elsif( $type == SDL_KEYDOWN         or $type == SDL_KEYUP       or
-#           $type == SDL_MOUSEBUTTONDOWN or $type == SDL_MOUSEBUTTONUP)
-#    {
-#        # Goto Menu
-#        $result{state} = 'menu';
-#    }
-    # Just send event to buttons
-    if($type == SDL_MOUSEMOTION or $type == SDL_MOUSEBUTTONDOWN)
+    for my $index (0 .. $#{$self->model->items})
     {
-#        for my $index (0 .. $#{$self->model->items})
-#        {
-#            my $name  = $self->model->items->[$index]{name};
-#            $self->button($name)->event( $event );
-#        }
-    }
-    # Respond to button up state
-    elsif($type == SDL_MOUSEBUTTONUP)
-    {
-#        for my $index (0 .. $#{$self->model->items})
-#        {
-#            my $name  = $self->model->items->[$index]{name};
-#            if( $self->button($name)->event( $event ) eq 'up' )
-#            {
-#                $result{state} = 'board'    if $name eq 'play';
-#                $result{state} = 'score'    if $name eq 'score';
-#                $result{quit}  = 1          if $name eq 'exit';
-#            }
-#        }
+        my $name  = $self->model->items->[$index]{name};
+        if( $self->button($name)->event_handler( $event ) eq 'up' )
+        {
+            $result{state} = 'board'    if $name eq 'play';
+            $result{state} = 'score'    if $name eq 'score';
+            $result{quit}  = 1          if $name eq 'exit';
+        }
     }
 
     return \%result;
@@ -120,11 +87,11 @@ sub draw
 
     $self->view->draw;
 
-#    for my $index (0 .. $#{$self->model->items})
-#    {
-#        my $name  = $self->model->items->[$index]{name};
-#        $self->button($name)->draw;
-#    }
+    for my $index (0 .. $#{$self->model->items})
+    {
+        my $name  = $self->model->items->[$index]{name};
+        $self->button($name)->draw_handler;
+    }
 
     return 1;
 }

@@ -42,6 +42,7 @@ sub new
         double_buffer   => config->param('common'=>'window'=>'dbuffer'),
         fullscreen      => config->param('common'=>'window'=>'fullscreen'),
         flags           => SDL_HWACCEL,
+        exit_on_quit    => 1,
     ));
 
     $self->app->dt(0.1);
@@ -55,10 +56,8 @@ sub new
         sub
         {
             my ($event, $app) = @_;
-            # Quit on SDL_QUIT event
-            exit if $event->type eq SDL_QUIT;
             # Quit if event handler return false
-            exit unless $self->core->event( $event );
+            $self->app->stop unless $self->core->event( $event );
 
         }
     );

@@ -233,7 +233,8 @@ sub event_handler
         $self->{callback}->($self, $sequence);
     }
 
-    return;
+    # Return sequence for manual processing event handler
+    return $sequence;
 }
 
 =head2 draw_handler $surface

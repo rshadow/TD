@@ -72,35 +72,20 @@ sub event
     my ($self, $event) = @_;
 
     my %result;
-    my $type = $event->type;
 
-    # Just send event to buttons
-    if($type == SDL_MOUSEMOTION or $type == SDL_MOUSEBUTTONDOWN)
+    if( $self->button('menu')->event_handler( $event ) eq 'up' )
     {
-        $self->button('menu')->event( $event );
-        for my $index (0 .. $#{$self->model->levels})
-        {
-            my $name = 'level' . $index;
-            $self->button($name)->event( $event );
-        }
+        $result{state} = 'menu';
     }
-    # Respond to button up state
-    elsif($type == SDL_MOUSEBUTTONUP)
+    else
     {
-        if( $self->button('menu')->event( $event ) eq 'up' )
+        for my $level (0 .. $#{$self->model->levels})
         {
-            $result{state} = 'menu';
-        }
-        else
-        {
-            for my $level (0 .. $#{$self->model->levels})
+            my $name = 'level' . $level;
+            if( $self->button($name)->event_handler( $event ) eq 'up' )
             {
-                my $name = 'level' . $level;
-                if( $self->button($name)->event( $event ) eq 'up' )
-                {
-                    $result{state} = 'game';
-                    $result{level} = $level;
-                }
+                $result{state} = 'game';
+                $result{level} = $level;
             }
         }
     }
@@ -114,12 +99,12 @@ sub draw
 
     $self->view->draw;
 
-    $self->button('menu')->draw;
+    $self->button('menu')->draw_handler;
 
     for my $level (0 .. $#{$self->model->levels})
     {
         my $name = 'level' . $level;
-        $self->button($name)->draw;
+        $self->button($name)->draw_handler;
     }
 
     return 1;

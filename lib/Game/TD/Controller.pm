@@ -90,12 +90,7 @@ sub event
     my %result;
     my $type = $event->type;
 
-    # Quit if Esc
-    if($type eq SDL_QUIT)
-    {
-        $result{quit} = 1;
-    }
-    elsif($type == SDL_KEYDOWN)
+    if($type == SDL_KEYDOWN)
     {
         my $key = $event->key_sym;
 
@@ -183,8 +178,8 @@ sub button
                 size    => config->param($conf=>'buttons'=>$name=>'size'),
                 color   => config->param($conf=>'buttons'=>$name=>'color'),
                 mode    => 'utf8',
-                h_align => 'center',
-                v_align => 'middle',
+                h_align => config->param($conf=>'buttons'=>$name=>'h_align') || 'center',
+                v_align => config->param($conf=>'buttons'=>$name=>'v_align') || 'middle',
                 text    => $text,
                 rect    => $opts{rect},
             );
