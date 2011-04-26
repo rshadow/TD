@@ -51,6 +51,7 @@ sub new {
         for my $image (@$images)
         {
             my $sprite = SDLx::Surface->load( $image );
+            SDL::Video::set_alpha($sprite->surface, 0, 0);
 
             $width += $sprite->w;
             $height = $sprite->h if $height < $sprite->h;
@@ -60,7 +61,7 @@ sub new {
         my $full = SDLx::Surface->new(
             width   => $width,
             height  => $height,
-            color   => 0x000000FF);
+        );
 
         my $x = 0;
         for (@sprites) {
@@ -72,8 +73,6 @@ sub new {
         $h = $height;
 
         $options{surface} = $full;
-#        $options{step_x}  = $w      unless exists $options{step_x};
-#        $options{step_y}  = $h      unless exists $options{step_y};
     }
 
     my $self = $class->SUPER::new(%options);

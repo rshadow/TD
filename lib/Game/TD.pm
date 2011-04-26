@@ -43,42 +43,24 @@ sub new
         fullscreen      => config->param('common'=>'window'=>'fullscreen'),
         flags           => SDL_HWACCEL,
         exit_on_quit    => 1,
-    ));
 
-    $self->app->dt(0.1);
-    $self->app->min_t(1 / config->param('common'=>'fps'=>'value'));
+        dt              => 0.1,
+        min_t           => 1 / config->param('common'=>'fps'=>'value'),
+#        delay           => 10,
+    ));
 
     # Create game core
     $self->core( Game::TD::Core->new(app => $self->app) );
 
     # Events
-    $self->app->add_event_handler(
-        sub
-        {
-            my ($event, $app) = @_;
-            # Quit if event handler return false
-            $self->app->stop unless $self->core->event( $event );
-
-        }
-    );
-
+    $self->app->add_event_handler(sub{
+        # Quit if event handler return false
+        $self->app->stop unless $self->core->event(@_);
+    });
     # Model
-    $self->app->add_move_handler(
-        sub
-        {
-            my ($step, $app, $t) = @_;
-            $self->core->update;
-        }
-    );
-
+    $self->app->add_move_handler(sub{ $self->core->update(@_) });
     # View
-    $self->app->add_show_handler(
-        sub
-        {
-            my ($delta, $app) = @_;
-            $self->core->draw;
-        }
-    );
+    $self->app->add_show_handler(sub{ $self->core->draw(@_) });
 
     return $self;
 }
@@ -112,7 +94,7 @@ sub core
     return $self->{core};
 }
 
-DESTROY
+sub DESTROY
 {
     my $self = shift;
 

@@ -178,6 +178,8 @@ sub _init_units
     # Load sufraces for each unit type
     for my $type ( keys %{ $self->model->wave->types } )
     {
+        my $images = config->param('unit'=>$type=>'animation'=>'right');
+
         # Load unit sprite if not defined
         unless( defined $self->sprite($type) )
         {
@@ -188,7 +190,7 @@ sub _init_units
                     config->param('unit'=>$type=>'animation'=>'type') ||
                     'circular',
                 ticks_per_frame =>
-                    int( $self->app->min_t * 1000 / 2 ),
+                    config->param('common'=>'fps'=>'value') / @$images,
             ));
         }
     }
@@ -228,6 +230,7 @@ sub _init_sleep
         size    => config->param($self->conf=>'sleep'=>'size'),
         color   => config->param($self->conf=>'sleep'=>'color'),
         mode    => 'utf8',
+        text    => int($self->model->left / 1000),
     ));
     $self->dest(sleep => SDL::Rect->new(
         $self->model->camera->left + int($self->model->camera->w / 2),
@@ -291,6 +294,7 @@ sub _init_panel
         image   => config->param($self->conf=>'panel'=>'file'),
         clip    => $self->sprite('panel')->clip,
     ));
+    $self->sprite('panel_background')->draw($self->sprite('panel')->surface);
 
     # Level title font
     $self->font(title => SDLx::Text->new(
@@ -298,11 +302,13 @@ sub _init_panel
         size    => config->param($self->conf=>'title'=>'size'),
         color   => config->param($self->conf=>'title'=>'color'),
         mode    => 'utf8',
+        text    => $self->model->title,
     ));
     $self->dest(title => SDL::Rect->new(
         config->param($self->conf=>'title'=>'fleft'),
         config->param($self->conf=>'title'=>'ftop'),
-        0 ,0
+        $self->font('title')->w,
+        $self->font('title')->h,
     ));
 
     # Health counter font
@@ -311,6 +317,7 @@ sub _init_panel
         size    => config->param($self->conf=>'health'=>'size'),
         color   => config->param($self->conf=>'health'=>'color'),
         mode    => 'utf8',
+        text    => $self->model->health,
     ));
     $self->dest(health => SDL::Rect->new(
         config->param($self->conf=>'health'=>'fleft'),
@@ -324,6 +331,7 @@ sub _init_panel
         size    => config->param($self->conf=>'score'=>'size'),
         color   => config->param($self->conf=>'score'=>'color'),
         mode    => 'utf8',
+        text    => $self->model->player->score,
     ));
     $self->dest(score => SDL::Rect->new(
         config->param($self->conf=>'score'=>'fleft'),
@@ -370,9 +378,9 @@ sub _draw_type
     return;
 }
 
-=head2 draw
+=head2 prepare
 
-Draw intro
+Prepare parts on viewport and panel
 
 =cut
 
@@ -393,8 +401,17 @@ sub prepare
     # Draw text and buttons on panel
     $self->_draw_panel;
 
+    # Draw helpers text
+    $self->_draw_editor if config->param('editor'=>'enable');
+
     return 1;
 }
+
+=head2 draw
+
+Draw all on App surface
+
+=cut
 
 sub draw
 {
@@ -429,13 +446,6 @@ sub _draw_units
         $self->sprite($name)->x( $unit->x - $dx - $self->model->camera->x );
         $self->sprite($name)->y( $unit->y - $dy - $self->model->camera->y );
         $self->sprite($name)->draw( $self->sprite('viewport')->surface );
-
-        $self->font('editor_tile')->write_xy(
-            $self->sprite('viewport')->surface,
-            $unit->x - $dx - $self->model->camera->x,
-            $unit->y - $dy - $self->model->camera->y,
-            sprintf('%s %s:%s', $unit->direction || 'die', $unit->x, $unit->y),
-        ) if config->param('editor'=>'enable');
     }
 
     return 1;
@@ -447,32 +457,38 @@ sub _draw_panel
 
     $self->sprite('panel_background')->draw($self->sprite('panel')->surface);
 
+
+#    $self->sprite('panel_background')->clip($self->dest('title'));
+#    $self->sprite('panel_background')->draw($self->sprite('panel')->surface);
     # Draw title on panel
     $self->font('title')->write_xy(
         $self->sprite('panel')->surface,
         $self->dest('title')->x,
         $self->dest('title')->y,
-        $self->model->title,
     );
 
     # Draw health counter
+    my $health = sprintf '%s %s',
+        config->param($self->conf=>'health'=>'text') || '',
+        $self->model->health;
+    $self->font('health')->text($health)
+        if $health ne $self->font('health')->text;
     $self->font('health')->write_xy(
         $self->sprite('panel')->surface,
         $self->dest('health')->x,
         $self->dest('health')->y,
-        sprintf '%s %s',
-            config->param($self->conf=>'health'=>'text') || '',
-            $self->model->health,
     );
 
     # Draw score
+    my $score = sprintf '%s %s',
+            config->param($self->conf=>'score'=>'text') || '',
+            $self->model->player->score;
+    $self->font('score')->text($score)
+        if $score ne $self->font('score')->text;
     $self->font('score')->write_xy(
         $self->sprite('panel')->surface,
         $self->dest('score')->x,
         $self->dest('score')->y,
-        sprintf '%s %s',
-            config->param($self->conf=>'score'=>'text') || '',
-            $self->model->player->score,
     );
 
     return 1;
@@ -485,7 +501,7 @@ sub _draw_sleep
     my $text = int($self->model->left / 1000);
     $text = 'Go!' if $text < 1;
 
-    $self->font('sleep')->text($text);
+    $self->font('sleep')->text($text) if $text ne $self->font('sleep')->text;
     $self->font('sleep')->write_xy(
         $self->sprite('viewport')->surface,
         $self->dest('sleep')->x - int($self->font('sleep')->w/2),
@@ -494,6 +510,30 @@ sub _draw_sleep
     );
 
     return 1;
+}
+
+sub _draw_editor
+{
+    my ($self) = @_;
+
+    my $active = $self->model->wave->active;
+    # Draw active units
+    for my $unit ( @$active )
+    {
+        my $name = $unit->type . $unit->index;
+
+        my $dx = int(
+            ( $self->sprite($name)->clip->w - $self->model->map->tile_width)  / 2);
+        my $dy = int(
+            ( $self->sprite($name)->clip->h - $self->model->map->tile_height) / 2);
+
+        $self->font('editor_tile')->write_xy(
+            $self->sprite('viewport')->surface,
+            $unit->x - $dx - $self->model->camera->x,
+            $unit->y - $dy - $self->model->camera->y,
+            sprintf('%s %s:%s', $unit->direction || 'die', $unit->x, $unit->y),
+        );
+    }
 }
 
 

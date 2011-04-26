@@ -186,7 +186,7 @@ sub conf
     return $conf;
 }
 
-DESTROY
+sub DESTROY
 {
     my $self = shift;
 

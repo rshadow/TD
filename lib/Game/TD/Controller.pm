@@ -212,7 +212,7 @@ Free model and view resources
 
 =cut
 
-DESTROY
+sub DESTROY
 {
     my $self = shift;
 
