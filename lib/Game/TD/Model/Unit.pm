@@ -45,9 +45,12 @@ sub new
     # Concat
     $self->{$_} = $unit{$_} for qw(speed health);
 
+    $self->{id} = $self->type .'_'. $self->path .'_'. $self->index;
+
     return $self;
 }
 
+sub id      {return shift()->{id}       }
 sub type    {return shift()->{type}     }
 sub path    {return shift()->{path}     }
 sub speed   {return shift()->{speed}    }

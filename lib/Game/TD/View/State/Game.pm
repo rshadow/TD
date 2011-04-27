@@ -9,18 +9,20 @@ use Carp;
 use SDL;
 use SDL::Rect;
 use SDLx::Sprite;
-use SDLx::Sprite::Animated;
+#use SDLx::Sprite::Animated;
+use SDLx::Sprite::Splited;
 use SDLx::Text;
+use SDL::GFX::Rotozoom;
 
 use Game::TD::Config;
 
-=head1 Game::TD::View::State::Game
+=head1 NAME
 
-Описание_модуля
+Game::TD::View::State::Game
 
 =cut
 
-=head1 Функции
+=head1 METHODS
 
 =cut
 
@@ -53,6 +55,60 @@ sub new
 
     return $self;
 }
+
+=head2 prepare
+
+Prepare parts on viewport and panel
+
+=cut
+
+sub prepare
+{
+    my ($self) = @_;
+
+    # Draw map on viewport
+    $self->sprite('map')->clip($self->model->camera->clip);
+    $self->sprite('map')->draw( $self->sprite('viewport')->surface );
+
+    # Draw units on viewport
+    $self->_draw_units;
+
+    # Draw sleep in center of viewport
+    $self->_draw_sleep if $self->model->left;
+
+    # Draw text and buttons on panel
+    $self->_draw_panel;
+
+    # Draw helpers text
+    $self->_draw_editor if config->param('editor'=>'enable');
+
+    return 1;
+}
+
+=head2 draw
+
+Draw all on App surface
+
+=cut
+
+sub draw
+{
+    my ($self) = @_;
+
+    # Draw background
+    # Not need if panel and viewport take all of screen
+#    $self->sprite('background')->draw( $self->app );
+    # Draw viewport
+    $self->sprite('viewport')->draw($self->app);
+    # Draw panel
+    $self->sprite('panel')->draw($self->app);
+
+    return 1;
+}
+
+=head1 PRIVATE INITIALIZATION METHODS
+
+=cut
 
 sub _init_background
 {
@@ -176,46 +232,95 @@ sub _init_units
     my ($self) = @_;
 
     # Load sufraces for each unit type
-    for my $type ( keys %{ $self->model->wave->types } )
-    {
-        my $images = config->param('unit'=>$type=>'animation'=>'right');
-
-        # Load unit sprite if not defined
-        unless( defined $self->sprite($type) )
-        {
-            $self->sprite($type => SDLx::Sprite::Animated->new(
-                images          =>
-                    config->param('unit'=>$type=>'animation'=>'right'),
-                type            =>
-                    config->param('unit'=>$type=>'animation'=>'type') ||
-                    'circular',
-                ticks_per_frame =>
-                    config->param('common'=>'fps'=>'value') / @$images,
-            ));
-        }
-    }
+#    for my $type ( keys %{ $self->model->wave->types } )
+#    {
+#        my $count = scalar
+#            @{config->param('unit'=>$type=>'animation'=>'sequences'=>'right') };
+#
+#        # Load unit sprite if not defined
+#        unless( defined $self->sprite($type) )
+#        {
+#            $self->sprite($type => SDLx::Sprite::Splited->new(
+#                image          =>
+#                    config->param('unit'=>$type=>'animation'=>'sequences'),
+#                type            =>
+#                    config->param('unit'=>$type=>'animation'=>'type') ||
+#                    'circular',
+#                ticks_per_frame =>
+#                    config->param('common'=>'fps'=>'value') / $count,
+#            ));
+#        }
+#    }
 
     # Create animation for each unit
     for my $path ($self->model->wave->names)
     {
         for my $unit (@{ $self->model->wave->path($path) })
         {
-            my $name = $unit->type . $unit->index;
+            my $image =
+                config->param('unit'=>$unit->type=>'animation'=>'sequences');
 
-            $self->sprite($name => SDLx::Sprite::Animated->new(
-                surface         => $self->sprite($unit->type)->surface,
-                type            => $self->sprite($unit->type)->type,
-                ticks_per_frame => $self->sprite($unit->type)->ticks_per_frame,
-                step_x          => $self->sprite($unit->type)->step_x,
-                step_y          => $self->sprite($unit->type)->step_y,
-                width           => $self->sprite($unit->type)->clip->w,
-                height          => $self->sprite($unit->type)->clip->h,
+            # Set transforms
+            my $transform =
+                config->param('unit'=>$unit->type=>'animation'=>'transform');
+
+            for my $sub ( values %$transform )
+            {
+                next if 'HASH' ne ref $sub;
+
+                if ($sub->{transform} eq 'mirror' or
+                    $sub->{transform} eq 'rotate')
+                {
+                    my %data = (
+                        angle   => $sub->{angle}       || 0,
+                        x       => $sub->{x}           || 1,
+                        y       => $sub->{y}           || 1,
+                        flag    => $sub->{flag}        || SMOOTHING_OFF,
+                    );
+
+                    $sub = sub
+                    {
+                        my $surface = shift;
+
+                        my $rotated = SDL::GFX::Rotozoom::surface_xy(
+                            $surface->surface,
+                            $data{angle},
+                            $data{x},
+                            $data{y},
+                            $data{flag});
+                        return SDLx::Surface->new(surface => $rotated);
+                    };
+                }
+            }
+
+            # Count total frames
+            my $count = scalar @{$image->{right}};
+
+            $self->sprite($unit->id => SDLx::Sprite::Splited->new(
+                image           => $image,
+                transform       => $transform,
+                type            =>
+                    config->param('unit'=>$unit->type=>'animation'=>'type') ||
+                    'circular',
+                ticks_per_frame =>
+                    config->param('common'=>'fps'=>'value') / $count,
+                sequence        =>
+                    $unit->direction,
             ));
+
+#            $self->sprite($name => SDLx::Sprite::Splited->new(
+#                surface         => $self->sprite($unit->type)->surface,
+#                type            => $self->sprite($unit->type)->type,
+#                ticks_per_frame => $self->sprite($unit->type)->ticks_per_frame,
+#                step_x          => $self->sprite($unit->type)->step_x,
+#                step_y          => $self->sprite($unit->type)->step_y,
+#                width           => $self->sprite($unit->type)->clip->w,
+#                height          => $self->sprite($unit->type)->clip->h,
+#            ));
             # Randomize start frame
-            $self->sprite($name)->next
-                for 0 .. rand scalar @{ config->param('unit'=>$unit->type=>'animation'=>'right') };
+            $self->sprite($unit->id)->next for 0 .. $count;
             # Run animation
-            $self->sprite($name)->start;
+            $self->sprite($unit->id)->start;
         }
     }
 }
@@ -348,6 +453,10 @@ sub _init_towers
 #    die Dumper @names;
 }
 
+=head1 PRIVATE DRAW METHODS
+
+=cut
+
 sub _draw_type
 {
     my ($self, $surface, $x, $y, $type, $mod) = @_;
@@ -378,56 +487,6 @@ sub _draw_type
     return;
 }
 
-=head2 prepare
-
-Prepare parts on viewport and panel
-
-=cut
-
-sub prepare
-{
-    my ($self) = @_;
-
-    # Draw map on viewport
-    $self->sprite('map')->clip($self->model->camera->clip);
-    $self->sprite('map')->draw( $self->sprite('viewport')->surface );
-
-    # Draw units on viewport
-    $self->_draw_units;
-
-    # Draw sleep in center of viewport
-    $self->_draw_sleep if $self->model->left;
-
-    # Draw text and buttons on panel
-    $self->_draw_panel;
-
-    # Draw helpers text
-    $self->_draw_editor if config->param('editor'=>'enable');
-
-    return 1;
-}
-
-=head2 draw
-
-Draw all on App surface
-
-=cut
-
-sub draw
-{
-    my ($self) = @_;
-
-    # Draw background
-    # Not need if panel and viewport take all of screen
-#    $self->sprite('background')->draw( $self->app );
-    # Draw viewport
-    $self->sprite('viewport')->draw($self->app);
-    # Draw panel
-    $self->sprite('panel')->draw($self->app);
-
-    return 1;
-}
-
 sub _draw_units
 {
     my ($self) = @_;
@@ -436,16 +495,17 @@ sub _draw_units
     # Draw active units
     for my $unit ( @$active )
     {
-        my $name = $unit->type . $unit->index;
-
         my $dx = int(
-            ( $self->sprite($name)->clip->w - $self->model->map->tile_width)  / 2);
+            ( $self->sprite($unit->id)->clip->w - $self->model->map->tile_width)  / 2);
         my $dy = int(
-            ( $self->sprite($name)->clip->h - $self->model->map->tile_height) / 2);
+            ( $self->sprite($unit->id)->clip->h - $self->model->map->tile_height) / 2);
 
-        $self->sprite($name)->x( $unit->x - $dx - $self->model->camera->x );
-        $self->sprite($name)->y( $unit->y - $dy - $self->model->camera->y );
-        $self->sprite($name)->draw( $self->sprite('viewport')->surface );
+        $self->sprite($unit->id)->sequence($unit->direction) if
+            $unit->direction and
+            $self->sprite($unit->id)->sequence ne $unit->direction;
+        $self->sprite($unit->id)->x( $unit->x - $dx - $self->model->camera->x );
+        $self->sprite($unit->id)->y( $unit->y - $dy - $self->model->camera->y );
+        $self->sprite($unit->id)->draw( $self->sprite('viewport')->surface );
     }
 
     return 1;
@@ -520,12 +580,10 @@ sub _draw_editor
     # Draw active units
     for my $unit ( @$active )
     {
-        my $name = $unit->type . $unit->index;
-
         my $dx = int(
-            ( $self->sprite($name)->clip->w - $self->model->map->tile_width)  / 2);
+            ( $self->sprite($unit->id)->clip->w - $self->model->map->tile_width)  / 2);
         my $dy = int(
-            ( $self->sprite($name)->clip->h - $self->model->map->tile_height) / 2);
+            ( $self->sprite($unit->id)->clip->h - $self->model->map->tile_height) / 2);
 
         $self->font('editor_tile')->write_xy(
             $self->sprite('viewport')->surface,
@@ -535,6 +593,5 @@ sub _draw_editor
         );
     }
 }
-
 
 1;
