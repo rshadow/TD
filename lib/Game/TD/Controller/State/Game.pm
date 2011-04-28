@@ -48,12 +48,17 @@ sub new
     ));
 
     $self->panel( Game::TD::Model::Panel->new(
-        visible => 1,
-    ));
+    visible => 1) );
+
+#    $self->cursor( Game::TD::Model::Cursor->new(
+#        app     => $self->app,
+#    ));
 
     $self->view( Game::TD::View::State::Game->new(
         app     => $self->app,
-        model   => $self->model
+        model   => $self->model,
+        panel   => $self->panel,
+#        cursor  => $self->cursor,
     ));
 
     $self->button('menu',  $self->conf, $self->view->sprite('panel')->surface,
@@ -164,21 +169,24 @@ sub event
         }
     }
 
-    if( $self->button('menu')->event_handler( $event ) eq 'up' )
+    if( $self->panel->visible )
     {
-        $result{state} = 'menu';
-    }
-
-    if( $self->button('pause')->event_handler( $event ) eq 'up' )
-    {
-        $self->pause;
-    }
-
-    my @names = keys %{ config->param('tower'=>'towers') };
-    for my $name ( @names )
-    {
-        if( $self->button($name)->event_handler( $event ) eq 'up' )
+        if( $self->button('menu')->event_handler( $event ) eq 'up' )
         {
+            $result{state} = 'menu';
+        }
+
+        if( $self->button('pause')->event_handler( $event ) eq 'up' )
+        {
+            $self->pause;
+        }
+
+        my @names = keys %{ config->param('tower'=>'towers') };
+        for my $name ( @names )
+        {
+            if( $self->button($name)->event_handler( $event ) eq 'up' )
+            {
+            }
         }
     }
 
@@ -193,12 +201,18 @@ sub draw
     {
         $self->view->prepare;
 
-        my @names = keys %{ config->param('tower'=>'towers') };
-        $self->button($_)->draw_handler for @names;
+        if( $self->panel->visible )
+        {
+            my @names = keys %{ config->param('tower'=>'towers') };
+            $self->button($_)->draw_handler for @names;
+        }
     }
 
-    $self->button('menu')->draw_handler;
-    $self->button('pause')->draw_handler;
+    if( $self->panel->visible )
+    {
+        $self->button('menu')->draw_handler;
+        $self->button('pause')->draw_handler;
+    }
 
     $self->view->draw;
 

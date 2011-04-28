@@ -66,9 +66,8 @@ sub prepare
 {
     my ($self) = @_;
 
-    # Draw map on viewport
-    $self->sprite('map')->clip($self->model->camera->clip);
-    $self->sprite('map')->draw( $self->sprite('viewport')->surface );
+    # Draw map
+    $self->_draw_map;
 
     # Draw units on viewport
     $self->_draw_units;
@@ -77,7 +76,7 @@ sub prepare
     $self->_draw_sleep if $self->model->left;
 
     # Draw text and buttons on panel
-    $self->_draw_panel;
+    $self->_draw_panel if $self->panel->visible;;
 
     # Draw helpers text
     $self->_draw_editor if config->param('editor'=>'enable');
@@ -101,10 +100,13 @@ sub draw
     # Draw viewport
     $self->sprite('viewport')->draw($self->app);
     # Draw panel
-    $self->sprite('panel')->draw($self->app);
+    $self->sprite('panel')->draw($self->app) if $self->panel->visible;
 
     return 1;
 }
+
+sub panel   { return shift->{panel}     }
+sub cursor  { return shift->{cursor}    }
 
 =head1 PRIVATE INITIALIZATION METHODS
 
@@ -113,6 +115,12 @@ sub draw
 sub _init_background
 {
     my ($self) = @_;
+
+    # Clear background
+    $self->app->draw_rect(
+        SDL::Rect->new(0,0,$self->app->w, $self->app->h),
+        0x000000FF
+    );
     # Not need if panel and viewport take all of screen
 #    $self->SUPER::_init_background;
 
@@ -128,6 +136,7 @@ sub _init_viewport
         width   => $self->model->camera->clip->w,
         height  => $self->model->camera->clip->h,
     ));
+    SDL::Video::set_alpha($self->sprite('viewport')->surface, 0, 0);
 
     $self->sprite('viewport')->surface->draw_rect(
         $self->model->camera->clip,
@@ -176,13 +185,13 @@ sub _init_map
         for my $x (0 .. ($self->model->map->width - 1))
         {
             my $tile = $self->model->map->tile($x,$y);
+            my $name = $tile->type . $tile->mod;
 
-            $self->_draw_type(
+            $self->_draw_object(
                 $self->sprite('map')->surface,
                 $x,
                 $y,
-                $tile->type,
-                $tile->mod,
+                $self->sprite($name),
             );
         }
     }
@@ -216,12 +225,13 @@ sub _init_items
             my $tile  = $self->model->map->tile($x,$y);
             next unless $tile->has_item;
 
-            $self->_draw_type(
+            my $name = $tile->item_type . $tile->item_mod;
+
+            $self->_draw_object(
                 $self->sprite('map')->surface,
                 $x,
                 $y,
-                $tile->item_type,
-                $tile->item_mod,
+                $self->sprite($name),
             );
         }
     }
@@ -374,26 +384,20 @@ sub _init_panel
 {
     my ($self) = @_;
 
+
     $self->sprite('panel' => SDLx::Sprite->new(
         surface => SDLx::Surface->new(
-            width   => config->param($self->conf=>'panel'=>'width'),
-            height  => config->param($self->conf=>'panel'=>'height'),
+            width   => $self->panel->rect->w,
+            height  => $self->panel->rect->h,
+            flags   => SDL_HWSURFACE,
         ),
-        rect    => SDL::Rect->new(
-            config->param('common'=>'window'=>'width') -
-                config->param($self->conf=>'panel'=>'width'),
-            config->param('common'=>'window'=>'height') -
-                config->param($self->conf=>'panel'=>'height'),
-            config->param($self->conf=>'panel'=>'width'),
-            config->param($self->conf=>'panel'=>'height')),
+        rect    => $self->panel->rect,
     ));
-    $self->sprite('panel')->surface->draw_rect(
-        SDL::Rect->new(
-            0, 0,
-            $self->sprite('panel')->w,
-            $self->sprite('panel')->h),
-        0xFF0000FF
-    );
+    SDL::Video::set_alpha($self->sprite('panel')->surface, 0, 0);
+#    $self->sprite('panel')->surface->draw_rect(
+#        SDL::Rect->new(0,0,$self->sprite('panel')->w,$self->sprite('panel')->h),
+#        0xFF0000FF
+#    );
 
     $self->sprite('panel_background' => SDLx::Sprite->new(
         image   => config->param($self->conf=>'panel'=>'file'),
@@ -453,38 +457,48 @@ sub _init_towers
 #    die Dumper @names;
 }
 
+=head1 PRIVATE COMMON DRAW METHODS
+
+=cut
+
+sub _draw_object
+{
+    my ($self, $surface, $x, $y, $sprite) = @_;
+
+    croak 'Missing required parameter "surface"'    unless defined $surface;
+    croak 'Missing required parameter "sprite"'     unless defined $sprite;
+    croak 'Missing required parameter "x"'          unless defined $x;
+    croak 'Missing required parameter "y"'          unless defined $y;
+
+    # Always draw center of object on center of tile
+    my $dx = int(
+        ($sprite->w - $self->model->map->tile_width)  / 2);
+    my $dy = int(
+        ($sprite->h - $self->model->map->tile_height) / 2);
+
+    $sprite->rect(SDL::Rect->new(
+        $self->model->map->tile_width  * $x - $dx - $self->model->camera->x,
+        $self->model->map->tile_height * $y - $dy - $self->model->camera->y,
+        $sprite->w,
+        $sprite->h
+    ));
+
+    # Apply item tile to background
+    $sprite->draw( $surface );
+
+    return;
+}
+
 =head1 PRIVATE DRAW METHODS
 
 =cut
 
-sub _draw_type
+sub _draw_map
 {
-    my ($self, $surface, $x, $y, $type, $mod) = @_;
+    my ($self) = @_;
 
-    croak 'Missing required parameter "surface"'    unless defined $surface;
-    croak 'Missing required parameter "type"'       unless defined $type;
-    croak 'Missing required parameter "mod"'        unless defined $mod;
-    croak 'Missing required parameter "x"'          unless defined $x;
-    croak 'Missing required parameter "y"'          unless defined $y;
-
-    my $name = $type . $mod;
-
-    my $dx = int(
-        ($self->sprite($name)->w - $self->model->map->tile_width)  / 2);
-    my $dy = int(
-        ($self->sprite($name)->h - $self->model->map->tile_height) / 2);
-
-    $self->sprite($name)->rect(SDL::Rect->new(
-        $self->model->map->tile_width  * $x - $dx - $self->model->camera->x,
-        $self->model->map->tile_height * $y - $dy - $self->model->camera->y,
-        $self->sprite($name)->w,
-        $self->sprite($name)->h
-    ));
-
-    # Apply item tile to background
-    $self->sprite($name)->draw( $surface );
-
-    return;
+    $self->sprite('map')->clip($self->model->camera->clip);
+    $self->sprite('map')->draw( $self->sprite('viewport')->surface );
 }
 
 sub _draw_units
