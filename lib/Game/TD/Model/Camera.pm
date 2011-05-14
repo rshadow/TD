@@ -143,4 +143,42 @@ sub update
     }
 }
 
+=head2 is_over $x, $y
+
+Check if $x and $y coordinates within camera rect
+
+=cut
+
+sub is_over
+{
+    my ($self, $x, $y) = @_;
+
+    my ($dx, $dy) = ($self->x, $self->y);
+
+    return 1 if
+        $x >= $dx + $self->rect->x                  &&
+        $x <  $dx + $self->rect->x + $self->rect->w &&
+        $y >= $dy + $self->rect->y                  &&
+        $y <  $dy + $self->rect->y + $self->rect->h;
+
+    return 0;
+}
+
+=head2 xy2map $x, $y
+
+Get logical x and y on map for coordinates $x,$y. Function make correction for
+camera movements.
+
+=cut
+
+sub xy2map
+{
+    my ($self, $x, $y) = @_;
+
+    my $map_x =  int( ($self->x + $x) / $self->map->tile_width  );
+    my $map_y =  int( ($self->y + $y) / $self->map->tile_height );
+
+    return ($map_x, $map_y);
+}
+
 1;

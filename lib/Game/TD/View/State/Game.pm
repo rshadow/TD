@@ -40,6 +40,8 @@ sub new
 {
     my ($class, %opts) = @_;
 
+    die 'Missing required param "cursor"' unless defined $opts{cursor};
+
     my $self = $class->SUPER::new(%opts);
 
     $self->_init_viewport;
@@ -75,8 +77,10 @@ sub prepare
     # Draw sleep in center of viewport
     $self->_draw_sleep if $self->model->left;
 
+    $self->_draw_cursor;
+
     # Draw text and buttons on panel
-    $self->_draw_panel if $self->panel->visible;;
+    $self->_draw_panel if $self->panel->visible;
 
     # Draw helpers text
     $self->_draw_editor if config->param('editor'=>'enable');
@@ -453,8 +457,14 @@ sub _init_towers
 {
     my ($self) = @_;
 
-#    my @names = keys %{ config->param('tower') };
-#    die Dumper @names;
+    my @names = keys %{ config->param('tower'=>'towers') };
+
+    for my $name (@names)
+    {
+        $self->sprite($name => SDLx::Sprite->new(
+            image => config->param('tower'=>'towers'=>$name=>'item'=>'file'),
+        ));
+    }
 }
 
 =head1 PRIVATE COMMON DRAW METHODS
@@ -568,6 +578,22 @@ sub _draw_panel
     return 1;
 }
 
+sub _draw_cursor
+{
+    my ($self) = @_;
+
+    return 1 if $self->cursor->state eq 'default';
+
+    $self->_draw_object(
+        $self->sprite('viewport')->surface,
+        $self->cursor->x,
+        $self->cursor->y,
+        $self->sprite($self->cursor->state),
+    );
+
+    return 1;
+}
+
 sub _draw_sleep
 {
     my ($self) = @_;
@@ -606,6 +632,15 @@ sub _draw_editor
             sprintf('%s %s:%s', $unit->direction || 'die', $unit->x, $unit->y),
         );
     }
+
+    # Draw cursor logical coordinates
+    $self->font('editor_cursor')->write_xy(
+        $self->sprite('viewport')->surface,
+        $self->cursor->x * $self->model->map->tile_width  - $self->model->camera->x,
+        $self->cursor->y * $self->model->map->tile_height - $self->model->camera->y,
+        sprintf('%s:%s', $self->cursor->x, $self->cursor->y),
+    );
+
 }
 
 1;

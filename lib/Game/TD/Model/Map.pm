@@ -246,4 +246,35 @@ sub item_types
     return wantarray ? %{$self->{item}{types}} : $self->{item}{types};
 }
 
+=head2 xy2map $x, $y, $direction
+
+Get logical x and y on map for coordinates $x,$y. For units you can use
+correction for direction
+
+=cut
+
+sub xy2map
+{
+    my ($self, $x, $y, $direction) = @_;
+
+    $direction //= '';
+
+    my $map_x = int( $x / $self->tile_width  );
+    my $map_y = int( $y / $self->tile_height );
+
+    my $tile_x = $map_x * $self->tile_width;
+    my $tile_y = $map_y * $self->tile_height;
+
+    if($direction eq 'up')
+    {
+        $map_y += 1 if $y > $tile_y;
+    }
+    elsif($direction eq 'left')
+    {
+        $map_x += 1 if $x > $tile_x;
+    }
+
+    return ($map_x, $map_y);
+}
+
 1;

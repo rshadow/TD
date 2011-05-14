@@ -44,4 +44,25 @@ sub state
     return $self->{state};
 };
 
+sub tower
+{
+    my ($self, $tower) = @_;
+    $self->{tower} = $tower if defined $tower;
+    return $self->{tower};
+};
+
+sub x
+{
+    my ($self, $x) = @_;
+    $self->{x} = $x if defined $x;
+    return $self->{x};
+}
+
+sub y
+{
+    my ($self, $y) = @_;
+    $self->{y} = $y if defined $y;
+    return $self->{y};
+}
+
 1;

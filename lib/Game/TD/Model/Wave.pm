@@ -123,7 +123,11 @@ sub update
     for my $unit ( @$active )
     {
         # Get current tile for unit
-        my $tile = $self->map->tile( $self->map_xy($unit) );
+        my $tile = $self->map->tile(
+            $self->map->xy2map(
+                $unit->x,
+                $unit->y,
+                $unit->direction ));
 
         # If no tile - unit move from map
         unless ($tile)
@@ -162,53 +166,25 @@ sub active
     return wantarray ?@{ $self->{active} } : $self->{active};
 }
 
-=head2 map_xy $unit
-
-Get logical x and y on map for $unit
-
-=cut
-
-sub map_xy
-{
-    my ($self, $unit) = @_;
-
-    my $map_x = int( $unit->x / $self->map->tile_width  );
-    my $map_y = int( $unit->y / $self->map->tile_height );
-
-    my $tile_x = $map_x * $self->map->tile_width;
-    my $tile_y = $map_y * $self->map->tile_height;
-
-    if($unit->direction eq 'up')
-    {
-        $map_y += 1 if $unit->y > $tile_y;
-    }
-    elsif($unit->direction eq 'left')
-    {
-        $map_x += 1 if $unit->x > $tile_x;
-    }
-
-    return ($map_x, $map_y);
-}
-
-=head2 unit_xy $x, $y, @units
-
-Verify is locical map $x $y have some untits from @units and return this units
-
-=cut
-
-sub unit_xy
-{
-    my ($self, $x, $y, @units) = @_;
-
-    my @result;
-    for my $unit (@units)
-    {
-        my ($map_x, $map_y) = $self->map_xy($unit);
-        push @result, $unit if $map_x == $x and $map_y == $y;
-    }
-
-    return wantarray ?@result :\@result;
-}
+#=head2 unit_xy $x, $y, @units
+#
+#Verify is locical map $x $y have some untits from @units and return this units
+#
+#=cut
+#
+#sub unit_xy
+#{
+#    my ($self, $x, $y, @units) = @_;
+#
+#    my @result;
+#    for my $unit (@units)
+#    {
+#        #my ($map_x, $map_y) = $self->map_xy($unit);
+#        push @result, $unit if $map_x == $x and $map_y == $y;
+#    }
+#
+#    return wantarray ?@result :\@result;
+#}
 
 sub types
 {

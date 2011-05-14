@@ -108,6 +108,13 @@ sub _init_editor
         color   => config->param('editor'=>'tile'=>'color'),
         mode    => 'utf8',
     ));
+
+    $self->font('editor_cursor' => SDLx::Text->new(
+        font    => config->param('editor'=>'cursor'=>'font'),
+        size    => config->param('editor'=>'cursor'=>'size'),
+        color   => config->param('editor'=>'cursor'=>'color'),
+        mode    => 'utf8',
+    ));
 }
 
 =head2

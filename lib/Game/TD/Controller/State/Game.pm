@@ -10,8 +10,9 @@ use SDL::Event;
 
 use Game::TD::Config;
 use Game::TD::Model::State::Game;
-use Game::TD::View::State::Game;
 use Game::TD::Model::Panel;
+use Game::TD::Model::Cursor;
+use Game::TD::View::State::Game;
 
 =head1 NAME
 
@@ -48,17 +49,18 @@ sub new
     ));
 
     $self->panel( Game::TD::Model::Panel->new(
-    visible => 1) );
+        visible => 1
+    ));
 
-#    $self->cursor( Game::TD::Model::Cursor->new(
-#        app     => $self->app,
-#    ));
+    $self->cursor( Game::TD::Model::Cursor->new(
+        app     => $self->app,
+    ));
 
     $self->view( Game::TD::View::State::Game->new(
         app     => $self->app,
         model   => $self->model,
         panel   => $self->panel,
-#        cursor  => $self->cursor,
+        cursor  => $self->cursor,
     ));
 
     $self->button('menu',  $self->conf, $self->view->sprite('panel')->surface,
@@ -121,6 +123,25 @@ sub event
         ($y >= ($height-$border))
             ? $self->model->camera->move('down')
             : $self->model->camera->stop('down');
+
+
+        # If mouse move in camera
+        if( $self->model->camera->is_over($x, $y) )
+        {
+            # Update cursor coords
+            my ($map_x, $map_y) = $self->model->camera->xy2map($x, $y);
+            $self->cursor->x($map_x);
+            $self->cursor->y($map_y);
+
+            # Set cursor as tower
+            $self->cursor->state( $self->cursor->tower );
+        }
+        else
+        {
+            # when cursor leave viewport temporarily drop state
+            $self->cursor->state('default');
+        }
+
     }
     elsif($type == SDL_KEYDOWN)
     {
@@ -168,7 +189,35 @@ sub event
             $self->model->camera->stop('right');
         }
     }
+#    elsif($type == SDL_MOUSEBUTTONDOWN)
+#    {
+#        if( $event->button_button == SDL_BUTTON_LEFT )
+#        {
+#            $sequence = 'down'
+#                if $self->is_over($event->button_x, $event->button_y);
+#        }
+#    }
+    elsif($type == SDL_MOUSEBUTTONUP)
+    {
+        my $button = $event->button_button;
 
+        if( $button == SDL_BUTTON_LEFT )
+        {
+            # Build tower and
+            #...
+            # Drop cursor state and tower
+            $self->cursor->tower('default');
+            $self->cursor->state('default');
+        }
+        elsif( $button == SDL_BUTTON_RIGHT )
+        {
+            # Just drop cursor state and tower
+            $self->cursor->tower('default');
+            $self->cursor->state('default');
+        }
+    }
+
+    # If panel visible then send event for panel buttons
     if( $self->panel->visible )
     {
         if( $self->button('menu')->event_handler( $event ) eq 'up' )
@@ -186,6 +235,8 @@ sub event
         {
             if( $self->button($name)->event_handler( $event ) eq 'up' )
             {
+                $self->cursor->tower($name);
+                $self->cursor->state($name);
             }
         }
     }
@@ -238,10 +289,18 @@ Set panel object if set $value or return if $value not set.
 
 sub panel
 {
-    my ($self, $value) = @_;
+    my ($self, $panel) = @_;
 
-    $self->{panel} = $value  if defined $value;
+    $self->{panel} = $panel  if defined $panel;
     return $self->{panel};
+}
+
+sub cursor
+{
+    my ($self, $cursor) = @_;
+
+    $self->{cursor} = $cursor  if defined $cursor;
+    return $self->{cursor};
 }
 
 sub is_pause
