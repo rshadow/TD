@@ -165,6 +165,17 @@ sub event
     {
         return;
     }
+#    elsif($type == SDL_ACTIVEEVENT)
+#    {
+#        my $state = $event->active_state;
+#        my $gain  = $event->active_gain;
+#
+#        # Pause on focus lost
+#        if($state & SDL_APPINPUTFOCUS)
+#        {
+#            $self->app->pause(sub{ $self->event(@_) }) unless $gain;
+#        }
+#    }
     elsif($type == SDL_KEYDOWN)
     {
         my $sym = $event->key_sym;

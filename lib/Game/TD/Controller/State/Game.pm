@@ -133,8 +133,16 @@ sub event
             $self->cursor->x($map_x);
             $self->cursor->y($map_y);
 
+            # Set cursor as bad place if can`t build on this tile
+            if( $self->model->map->tile($map_x, $map_y)->has_item )
+            {
+                $self->cursor->state('impossible');
+            }
             # Set cursor as tower
-            $self->cursor->state( $self->cursor->tower );
+            else
+            {
+                $self->cursor->state( $self->cursor->tower );
+            }
         }
         else
         {
@@ -199,12 +207,20 @@ sub event
 #    }
     elsif($type == SDL_MOUSEBUTTONUP)
     {
-        my $button = $event->button_button;
+        # Get mouse position and screen params
+        my $x       = $event->motion_x;
+        my $y       = $event->motion_y;
+        # Get mouse button
+        my $button  = $event->button_button;
+
 
         if( $button == SDL_BUTTON_LEFT )
         {
-            # Build tower and
-            #...
+            # Build tower if mouse move in camera
+            if( $self->model->camera->is_over($x, $y) )
+            {
+#                $self->model->map
+            }
             # Drop cursor state and tower
             $self->cursor->tower('default');
             $self->cursor->state('default');
@@ -295,6 +311,12 @@ sub panel
     return $self->{panel};
 }
 
+=head2 cursor $cursor
+
+Set cursor object if set $cursor or return if $cursor not set.
+
+=cut
+
 sub cursor
 {
     my ($self, $cursor) = @_;
@@ -303,11 +325,23 @@ sub cursor
     return $self->{cursor};
 }
 
+=head2 is_pause
+
+Return true if game paused
+
+=cut
+
 sub is_pause
 {
     my $self = shift;
     return $self->{pause};
 }
+
+=head2 pause
+
+Toggle game pause
+
+=cut
 
 sub pause
 {
