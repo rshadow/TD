@@ -584,12 +584,16 @@ sub _draw_cursor
 
     return 1 if $self->cursor->state eq 'default';
 
-    $self->_draw_object(
-        $self->sprite('viewport')->surface,
-        $self->cursor->x,
-        $self->cursor->y,
-        $self->sprite($self->cursor->state),
-    );
+    printf "%s\n", $self->cursor->state;
+    unless( $self->cursor->state eq 'impossible' )
+    {
+        $self->_draw_object(
+            $self->sprite('viewport')->surface,
+            $self->cursor->x,
+            $self->cursor->y,
+            $self->sprite($self->cursor->state),
+        );
+    }
 
     return 1;
 }

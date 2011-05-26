@@ -133,6 +133,8 @@ sub event
             $self->cursor->x($map_x);
             $self->cursor->y($map_y);
 
+            printf "mouse = %d : %d,   map = %d : %d\n", $x, $y, $map_x, $map_y;
+
             # Set cursor as bad place if can`t build on this tile
             if( $self->model->map->tile($map_x, $map_y)->has_item )
             {
@@ -141,6 +143,7 @@ sub event
             # Set cursor as tower
             else
             {
+                $self->cursor->state( 'default' );
                 $self->cursor->state( $self->cursor->tower );
             }
         }

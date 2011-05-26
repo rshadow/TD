@@ -153,13 +153,11 @@ sub is_over
 {
     my ($self, $x, $y) = @_;
 
-    my ($dx, $dy) = ($self->x, $self->y);
-
     return 1 if
-        $x >= $dx + $self->rect->x                  &&
-        $x <  $dx + $self->rect->x + $self->rect->w &&
-        $y >= $dy + $self->rect->y                  &&
-        $y <  $dy + $self->rect->y + $self->rect->h;
+        $x >= $self->rect->x                  &&
+        $x <  $self->rect->x + $self->rect->w &&
+        $y >= $self->rect->y                  &&
+        $y <  $self->rect->y + $self->rect->h;
 
     return 0;
 }
