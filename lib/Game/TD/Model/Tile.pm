@@ -70,6 +70,17 @@ sub item_mod
     return $self->{item}{mod};
 }
 
+sub item_add
+{
+    my ($self, $type, $mod) = @_;
+
+    die sprintf 'Tile %d:%d already have item', $self->x, $self->y
+         if exists $self->{item};
+
+    $self->{item}{type} = $type;
+    $self->{item}{mod}  = $mod;
+}
+
 sub path
 {
     my ($self) = @_;
@@ -140,5 +151,6 @@ sub next
     }
     return $self->{next}{$path};
 }
+
 
 1;

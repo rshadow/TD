@@ -221,7 +221,9 @@ sub event
             if( $self->model->camera->is_over($x, $y) and
                 $self->cursor->state ne 'impossible' )
             {
-#                $self->model->map
+                my ($map_x, $map_y) = $self->model->camera->xy2map($x, $y);
+                $self->model->map->tile($map_x, $map_y)->item_add(
+                    'towers' => $self->cursor->tower);
                 # Drop cursor state and tower
                 $self->cursor->tower('default');
                 $self->cursor->state('default');
