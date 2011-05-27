@@ -133,8 +133,6 @@ sub event
             $self->cursor->x($map_x);
             $self->cursor->y($map_y);
 
-            printf "mouse = %d : %d,   map = %d : %d\n", $x, $y, $map_x, $map_y;
-
             # Set cursor as bad place if can`t build on this tile
             if( $self->model->map->tile($map_x, $map_y)->has_item )
             {
@@ -219,14 +217,16 @@ sub event
 
         if( $button == SDL_BUTTON_LEFT )
         {
-            # Build tower if mouse move in camera
-            if( $self->model->camera->is_over($x, $y) )
+            # Build tower if mouse move in camera and not on some item
+            if( $self->model->camera->is_over($x, $y) and
+                $self->cursor->state ne 'impossible' )
             {
 #                $self->model->map
+                # Drop cursor state and tower
+                $self->cursor->tower('default');
+                $self->cursor->state('default');
             }
-            # Drop cursor state and tower
-            $self->cursor->tower('default');
-            $self->cursor->state('default');
+
         }
         elsif( $button == SDL_BUTTON_RIGHT )
         {

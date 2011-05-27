@@ -584,7 +584,6 @@ sub _draw_cursor
 
     return 1 if $self->cursor->state eq 'default';
 
-    printf "%s\n", $self->cursor->state;
     unless( $self->cursor->state eq 'impossible' )
     {
         $self->_draw_object(
