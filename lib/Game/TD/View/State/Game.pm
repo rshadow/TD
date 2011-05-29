@@ -460,17 +460,17 @@ sub _init_panel
         0 ,0
     ));
 
-    # Score font
-    $self->font(score => SDLx::Text->new(
-        font    => config->param($self->conf=>'score'=>'font'),
-        size    => config->param($self->conf=>'score'=>'size'),
-        color   => config->param($self->conf=>'score'=>'color'),
+    # Money font
+    $self->font(money => SDLx::Text->new(
+        font    => config->param($self->conf=>'money'=>'font'),
+        size    => config->param($self->conf=>'money'=>'size'),
+        color   => config->param($self->conf=>'money'=>'color'),
         mode    => 'utf8',
-        text    => $self->model->player->score,
+        text    => $self->model->player->money,
     ));
-    $self->dest(score => SDL::Rect->new(
-        config->param($self->conf=>'score'=>'fleft'),
-        config->param($self->conf=>'score'=>'ftop'),
+    $self->dest(money => SDL::Rect->new(
+        config->param($self->conf=>'money'=>'fleft'),
+        config->param($self->conf=>'money'=>'ftop'),
         0 ,0
     ));
 }
@@ -585,16 +585,16 @@ sub _draw_panel
         $self->dest('health')->y,
     );
 
-    # Draw score
-    my $score = sprintf '%s %s',
-            config->param($self->conf=>'score'=>'text') || '',
-            $self->model->player->score;
-    $self->font('score')->text($score)
-        if $score ne $self->font('score')->text;
-    $self->font('score')->write_xy(
+    # Draw money
+    my $money = sprintf '%s %s',
+            config->param($self->conf=>'money'=>'text') || '',
+            $self->model->player->money;
+    $self->font('money')->text($money)
+        if $money ne $self->font('money')->text;
+    $self->font('money')->write_xy(
         $self->sprite('panel')->surface,
-        $self->dest('score')->x,
-        $self->dest('score')->y,
+        $self->dest('money')->x,
+        $self->dest('money')->y,
     );
 
     return 1;

@@ -63,6 +63,9 @@ sub new
     # Concat
     $self->{$_} = $level{$_} for keys %level;
 
+    # Add money
+    $self->player->money($self->player->money + $self->cash);
+
     # Sleep timer
     $self->timer('sleep'=>'new');
     $self->left( $self->sleep - $self->timer('sleep')->get_ticks );
@@ -202,6 +205,20 @@ sub health
     return $self->{health};
 }
 
+=head2 cash
+
+Return level cash
+
+=cut
+
+sub cash
+{
+    my ($self) = @_;
+    die 'Missing "cash" parameter in level file'
+        unless defined $self->{cash};
+    return $self->{cash};
+}
+
 =head2 wave $wave
 
 Get/set units wave storage Game::TD::Model::Wave
@@ -227,6 +244,12 @@ sub map
     $self->{map} = $map if defined $map;
     return $self->{map};
 }
+
+=head2 camera $camera
+
+Get/set camera
+
+=cut
 
 sub camera
 {
