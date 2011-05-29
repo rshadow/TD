@@ -1,7 +1,8 @@
 name    => 'intro',             # Internal name
 title   => 'Game tutorial',     # Title
 sleep   => 4000,                # Time to units run
-health  => 1000,                # Max damage
+health  => 200,                 # Max damage
+cash    => 500,                 # Initial player cache
 
 wave => {
     # Path 0
