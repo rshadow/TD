@@ -277,4 +277,10 @@ sub xy2map
     return ($map_x, $map_y);
 }
 
+sub build
+{
+    my ($self, $x, $y, $name) = @_;
+
+    $self->tile($x, $y)->item_add('tower' => $name);
+}
 1;
