@@ -74,9 +74,10 @@ sub prepare
     # Draw units on viewport
     $self->_draw_units;
 
-    # Draw sleep in center of viewport
-    $self->_draw_sleep if $self->model->left;
+    # Draw items
+    $self->_draw_items;
 
+    # Draw cursor if exists
     $self->_draw_cursor;
 
     # Draw text and buttons on panel
@@ -84,6 +85,9 @@ sub prepare
 
     # Draw helpers text
     $self->_draw_editor if config->param('editor'=>'enable');
+
+    # Draw sleep in center of viewport
+    $self->_draw_sleep if $self->model->left;
 
     return 1;
 }
@@ -220,7 +224,7 @@ sub _init_items
         }
     }
 
-    # Draw items on map
+    # Draw flat items on map
     for my $y (0 .. ($self->model->map->height - 1) )
     {
         for my $x (0 .. ($self->model->map->width - 1))
@@ -228,6 +232,7 @@ sub _init_items
             # Get item and draw it if exists
             my $tile  = $self->model->map->tile($x,$y);
             next unless $tile->has_item;
+            next if $tile->item_type ne 'flat';
 
             my $name = $tile->item_type . $tile->item_mod;
 
@@ -380,6 +385,23 @@ sub _init_editor
                     (@path) ? ' ['.join(',', @path).']' :''
                 ),
             );
+
+            if($tile->has_item)
+            {
+                $self->font('editor_tile')->write_xy(
+                    $self->sprite('map')->surface,
+                    $x * $self->model->map->tile_width,
+                    $self->font('editor_tile')->size + 2 + $y * $self->model->map->tile_height,
+                    $tile->item_type
+                );
+
+                $self->font('editor_tile')->write_xy(
+                    $self->sprite('map')->surface,
+                    $x * $self->model->map->tile_width,
+                    ($self->font('editor_tile')->size + 2) * 2 + $y * $self->model->map->tile_height,
+                    $tile->item_mod
+                );
+            }
         }
     }
 }
@@ -646,4 +668,38 @@ sub _draw_editor
 
 }
 
+sub _draw_items
+{
+    my ($self) = @_;
+
+    for my $y (0 .. ($self->model->map->height - 1) )
+    {
+        for my $x (0 .. ($self->model->map->width - 1))
+        {
+            # Get item and draw it if exists
+            my $tile  = $self->model->map->tile($x,$y);
+            # Skip if item not exists
+            next unless $tile->has_item;
+            # Flat item already drawed on map in init function
+            next if $tile->item_type eq 'flat';
+
+            my $name = 'unknown';
+            if($tile->item_type eq 'tower')
+            {
+                $name = $tile->item_mod;
+            }
+            else
+            {
+                $name = $tile->item_type . $tile->item_mod;
+            }
+
+            $self->_draw_object(
+                $self->sprite('viewport')->surface,
+                $x,
+                $y,
+                $self->sprite($name),
+            );
+        }
+    }
+}
 1;
