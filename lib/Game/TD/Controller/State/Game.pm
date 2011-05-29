@@ -63,6 +63,7 @@ sub new
         cursor  => $self->cursor,
     ));
 
+    # Set buttons on panel
     $self->button('menu',  $self->conf, $self->view->sprite('panel')->surface,
         prect => $self->view->sprite('panel')->rect);
     $self->button('pause', $self->conf, $self->view->sprite('panel')->surface,
