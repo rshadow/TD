@@ -30,7 +30,9 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    $opts{state} = 'default';
+    $opts{state}   = 'default';
+    $opts{x}     //= 0;
+    $opts{y}     //= 0;
 
     my $self = bless \%opts, $class;
 

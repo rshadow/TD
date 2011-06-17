@@ -52,8 +52,14 @@ sub new
         visible => 1
     ));
 
+    # Get current mouse position on map
+    my ($mask,$x,$y) = @{ SDL::Events::get_mouse_state( ) };
+    my ($map_x, $map_y) = $self->model->camera->xy2map($x, $y);
+    # Create cursor
     $self->cursor( Game::TD::Model::Cursor->new(
-        app     => $self->app,
+#        app     => $self->app,
+        x => $map_x,
+        y => $map_y,
     ));
 
     $self->view( Game::TD::View::State::Game->new(

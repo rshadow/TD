@@ -642,7 +642,7 @@ sub _draw_editor
     my ($self) = @_;
 
     my $active = $self->model->wave->active;
-    # Draw active units
+    # Draw active units info text
     for my $unit ( @$active )
     {
         my $dx = int(
