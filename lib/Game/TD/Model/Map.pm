@@ -51,6 +51,12 @@ sub new
     return $self;
 }
 
+=head2 _init_tile
+
+Convert map hash nodes to objects
+
+=cut
+
 sub _init_tile
 {
     my ($self) = @_;
@@ -77,6 +83,14 @@ sub _init_tile
         }
     }
 }
+
+=head2 _init_roads
+
+Init next (link to next road tile) and direction (depend of next road tile
+position) fields for tiles. You can think about is as create unidirectional
+list.
+
+=cut
 
 sub _init_roads
 {
@@ -160,6 +174,12 @@ sub map     {return shift()->{map}}
 sub width   {return shift()->{width}}
 sub height  {return shift()->{height}}
 
+=head2 start $name, $tile
+
+Store/get start item $tile by $name for quick access.
+
+=cut
+
 sub start
 {
     my ($self, $name, $tile) = @_;
@@ -167,6 +187,12 @@ sub start
     return $self->{start}{$name}  if defined $name;
     return wantarray ?%{ $self->{start} } :$self->{start};
 }
+
+=head2 finish $name, $tile
+
+Store/get finish item $tile by $name for quick access.
+
+=cut
 
 sub finish
 {
@@ -214,6 +240,12 @@ Get tile height in pixel
 
 sub tile_height { return TILE_HEIGHT }
 
+=head2 tile_find_by_path_type $type
+
+Return list of tiles requared by $type
+
+=cut
+
 sub tile_find_by_path_type
 {
     my ($self, $type) = @_;
@@ -232,12 +264,26 @@ sub tile_find_by_path_type
     return wantarray ? @result : \@result;
 }
 
+=head2 tile_types $type, $mod
+
+Count tiles of required $type and $mod. Retun hash of counters by $type and
+$mod.
+
+=cut
+
 sub tile_types
 {
     my ($self, $type, $mod) = @_;
     $self->{tile}{types}{$type}{$mod}++ if defined $type and defined $mod;
     return wantarray ? %{$self->{tile}{types}} : $self->{tile}{types};
 }
+
+=head2 item_types $type, $mod
+
+Count items of required $type and $mod. Retun hash of counters by $type and
+$mod.
+
+=cut
 
 sub item_types
 {
@@ -276,6 +322,12 @@ sub xy2map
 
     return ($map_x, $map_y);
 }
+
+=head2 build $x, $y, $name
+
+Build new item $name on map $x : $y
+
+=cut
 
 sub build
 {
