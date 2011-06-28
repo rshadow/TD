@@ -323,16 +323,16 @@ sub xy2map
     return ($map_x, $map_y);
 }
 
-=head2 build $x, $y, $name
-
-Build new item $name on map $x : $y
-
-=cut
-
-sub build
-{
-    my ($self, $x, $y, $name) = @_;
-
-    $self->tile($x, $y)->item_add('tower' => $name);
-}
+#=head2 build $x, $y, $name
+#
+#Build new item $name on map $x : $y
+#
+#=cut
+#
+#sub build
+#{
+#    my ($self, $x, $y, $name) = @_;
+#
+#    $self->tile($x, $y)->item_add('tower' => $name);
+#}
 1;

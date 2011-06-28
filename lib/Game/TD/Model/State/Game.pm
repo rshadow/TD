@@ -8,6 +8,7 @@ use base qw(Game::TD::Model);
 use Carp;
 use Game::TD::Config;
 use Game::TD::Model::Wave;
+use Game::TD::Model::Force;
 use Game::TD::Model::Map;
 use Game::TD::Model::Camera;
 
@@ -47,15 +48,20 @@ sub new
     my %level = do $file;
     die $@ if $@;
 
+    # Create map
     croak 'Missing "map" parameter in level file' unless defined $level{map};
     $self->map( Game::TD::Model::Map->new(map => delete $level{map}) );
 
+    # Create units wave
     croak 'Missing "wave" parameter in level file' unless defined $level{wave};
     $self->wave( Game::TD::Model::Wave->new(
         wave    => delete $level{wave},
         map     => $self->map,
         dt      => $self->dt,
     ));
+
+    # Create player`s force pull
+    $self->force(Game::TD::Model::Force->new);
 
     # Create camera
     $self->camera(Game::TD::Model::Camera->new( map => $self->map ));
@@ -230,6 +236,19 @@ sub wave
     my ($self, $wave) = @_;
     $self->{wave} = $wave if defined $wave;
     return $self->{wave};
+}
+
+=head2 force $force
+
+Get/set player`s force pull Game::TD::Model::Force
+
+=cut
+
+sub force
+{
+    my ($self, $force) = @_;
+    $self->{force} = $force if defined $force;
+    return $self->{force};
 }
 
 =head2 map $map

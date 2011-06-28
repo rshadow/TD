@@ -479,9 +479,7 @@ sub _init_towers
 {
     my ($self) = @_;
 
-    my @names = keys %{ config->param('tower'=>'towers') };
-
-    for my $name (@names)
+    for my $name ( $self->model->force->types )
     {
         $self->sprite($name => SDLx::Sprite->new(
             image => config->param('tower'=>'towers'=>$name=>'item'=>'file'),

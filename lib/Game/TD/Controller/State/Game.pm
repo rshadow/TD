@@ -229,10 +229,16 @@ sub event
                 $self->cursor->state ne 'impossible' )
             {
                 my ($map_x, $map_y) = $self->model->camera->xy2map($x, $y);
-                $self->model->map->build($map_x, $map_y, $self->cursor->tower);
+                # Add tower to map
+                $self->model->force->build(
+                    $self->cursor->tower,
+                    $self->model->map->tile($map_x, $map_y)
+                );
                 # Drop cursor state and tower
                 $self->cursor->tower('default');
                 $self->cursor->state('default');
+                # Subtract money
+#                $self->player->money($self->player->money - );
             }
 
         }
