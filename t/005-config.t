@@ -26,6 +26,6 @@ ok config->base, 'Get base dir';
 ok config->dir('po') && config->dir('level') &&
    config->dir('config'),
     'All dir params';
-ok defined config->param('user'=>'debug'), 'All file params';
+ok defined config->param(player=>'debug'), 'All file params';
 
 #note explain config;

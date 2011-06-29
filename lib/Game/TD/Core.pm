@@ -31,7 +31,7 @@ sub new
 
     # Load player info
     $self->player( Game::TD::Model::Player->new(
-        name => config->param('user'=>'name')
+        name => config->param(player=>'name')
     ));
 
     $self->counter('frame' => 0);
@@ -138,7 +138,7 @@ sub draw
 
     $self->ctrl( $self->state )->draw;
 
-    if( config->param(user => 'showfps') )
+    if( config->param(player => 'showfps') )
     {
         $self->counter( 'frame' => ($self->counter('frame') + 1) );
         if($self->app->ticks - $self->counter('time') >= 1000)

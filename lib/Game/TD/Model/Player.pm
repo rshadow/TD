@@ -26,12 +26,12 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    $opts{score}     //= config->param(user=>'score');
-    $opts{name}      //= config->param(user=>'name')   ||
+    $opts{score}     //= config->param(player=>'score');
+    $opts{name}      //= config->param(player=>'name')   ||
                          getlogin || getpwuid($<) || 'player';
-    $opts{level}     //= config->param(user=>'level');
+    $opts{level}     //= config->param(player=>'level');
     $opts{money}     //= 0;
-    $opts{difficult} //= config->param(user=>'difficult');
+    $opts{difficult} //= config->param(player=>'difficult');
 
     my $self = bless \%opts, $class;
 
