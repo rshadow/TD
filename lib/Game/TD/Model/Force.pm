@@ -7,6 +7,7 @@ package Game::TD::Model::Force;
 #our @EXPORT = qw();
 
 use Carp;
+use Scalar::Util qw(weaken);
 use Game::TD::Config;
 use Game::TD::Model::Tower;
 
@@ -64,16 +65,26 @@ sub build
 {
     my ($self, $type, $tile) = @_;
 
-    # Create tower
-    my $tower = Game::TD::Model::Tower->new(type => $type);
     # Create tower name
     my $name  = $tile->x .'x'. $tile->y;
+
+    # Create tower
+    my $tower = Game::TD::Model::Tower->new(type => $type, name => $name);
 
     # Set tower on map
     $tile->item_add('tower' => $tower->type);
 
     # Save new tower in pull
     $self->{towers}{$name} = $tower;
+
+    weaken $tower;
+    return $tower;
+}
+
+sub tower
+{
+    my ($self, $name) = @_;
+    return $self->{towers}{$name};
 }
 
 sub active

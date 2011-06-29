@@ -220,7 +220,8 @@ sub event
         my $y       = $event->motion_y;
         # Get mouse button
         my $button  = $event->button_button;
-
+        # Get keyboard mod
+        my $mod     = SDL::Events::get_mod_state();
 
         if( $button == SDL_BUTTON_LEFT )
         {
@@ -228,17 +229,23 @@ sub event
             if( $self->model->camera->is_over($x, $y) and
                 $self->cursor->state ne 'impossible' )
             {
+                # Get map coords under cursor
                 my ($map_x, $map_y) = $self->model->camera->xy2map($x, $y);
                 # Add tower to map
-                $self->model->force->build(
+                my $tower = $self->model->force->build(
                     $self->cursor->tower,
                     $self->model->map->tile($map_x, $map_y)
                 );
-                # Drop cursor state and tower
-                $self->cursor->tower('default');
-                $self->cursor->state('default');
+
+                # Drop cursor state and tower if not in multi mode
+                unless($mod & KMOD_CTRL)
+                {
+                    $self->cursor->tower('default');
+                    $self->cursor->state('default');
+                }
+
                 # Subtract money
-#                $self->player->money($self->player->money - );
+                $self->player->money($self->player->money - $tower->cost);
             }
 
         }

@@ -34,6 +34,7 @@ sub new
     my ($class, %opts) = @_;
 
     croak 'Missing required param "type"'   unless defined $opts{type};
+    croak 'Missing required param "name"'   unless defined $opts{name};
 
     my $self = bless \%opts, $class;
 
@@ -48,7 +49,9 @@ sub new
 
 sub damage { return shift()->{damage} }
 sub speed  { return shift()->{speed}  }
+sub cost   { return shift()->{cost}   }
 sub type   { return shift()->{type}   }
+sub name   { return shift()->{name}   }
 sub item   { return shift()->{item}   }
 
 1;
