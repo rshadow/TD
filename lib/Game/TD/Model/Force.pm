@@ -37,7 +37,7 @@ sub new
 
     my $self = bless \%opts, $class;
 
-    $self->types($_) for keys %{ config->param('tower'=>'towers') };
+    $self->{types} = config->param('tower'=>'towers');
 
     return $self;
 }
@@ -51,7 +51,6 @@ Store new $type if parameter defined. If $type not set then return types list.
 sub types
 {
     my ($self, $type) = @_;
-    $self->{types}{$type}++ if defined $type;
     return wantarray ? keys %{$self->{types}} : [keys %{$self->{types}}];
 }
 
@@ -81,6 +80,12 @@ sub build
     return $tower;
 }
 
+=head2 tower $name
+
+Return tower by $name
+
+=cut
+
 sub tower
 {
     my ($self, $name) = @_;
@@ -92,6 +97,23 @@ sub active
     my ($self) = @_;
 
     return wantarray ? values %{$self->{towers}} : [values %{$self->{towers}}];
+}
+
+=head2 attr $type, $attr, $value
+
+Set/get default tower $type attribute $attr
+
+=cut
+
+sub attr
+{
+    my ($self, $type, $attr, $value) = @_;
+
+    croak 'Missing required param "type"'   unless defined $type;
+    croak 'Missing required param "attr"'   unless defined $attr;
+
+    $self->{types}{$type}{$attr} = $value if defined $value;
+    return $self->{types}{$type}{$attr};
 }
 
 1;

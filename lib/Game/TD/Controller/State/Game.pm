@@ -76,10 +76,15 @@ sub new
         prect => $self->view->sprite('panel')->rect);
 
     my @names = keys %{ config->param('tower'=>'towers') };
-    for my $tower ( @names )
+    for my $type ( @names )
     {
-        $self->button($tower, 'tower', $self->view->sprite('panel')->surface,
+        # Create button on panel
+        $self->button($type, 'tower', $self->view->sprite('panel')->surface,
             prect => $self->view->sprite('panel')->rect);
+        # Disable button if tower too expensive
+        $self->button($type)->disable(1)
+            if $self->player->money <
+               $self->model->force->attr($type => 'cost');
     }
 
     return $self;
