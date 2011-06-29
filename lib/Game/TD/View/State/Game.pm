@@ -374,7 +374,7 @@ sub _init_editor
         for my $x (0 .. ($self->model->map->width - 1))
         {
             my $tile  = $self->model->map->tile($x,$y);
-            my @path = map {$_=~s/\D//g; $_} keys(%{$tile->path || {}});
+            my @path = map s/\D//g, keys(%{$tile->path || {}});
 
             $self->font('editor_tile')->write_xy(
                 $self->sprite('map')->surface,
