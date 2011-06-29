@@ -55,8 +55,8 @@ sub has_item
 sub item_type
 {
     my ($self) = @_;
-    return undef unless exists $self->{item};
-    return undef unless exists $self->{item}{type};
+    return unless exists $self->{item};
+    return unless exists $self->{item}{type};
 
     return $self->{item}{type};
 }
@@ -64,8 +64,8 @@ sub item_type
 sub item_mod
 {
     my ($self) = @_;
-    return undef unless exists $self->{item};
-    return undef unless exists $self->{item}{mod};
+    return unless exists $self->{item};
+    return unless exists $self->{item}{mod};
 
     return $self->{item}{mod};
 }
