@@ -140,7 +140,16 @@ sub new
     $self->disable( $disable );
     $self->text( $text ) if $text;
 
-    $self->sequence( ($self->disable) ?'d_out' :'out' );
+    my ($mask, $x, $y) = @{ SDL::Events::get_mouse_state( ) };
+    if( $self->is_over($x, $y) )
+    {
+        $self->sequence( ($self->disable) ?'d_over' :'over' );
+    }
+    else
+    {
+        $self->sequence( ($self->disable) ?'d_out' :'out' );
+    }
+
 
     return $self;
 }
@@ -312,6 +321,7 @@ sub disable
 {
     my ($self, $disable) = @_;
     $self->{disable} = ($disable) ?1 :0 if defined $disable;
+
     return $self->{disable};
 }
 
