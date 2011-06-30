@@ -75,17 +75,15 @@ sub new
     $self->button('pause', $self->conf, $self->view->sprite('panel')->surface,
         prect => $self->view->sprite('panel')->rect);
 
-    my @names = keys %{ config->param('tower'=>'towers') };
-    for my $type ( @names )
-    {
-        # Create button on panel
-        $self->button($type, 'tower', $self->view->sprite('panel')->surface,
-            prect => $self->view->sprite('panel')->rect);
-        # Disable button if tower too expensive
-        $self->button($type)->disable(1)
-            if $self->player->money <
-               $self->model->force->attr($type => 'cost');
-    }
+    # Create buttons on panel
+    $self->button(
+        $_,
+        'tower',
+        $self->view->sprite('panel')->surface,
+        prect => $self->view->sprite('panel')->rect)
+            for $self->model->force->types;
+    # Update buttons state
+    $self->_update_buttons;
 
     return $self;
 }
@@ -232,7 +230,7 @@ sub event
         {
             # Build tower if mouse move in camera and not on some item
             if( $self->model->camera->is_over($x, $y) and
-                $self->cursor->state ne 'impossible' )
+                $self->cursor->state ne 'impossible')
             {
                 # Get map coords under cursor
                 my ($map_x, $map_y) = $self->model->camera->xy2map($x, $y);
@@ -251,6 +249,9 @@ sub event
 
                 # Subtract money
                 $self->player->money($self->player->money - $tower->cost);
+
+                # Update buttons state
+                $self->_update_buttons;
             }
 
         }
@@ -382,4 +383,16 @@ sub pause
     return $self->{pause};
 }
 
+sub _update_buttons
+{
+    my ($self) = @_;
+
+    for my $type ( $self->model->force->types )
+    {
+        # Disable button if tower too expensive
+        $self->button($type)->disable(1)
+                if $self->player->money <
+                   $self->model->force->attr($type => 'cost');
+    }
+}
 1;

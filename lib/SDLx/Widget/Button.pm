@@ -140,16 +140,7 @@ sub new
     $self->disable( $disable );
     $self->text( $text ) if $text;
 
-    my ($mask, $x, $y) = @{ SDL::Events::get_mouse_state( ) };
-    if( $self->is_over($x, $y) )
-    {
-        $self->sequence( ($self->disable) ?'d_over' :'over' );
-    }
-    else
-    {
-        $self->sequence( ($self->disable) ?'d_out' :'out' );
-    }
-
+    $self->_update_sequence;
 
     return $self;
 }
@@ -320,7 +311,12 @@ d_out sequences to correct draw disabled button.
 sub disable
 {
     my ($self, $disable) = @_;
-    $self->{disable} = ($disable) ?1 :0 if defined $disable;
+
+    if(defined $disable)
+    {
+        $self->{disable} = ($disable) ?1 :0;
+        $self->_update_sequence;
+    }
 
     return $self->{disable};
 }
@@ -336,6 +332,25 @@ sub text
     my ($self, $text) = @_;
     $self->{text} = $text if defined $text;
     return $self->{text};
+}
+
+=head2 _update_sequence
+
+=cut
+
+sub _update_sequence
+{
+    my ($self) = @_;
+
+    my ($mask, $x, $y) = @{ SDL::Events::get_mouse_state() };
+    if( $self->is_over($x, $y) )
+    {
+        $self->sequence( ($self->disable) ?'d_over' :'over' );
+    }
+    else
+    {
+        $self->sequence( ($self->disable) ?'d_out' :'out' );
+    }
 }
 
 1;
