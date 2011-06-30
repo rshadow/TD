@@ -230,7 +230,8 @@ sub event
         {
             # Build tower if mouse move in camera and not on some item
             if( $self->model->camera->is_over($x, $y) and
-                $self->cursor->state ne 'impossible')
+                $self->cursor->state ne 'impossible'  and
+                $self->cursor->state ne 'default' )
             {
                 # Get map coords under cursor
                 my ($map_x, $map_y) = $self->model->camera->xy2map($x, $y);
