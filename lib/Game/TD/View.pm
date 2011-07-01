@@ -177,6 +177,15 @@ sub dest
     return $self->{dest}{$name};
 }
 
+sub color
+{
+    my ($self, $name, $value) = @_;
+
+    die 'Name required'             unless defined $name;
+    $self->{color}{$name} = $value  if defined $value;
+    return $self->{color}{$name};
+}
+
 =head2 conf
 
 Return config part name by view package name

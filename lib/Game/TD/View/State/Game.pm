@@ -54,6 +54,7 @@ sub new
     $self->_init_units;
     $self->_init_panel;
     $self->_init_towers;
+    $self->_init_cursor;
 
     $self->_init_editor if config->param('editor'=>'enable');
 
@@ -489,6 +490,16 @@ sub _init_towers
     }
 }
 
+sub _init_cursor
+{
+    my ($self) = @_;
+
+    $self->color('cursor_fill' =>
+        config->param('game'=>'range'=>'fill'=>'color'));
+    $self->color('cursor_circle' =>
+        config->param('game'=>'range'=>'circle'=>'color'));
+}
+
 =head1 PRIVATE COMMON DRAW METHODS
 
 =cut
@@ -626,12 +637,12 @@ sub _draw_cursor
         $self->sprite('viewport')->surface,
         $x, $y,
         $self->model->force->attr($self->cursor->state, 'range'),
-        0xFFFFFF66 );
+        $self->color('cursor_fill') );
     SDL::GFX::Primitives::aacircle_color(
         $self->sprite('viewport')->surface,
         $x, $y,
         $self->model->force->attr($self->cursor->state, 'range'),
-        0xFFFFFFFF );
+        $self->color('cursor_circle') );
 
     return 1;
 }
