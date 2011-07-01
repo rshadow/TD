@@ -241,18 +241,19 @@ sub event
                     $self->model->map->tile($map_x, $map_y)
                 );
 
-                # Drop cursor state and tower if not in multi mode
-                unless($mod & KMOD_CTRL)
-                {
-                    $self->cursor->tower('default');
-                    $self->cursor->state('default');
-                }
-
                 # Subtract money
                 $self->player->money($self->player->money - $tower->cost);
 
                 # Update buttons state
                 $self->_update_buttons;
+
+                # Drop cursor state and tower if not in multi mode or
+                # not enough money
+                if(!($mod & KMOD_CTRL) or $self->player->money < $tower->cost)
+                {
+                    $self->cursor->tower('default');
+                    $self->cursor->state('default');
+                }
             }
 
         }
