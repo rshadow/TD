@@ -53,5 +53,6 @@ sub cost   { return shift()->{cost}   }
 sub type   { return shift()->{type}   }
 sub name   { return shift()->{name}   }
 sub item   { return shift()->{item}   }
+sub range  { return shift()->{range}  }
 
 1;

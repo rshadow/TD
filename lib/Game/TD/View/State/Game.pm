@@ -12,7 +12,9 @@ use SDLx::Sprite;
 #use SDLx::Sprite::Animated;
 use SDLx::Sprite::Splited;
 use SDLx::Text;
+
 use SDL::GFX::Rotozoom;
+use SDL::GFX::Primitives;
 
 use Game::TD::Config;
 
@@ -603,16 +605,33 @@ sub _draw_cursor
     my ($self) = @_;
 
     return 1 if $self->cursor->state eq 'default';
+    return 1 if $self->cursor->state eq 'impossible';
 
-    unless( $self->cursor->state eq 'impossible' )
-    {
-        $self->_draw_object(
-            $self->sprite('viewport')->surface,
-            $self->cursor->x,
-            $self->cursor->y,
-            $self->sprite($self->cursor->state),
-        );
-    }
+    $self->_draw_object(
+        $self->sprite('viewport')->surface,
+        $self->cursor->x,
+        $self->cursor->y,
+        $self->sprite($self->cursor->state),
+    );
+
+    # Get screen coordinater to draw range
+    my $x = $self->model->map->tile_width  * $self->cursor->x +
+            int($self->model->map->tile_width  / 2) -
+            $self->model->camera->x;
+    my $y = $self->model->map->tile_height * $self->cursor->y +
+            int($self->model->map->tile_height / 2) -
+            $self->model->camera->y;
+    # Draw tower range
+    SDL::GFX::Primitives::filled_circle_color(
+        $self->sprite('viewport')->surface,
+        $x, $y,
+        $self->model->force->attr($self->cursor->state, 'range'),
+        0xFFFFFF66 );
+    SDL::GFX::Primitives::aacircle_color(
+        $self->sprite('viewport')->surface,
+        $x, $y,
+        $self->model->force->attr($self->cursor->state, 'range'),
+        0xFFFFFFFF );
 
     return 1;
 }
