@@ -495,9 +495,9 @@ sub _init_cursor
     my ($self) = @_;
 
     $self->color('cursor_fill' =>
-        config->param('game'=>'range'=>'fill'=>'color'));
+        config->param('game'=>'cursor'=>'range'=>'fill'=>'color'));
     $self->color('cursor_circle' =>
-        config->param('game'=>'range'=>'circle'=>'color'));
+        config->param('game'=>'cursor'=>'range'=>'circle'=>'color'));
 }
 
 =head1 PRIVATE COMMON DRAW METHODS
