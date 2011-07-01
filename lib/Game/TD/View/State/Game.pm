@@ -618,13 +618,6 @@ sub _draw_cursor
     return 1 if $self->cursor->state eq 'default';
     return 1 if $self->cursor->state eq 'impossible';
 
-    $self->_draw_object(
-        $self->sprite('viewport')->surface,
-        $self->cursor->x,
-        $self->cursor->y,
-        $self->sprite($self->cursor->state),
-    );
-
     # Get screen coordinater to draw range
     my $x = $self->model->map->tile_width  * $self->cursor->x +
             int($self->model->map->tile_width  / 2) -
@@ -643,6 +636,14 @@ sub _draw_cursor
         $x, $y,
         $self->model->force->attr($self->cursor->state, 'range'),
         $self->color('cursor_circle') );
+
+    # Draw tower sprite
+    $self->_draw_object(
+        $self->sprite('viewport')->surface,
+        $self->cursor->x,
+        $self->cursor->y,
+        $self->sprite($self->cursor->state),
+    );
 
     return 1;
 }
