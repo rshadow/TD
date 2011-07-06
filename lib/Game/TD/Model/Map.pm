@@ -68,8 +68,8 @@ sub _init_tile
         {
             my $tile = $self->map->[$y][$x];
             $tile = Game::TD::Model::Tile->new(
-                x => $x,
-                y => $y,
+                m_x => $x,
+                m_y => $y,
                 %$tile,
 
             );
@@ -119,39 +119,39 @@ sub _init_roads
         my $tile = $self->start($name);
         while( $tile )
         {
-            if( $self->tile($tile->x-1, $tile->y)               and
-               !$self->tile($tile->x-1, $tile->y)->next($name)  and
-                $self->tile($tile->x-1, $tile->y)->has_path     and
-                $self->tile($tile->x-1, $tile->y)->has_path_name($name) )
+            if( $self->tile($tile->m_x-1, $tile->m_y)               and
+               !$self->tile($tile->m_x-1, $tile->m_y)->next($name)  and
+                $self->tile($tile->m_x-1, $tile->m_y)->has_path     and
+                $self->tile($tile->m_x-1, $tile->m_y)->has_path_name($name) )
             {
-                $tile->next($name, $self->tile($tile->x-1, $tile->y));
+                $tile->next($name, $self->tile($tile->m_x-1, $tile->m_y));
                 $tile->direction($name, 'left');
             }
             elsif(
-                $self->tile($tile->x+1, $tile->y)               and
-               !$self->tile($tile->x+1, $tile->y)->next($name)  and
-                $self->tile($tile->x+1, $tile->y)->has_path     and
-                $self->tile($tile->x+1, $tile->y)->has_path_name($name) )
+                $self->tile($tile->m_x+1, $tile->m_y)               and
+               !$self->tile($tile->m_x+1, $tile->m_y)->next($name)  and
+                $self->tile($tile->m_x+1, $tile->m_y)->has_path     and
+                $self->tile($tile->m_x+1, $tile->m_y)->has_path_name($name) )
             {
-                $tile->next($name, $self->tile($tile->x+1, $tile->y));
+                $tile->next($name, $self->tile($tile->m_x+1, $tile->m_y));
                 $tile->direction($name, 'right');
             }
             elsif(
-                $self->tile($tile->x, $tile->y-1)               and
-               !$self->tile($tile->x, $tile->y-1)->next($name)  and
-                $self->tile($tile->x, $tile->y-1)->has_path     and
-                $self->tile($tile->x, $tile->y-1)->has_path_name($name) )
+                $self->tile($tile->m_x, $tile->m_y-1)               and
+               !$self->tile($tile->m_x, $tile->m_y-1)->next($name)  and
+                $self->tile($tile->m_x, $tile->m_y-1)->has_path     and
+                $self->tile($tile->m_x, $tile->m_y-1)->has_path_name($name) )
             {
-                $tile->next($name, $self->tile($tile->x, $tile->y-1));
+                $tile->next($name, $self->tile($tile->m_x, $tile->m_y-1));
                 $tile->direction($name, 'up');
             }
             elsif(
-                $self->tile($tile->x, $tile->y+1)               and
-               !$self->tile($tile->x, $tile->y+1)->next($name)  and
-                $self->tile($tile->x, $tile->y+1)->has_path     and
-                $self->tile($tile->x, $tile->y+1)->has_path_name($name) )
+                $self->tile($tile->m_x, $tile->m_y+1)               and
+               !$self->tile($tile->m_x, $tile->m_y+1)->next($name)  and
+                $self->tile($tile->m_x, $tile->m_y+1)->has_path     and
+                $self->tile($tile->m_x, $tile->m_y+1)->has_path_name($name) )
             {
-                $tile->next($name, $self->tile($tile->x, $tile->y+1));
+                $tile->next($name, $self->tile($tile->m_x, $tile->m_y+1));
                 $tile->direction($name, 'down');
             }
 
@@ -160,8 +160,8 @@ sub _init_roads
 
 #            printf "%s - %s:%s",
 #                join( ',', keys %{$tile->path || {}}),
-#                $tile->x,
-#                $tile->y;
+#                $tile->m_x,
+#                $tile->m_y;
 #            print "\n";
 
             # Goto next tile

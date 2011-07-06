@@ -36,13 +36,36 @@ sub new
 {
     my ($class, %opts) = @_;
 
+    croak 'Need set logical coordinates'
+        unless defined $opts{m_x} or defined $opts{m_y};
+
     my $self = bless \%opts, $class;
+
+    # Set coordinates in pixels
+    $self->{x} = $self->m_x * TILE_WIDTH;
+    $self->{y} = $self->m_y * TILE_HEIGHT;
 
     return $self;
 }
 
+=head2 x and y
+
+Coordinates of tile in pixels
+
+=cut
+
 sub x       { return shift()->{x}    }
 sub y       { return shift()->{y}    }
+
+=head2 m_x and m_y
+
+Logical coordinates of tile on map
+
+=cut
+
+sub m_x     { return shift()->{m_x}  }
+sub m_y     { return shift()->{m_y}  }
+
 sub type    { return shift()->{type} }
 sub mod     { return shift()->{mod}  }
 
@@ -74,7 +97,7 @@ sub item_add
 {
     my ($self, $type, $mod) = @_;
 
-    die sprintf 'Tile %d:%d already have item', $self->x, $self->y
+    die sprintf 'Tile %d:%d already have item', $self->m_x, $self->m_y
          if exists $self->{item};
 
     $self->{item}{type} = $type;

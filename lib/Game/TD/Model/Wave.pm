@@ -51,8 +51,8 @@ sub _init_units
     for my $name ($self->names)
     {
         # Get start position
-        my $x           = $self->map->start($name)->x * $self->map->tile_width;
-        my $y           = $self->map->start($name)->y * $self->map->tile_height;
+        my $x           = $self->map->start($name)->x;
+        my $y           = $self->map->start($name)->y;
         # Get start direction
         my $direction   = $self->map->start($name)->direction($name);
 
