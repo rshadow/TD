@@ -119,7 +119,7 @@ sub update
     my ($self, $step, $app, $t) = @_;
 
     # Update model
-    my $result = $self->ctrl( $self->state )->update;
+    my $result = $self->ctrl( $self->state )->update($step, $t);
     # Goto next state if controller require it
     $self->state( $result->{state} ) if $result->{state};
 
