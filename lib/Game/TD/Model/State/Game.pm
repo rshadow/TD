@@ -104,7 +104,11 @@ sub update
     }
 
     # Update units
-    my %result = $self->wave->update( $self->timer('units')->get_ticks );
+    my $unit_ticks = $self->timer('units')->get_ticks;
+    my %result = $self->wave->update( $unit_ticks );
+
+    # Update forces
+    $self->force->update( [$self->wave->active($unit_ticks)] );
 
     # Make damage if exists
     $self->{health} -= $result{damage} if exists $result{damage};

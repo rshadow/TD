@@ -65,10 +65,13 @@ sub build
     my ($self, $type, $tile) = @_;
 
     # Create tower name
-    my $name  = $tile->x .'x'. $tile->y;
+    my $name  = $tile->m_x .'x'. $tile->m_y;
 
     # Create tower
-    my $tower = Game::TD::Model::Tower->new(type => $type, name => $name);
+    my $tower = Game::TD::Model::Tower->new(
+        type => $type,
+        name => $name,
+        tile => $tile);
 
     # Set tower on map
     $tile->item_add('tower' => $tower->type);
@@ -116,4 +119,40 @@ sub attr
     return $self->{types}{$type}{$attr};
 }
 
+sub update
+{
+    my ($self, $units) = @_;
+
+    return unless $units;
+
+    for my $tower ($self->active)
+    {
+        for my $unit (@$units)
+        {
+            $self->shot($tower, $unit) if $self->_is_reached($tower, $unit);
+        }
+    }
+}
+
+sub _is_reached
+{
+    my ($self, $tower, $unit) = @_;
+
+    my $x1 = $unit->x;
+    my $y1 = $unit->y;
+
+    my $x2 = $tower->tile->x;
+    my $y2 = $tower->tile->y;
+
+    my $distance = int sqrt( ($x2 - $x1) ** 2 + ($y2 - $y1) ** 2 );
+
+    printf "%s: unit:%sx%s tower:%sx%s\n", $tower->name, $x1, $y1, $x2, $y2;
+
+    return ($distance <= $tower->range) ? 1 : 0;
+}
+
+sub shot
+{
+    my ($self, $tower, $unit) = @_;
+}
 1;
