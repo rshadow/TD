@@ -138,4 +138,18 @@ sub die
     $self->{direction}  = undef;
 }
 
+=head2 hit $damage
+
+Update unit if then tower shot in him
+
+=cut
+
+sub hit
+{
+    my ($self, $damage) = @_;
+
+    ($self->health > $damage)
+        ? $self->{health} -= $damage
+        : $self->die;
+}
 1;
