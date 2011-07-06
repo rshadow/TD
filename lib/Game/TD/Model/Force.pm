@@ -121,15 +121,22 @@ sub attr
 
 sub update
 {
-    my ($self, $units) = @_;
+    my ($self, $step, $units) = @_;
 
     return unless $units;
 
     for my $tower ($self->active)
     {
+        # Skip if tower praparing for shot
+        next if $tower->prepare and $tower->preparing($step);
+
         for my $unit (@$units)
         {
-            $self->shot($tower, $unit) if $self->_is_reached($tower, $unit);
+            # Skip if unit unreachible
+            next unless $self->_is_reached($tower, $unit);
+
+            # Try to shot
+            $self->shot($tower, $unit);
         }
     }
 }
@@ -146,13 +153,18 @@ sub _is_reached
 
     my $distance = int sqrt( ($x2 - $x1) ** 2 + ($y2 - $y1) ** 2 );
 
-    printf "%s: unit:%sx%s tower:%sx%s\n", $tower->name, $x1, $y1, $x2, $y2;
+    my $reached = ($distance <= $tower->range) ? 1 : 0;
 
-    return ($distance <= $tower->range) ? 1 : 0;
+#    printf "%s: unit:%sx%s tower:%sx%s reached:%s\n",
+#        $tower->name, $x1, $y1, $x2, $y2, $reached;
+
+    return $reached;
 }
 
 sub shot
 {
     my ($self, $tower, $unit) = @_;
+
+    $unit->hit( $tower->damage );
 }
 1;

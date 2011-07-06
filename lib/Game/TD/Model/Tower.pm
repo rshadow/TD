@@ -48,6 +48,9 @@ sub new
     # Concat
     $self->{$_} = $tower{$_} for keys %tower;
 
+    # Tower already done
+    $self->prepare(0);
+
     return $self;
 }
 
@@ -58,6 +61,34 @@ sub type   { return shift()->{type}   }
 sub name   { return shift()->{name}   }
 sub item   { return shift()->{item}   }
 sub range  { return shift()->{range}  }
-sub tile   { return shift()->{tile}  }
+sub tile   { return shift()->{tile}   }
+
+=head2 prepare $prepare
+
+Set/get time to next shot
+
+=cut
+
+sub prepare
+{
+    my ($self, $prepare) = @_;
+    $self->{prepare} = $prepare if defined $prepare;
+    return $self->{prepare};
+}
+
+sub preparing
+{
+    my ($self, $step) = @_;
+
+    # Skip if ready
+    return 0 unless $self->prepare;
+
+    # Calculate preparing time
+    ($self->prepare > $step)
+        ? $self->prepare( $self->prepare - $step )
+        : $self->prepare( 0 );
+
+    return ($self->prepare) ?1 :0;
+}
 
 1;

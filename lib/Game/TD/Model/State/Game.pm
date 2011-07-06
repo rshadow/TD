@@ -79,13 +79,15 @@ sub new
 
     # Units timer
     $self->timer('units'=>'new');
+#    # Towers timer
+#    $self->timer('tower'=>'new');
 
     return $self;
 }
 
 sub update
 {
-    my ($self) = @_;
+    my ($self, $step, $t) = @_;
 
     # Update camera
     $self->camera->update;
@@ -108,7 +110,8 @@ sub update
     my %result = $self->wave->update( $unit_ticks );
 
     # Update forces
-    $self->force->update( [$self->wave->active($unit_ticks)] );
+#    my $tower_ticks = $self->timer('tower')->get_ticks;
+    $self->force->update( $step, [$self->wave->active($unit_ticks)] );
 
     # Make damage if exists
     $self->{health} -= $result{damage} if exists $result{damage};
