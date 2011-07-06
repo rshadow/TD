@@ -7,6 +7,7 @@ package Game::TD::Model::Tower;
 #our @EXPORT = qw();
 
 use Carp;
+use Scalar::Util qw(weaken);
 use Game::TD::Config;
 
 =head1 Game::TD::Model::Tower
@@ -35,6 +36,9 @@ sub new
 
     croak 'Missing required param "type"'   unless defined $opts{type};
     croak 'Missing required param "name"'   unless defined $opts{name};
+    croak 'Missing required param "tile"'   unless defined $opts{tile};
+
+    weaken $opts{tile};
 
     my $self = bless \%opts, $class;
 
@@ -54,5 +58,6 @@ sub type   { return shift()->{type}   }
 sub name   { return shift()->{name}   }
 sub item   { return shift()->{item}   }
 sub range  { return shift()->{range}  }
+sub tile   { return shift()->{tile}  }
 
 1;
