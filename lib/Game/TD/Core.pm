@@ -116,7 +116,7 @@ Handler for update model event
 
 sub update
 {
-    my ($self) = @_;
+    my ($self, $step, $app, $t) = @_;
 
     # Update model
     my $result = $self->ctrl( $self->state )->update;
@@ -134,7 +134,7 @@ Handler for update view event
 
 sub draw
 {
-    my $self = shift;
+    my ($self, $delta, $app) = @_;
 
     $self->ctrl( $self->state )->draw;
 
@@ -156,7 +156,7 @@ sub draw
 
 sub event
 {
-    my ($self, $event) = @_;
+    my ($self, $event, $app) = @_;
 
     my $type = $event->type;
 
