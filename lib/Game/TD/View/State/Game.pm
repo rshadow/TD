@@ -694,6 +694,15 @@ sub _draw_editor
         sprintf('%s:%s', $self->cursor->x, $self->cursor->y),
     );
 
+    for my $tower ($self->model->force->active)
+    {
+        $self->font('editor_tower')->write_xy(
+            $self->sprite('viewport')->surface,
+            $tower->tile->x - $self->model->camera->x,
+            $tower->tile->y - $self->model->camera->y + $self->font('editor_tile')->h,
+            ($tower->prepare) ?sprintf('%d',$tower->prepare) :'ready',
+        );
+    }
 }
 
 sub _draw_items
