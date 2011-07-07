@@ -137,6 +137,8 @@ sub update
 
             # Try to shot
             $self->shot($tower, $unit);
+            # Just one shot per tower
+            last;
         }
     }
 }
