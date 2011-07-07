@@ -42,9 +42,9 @@ Handler for update model event
 
 sub update
 {
-    my ($self) = @_;
+    my ($self, $step, $t) = @_;
 
-    $self->model->update;
+    $self->model->update($step, $t);
 
     return {};
 }

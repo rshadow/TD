@@ -90,13 +90,13 @@ sub new
 
 sub update
 {
-    my ($self) = @_;
+    my ($self, $step, $t) = @_;
 
     my %result;
 
     return \%result if $self->is_pause;
 
-    my $process = $self->model->update;
+    my $process = $self->model->update($step, $t);
     $result{state} = 'score' unless $process;
 
     return \%result;
