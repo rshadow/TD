@@ -43,7 +43,7 @@ sub new
     %unit = %{ config->param('unit'=>'unknown') } unless %unit;
 
     # Concat
-    $self->{$_} = $unit{$_} for qw(speed health);
+    $self->{$_} = $unit{$_} for qw(speed health cost);
 
     $self->{id} = $self->type .'_'. $self->path .'_'. $self->index;
 
@@ -55,6 +55,7 @@ sub type    {return shift()->{type}     }
 sub path    {return shift()->{path}     }
 sub speed   {return shift()->{speed}    }
 sub health  {return shift()->{health}   }
+sub cost    {return shift()->{cost}     }
 sub index   {return shift()->{index}    }
 
 sub conf

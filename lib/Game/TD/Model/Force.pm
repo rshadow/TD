@@ -121,7 +121,7 @@ sub attr
 
 sub update
 {
-    my ($self, $t, $units) = @_;
+    my ($self, $t, $player, $units) = @_;
 
     return unless $units;
 
@@ -136,7 +136,7 @@ sub update
             next unless $self->_is_reached($tower, $unit);
 
             # Try to shot
-            $self->shot($tower, $unit);
+            $self->shot($tower, $unit, $player);
             # Just one shot per tower
             last;
         }
@@ -165,9 +165,13 @@ sub _is_reached
 
 sub shot
 {
-    my ($self, $tower, $unit) = @_;
+    my ($self, $tower, $unit, $player) = @_;
 
+    # Make damage
     $unit->hit( $tower->damage );
+    # Add money to player if unit killed
+    $player->money($player->money + $unit->cost) if $unit->is_die;
+    # Set tower timeout for preparing to new shot
     $tower->prepare( $tower->speed );
 }
 1;

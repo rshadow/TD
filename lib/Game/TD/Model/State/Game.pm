@@ -111,7 +111,11 @@ sub update
 
     # Update forces
 #    my $tower_ticks = $self->timer('tower')->get_ticks;
-    $self->force->update( $t, [$self->wave->active($unit_ticks)] );
+    $self->force->update(
+        $t,
+        $self->player,
+        [$self->wave->active($unit_ticks)]
+    );
 
     # Make damage if exists
     $self->{health} -= $result{damage} if exists $result{damage};
