@@ -130,13 +130,17 @@ sub update
         # Skip if tower praparing for shot
         next if $tower->prepare and $tower->preparing($t);
 
-        for my $unit (@$units)
+        for my $index ( 0 .. @$units - 1)
         {
+            # Get unit
+            my $unit = $units->[$index];
             # Skip if unit unreachible
             next unless $self->_is_reached($tower, $unit);
 
             # Try to shot
             $self->shot($tower, $unit, $player);
+            # Remove unit from active array
+            splice @$units, $index, 1 if $unit->is_die;
             # Just one shot per tower
             last;
         }
