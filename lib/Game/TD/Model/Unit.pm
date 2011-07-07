@@ -123,11 +123,24 @@ sub span
     return $self->{span};
 }
 
+=head2 is_die
+
+Check unit die or not. Return true if die, else return false.
+
+=cut
+
 sub is_die
 {
     my ($self) = @_;
     return $self->{health} ?0 :1;
 }
+
+=head2 die $type
+
+Set unit as died. You can additional set $type of die (not used now):
+reach, killed.
+
+=cut
 
 sub die
 {
@@ -150,6 +163,6 @@ sub hit
 
     ($self->health > $damage)
         ? $self->{health} -= $damage
-        : $self->die;
+        : $self->die('killed');
 }
 1;
