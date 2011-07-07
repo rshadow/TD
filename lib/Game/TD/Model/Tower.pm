@@ -76,16 +76,23 @@ sub prepare
     return $self->{prepare};
 }
 
+=head2 preparing $t
+
+Get time step $t, calculate and set time to ready to shot for tower.
+Return true if tower ready fro shot, else return false.
+
+=cut
+
 sub preparing
 {
-    my ($self, $step) = @_;
+    my ($self, $t) = @_;
 
     # Skip if ready
     return 0 unless $self->prepare;
 
     # Calculate preparing time
-    ($self->prepare > $step)
-        ? $self->prepare( $self->prepare - $step )
+    ($self->prepare > $t)
+        ? $self->prepare( $self->prepare - $t )
         : $self->prepare( 0 );
 
     return ($self->prepare) ?1 :0;

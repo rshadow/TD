@@ -121,14 +121,14 @@ sub attr
 
 sub update
 {
-    my ($self, $step, $units) = @_;
+    my ($self, $t, $units) = @_;
 
     return unless $units;
 
     for my $tower ($self->active)
     {
         # Skip if tower praparing for shot
-        next if $tower->prepare and $tower->preparing($step);
+        next if $tower->prepare and $tower->preparing($t);
 
         for my $unit (@$units)
         {
@@ -166,5 +166,6 @@ sub shot
     my ($self, $tower, $unit) = @_;
 
     $unit->hit( $tower->damage );
+    $tower->prepare( $tower->speed );
 }
 1;
