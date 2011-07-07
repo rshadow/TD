@@ -44,6 +44,7 @@ sub new
     $opts{left}     //= config->param('common'=>'camera'=>'left');
     $opts{top}      //= config->param('common'=>'camera'=>'top');
     $opts{move}     //= {};
+    $opts{border}   //= config->param('common'=>'camera'=>'border');
 
     my $self = bless \%opts, $class;
 
@@ -59,6 +60,7 @@ sub left        { return shift()->{left} }
 sub top         { return shift()->{top} }
 sub w           { return shift()->{w} }
 sub h           { return shift()->{h} }
+sub border      { return shift()->{border} }
 
 sub clip
 {
