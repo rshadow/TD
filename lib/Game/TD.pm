@@ -44,7 +44,9 @@ sub new
         flags           => SDL_HWACCEL,
         exit_on_quit    => 1,
 
-        dt              => 0.1,
+        # Model update time
+        dt              => 0.05,
+        # FPS
         min_t           => 1 / config->param('common'=>'fps'=>'value'),
 #        delay           => 10,
     ));
