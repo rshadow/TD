@@ -45,7 +45,7 @@ sub new
         exit_on_quit    => 1,
 
         # Model update time
-        dt              => 0.05,
+        dt              => 0.1,
         # FPS
         min_t           => 1 / config->param('common'=>'fps'=>'value'),
 #        delay           => 10,
