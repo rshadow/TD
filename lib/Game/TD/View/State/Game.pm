@@ -448,12 +448,6 @@ sub _init_panel
         $self->font('title')->w,
         $self->font('title')->h,
     ));
-    # Draw level title
-    $self->font('title')->write_xy(
-        $self->sprite('panel_background')->surface,
-        $self->dest('title')->x,
-        $self->dest('title')->y,
-    );
 
     # Health counter font
     $self->font(health => SDLx::Text->new(
@@ -578,62 +572,41 @@ sub _draw_panel
 {
     my ($self) = @_;
 
-    # Draw title on panel
-    $self->sprite('panel_background')->rect($self->dest('title'));
-    $self->sprite('panel_background')->clip($self->dest('title'));
     $self->sprite('panel_background')->draw($self->sprite('panel')->surface);
+
+
+#    $self->sprite('panel_background')->clip($self->dest('title'));
+#    $self->sprite('panel_background')->draw($self->sprite('panel')->surface);
+    # Draw title on panel
+    $self->font('title')->write_xy(
+        $self->sprite('panel')->surface,
+        $self->dest('title')->x,
+        $self->dest('title')->y,
+    );
 
     # Draw health counter
     my $health = sprintf '%s %s',
         config->param($self->conf=>'health'=>'text') || '',
         $self->model->health;
-    if( $health ne $self->font('health')->text )
-    {
-        # Update text and dest rectangle
-        $self->font('health')->text($health);
-        $self->dest(health => SDL::Rect->new(
-            $self->dest('health')->x,
-            $self->dest('health')->y,
-            $self->font('health')->w,
-            $self->font('health')->h
-        ));
-        # Update background
-        $self->sprite('panel_background')->rect($self->dest('health'));
-        $self->sprite('panel_background')->clip($self->dest('health'));
-        $self->sprite('panel_background')->draw($self->sprite('panel')->surface);
-        # Draw text
-        $self->font('health')->write_xy(
-            $self->sprite('panel')->surface,
-            $self->dest('health')->x,
-            $self->dest('health')->y,
-        );
-    }
+    $self->font('health')->text($health)
+        if $health ne $self->font('health')->text;
+    $self->font('health')->write_xy(
+        $self->sprite('panel')->surface,
+        $self->dest('health')->x,
+        $self->dest('health')->y,
+    );
 
     # Draw money
     my $money = sprintf '%s %s',
             config->param($self->conf=>'money'=>'text') || '',
             $self->model->player->money;
-    if( $money ne $self->font('money')->text )
-    {
-        # Update text and dest rectangle
-        $self->font('money')->text($money);
-        $self->dest(money => SDL::Rect->new(
-            $self->dest('money')->x,
-            $self->dest('money')->y,
-            $self->font('money')->w,
-            $self->font('money')->h
-        ));
-        # Update background
-        $self->sprite('panel_background')->rect($self->dest('money'));
-        $self->sprite('panel_background')->clip($self->dest('money'));
-        $self->sprite('panel_background')->draw($self->sprite('panel')->surface);
-        # Draw text
-        $self->font('money')->write_xy(
-            $self->sprite('panel')->surface,
-            $self->dest('money')->x,
-            $self->dest('money')->y,
-        );
-    }
+    $self->font('money')->text($money)
+        if $money ne $self->font('money')->text;
+    $self->font('money')->write_xy(
+        $self->sprite('panel')->surface,
+        $self->dest('money')->x,
+        $self->dest('money')->y,
+    );
 
     return 1;
 }
@@ -767,5 +740,4 @@ sub _draw_items
         }
     }
 }
-
 1;
