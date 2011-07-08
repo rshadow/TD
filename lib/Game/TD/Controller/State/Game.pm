@@ -70,18 +70,15 @@ sub new
     ));
 
     # Set buttons on panel
-    $self->button('menu',  $self->conf, $self->view->sprite('panel')->surface,
-        prect => $self->view->sprite('panel')->rect);
-    $self->button('pause', $self->conf, $self->view->sprite('panel')->surface,
-        prect => $self->view->sprite('panel')->rect);
-
-    # Create buttons on panel
-    $self->button(
-        $_,
-        'tower',
-        $self->view->sprite('panel')->surface,
-        prect => $self->view->sprite('panel')->rect)
-            for $self->model->force->types;
+    for my $name ('menu', 'pause', $self->model->force->types)
+    {
+        $self->button(
+            $name,
+            $self->conf,
+            $self->view->sprite('panel')->surface,
+            prect => $self->view->sprite('panel')->rect
+        );
+    }
     # Update buttons state
     $self->_update_buttons;
 
@@ -99,6 +96,8 @@ sub update
     my $process = $self->model->update($step, $t);
     $result{state} = 'score' unless $process;
 
+    $self->_update_buttons;
+
     return \%result;
 }
 
@@ -109,7 +108,6 @@ sub event
     my %result;
     my $type = $event->type;
 
-    # Just send event to buttons
     if($type == SDL_MOUSEMOTION)
     {
         # Get mouse position and screen params
@@ -118,7 +116,7 @@ sub event
         my $width   = $self->app->surface->w;
         my $height  = $self->app->surface->h;
         # Sensetive border
-        my $border  = config->param('common'=>'camera'=>'border');
+        my $border  = $self->model->camera->border;
 
         # Scroll camera on mouse
         ($x <= $border)
@@ -278,8 +276,7 @@ sub event
             $self->pause;
         }
 
-        my @names = keys %{ config->param('tower'=>'towers') };
-        for my $name ( @names )
+        for my $name ( $self->model->force->types )
         {
             if( $self->button($name)->event_handler( $event ) eq 'up' )
             {
@@ -296,24 +293,25 @@ sub draw
 {
     my $self = shift;
 
-    unless( $self->is_pause )
-    {
-        $self->view->prepare;
-
-        if( $self->panel->visible )
-        {
-            my @names = keys %{ config->param('tower'=>'towers') };
-            $self->button($_)->draw_handler for @names;
-        }
-    }
+    # Prepare to draw
+    $self->view->prepare unless $self->is_pause;
 
     if( $self->panel->visible )
     {
         $self->button('menu')->draw_handler;
         $self->button('pause')->draw_handler;
+
+        unless( $self->is_pause )
+        {
+            $self->button($_)->draw_handler for $self->model->force->types;
+
+#            print "##########################################\n";
+#            printf "%s - %s\n", 'fireball', Dumper $self->button('fireball');
+        }
     }
 
-    $self->view->draw;
+    # Draw
+    $self->view->draw unless $self->is_pause;
 
     return 1;
 }
@@ -391,10 +389,20 @@ sub _update_buttons
 
     for my $type ( $self->model->force->types )
     {
-        # Disable button if tower too expensive
-        $self->button($type)->disable(1)
-                if $self->player->money <
-                   $self->model->force->attr($type => 'cost');
+        if( $self->button($type)->disable )
+        {
+            # Disable button if tower too expensive
+            $self->button($type)->disable(0)
+                    if $self->player->money >=
+                       $self->model->force->attr($type => 'cost');
+        }
+        else
+        {
+            # Disable button if tower too expensive
+            $self->button($type)->disable(1)
+                    if $self->player->money <
+                       $self->model->force->attr($type => 'cost');
+        }
     }
 }
 1;
