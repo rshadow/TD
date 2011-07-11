@@ -13,7 +13,6 @@ use SDL::Surface;
 use SDLx::App;
 use SDLx::FPS;
 
-use Game::TD::Notify;
 use Game::TD::Config;
 use Game::TD::Core;
 

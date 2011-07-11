@@ -4,7 +4,7 @@ use utf8;
 
 package Game::TD::Notify;
 use base qw(Exporter);
-our @EXPORT = qw(notify);
+our @EXPORT = qw(notify debug);
 
 use Game::TD::Config;
 
