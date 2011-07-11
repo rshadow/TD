@@ -725,6 +725,26 @@ sub _draw_editor
             $unit->y - $dy - $self->model->camera->y,
             sprintf('%s %s:%s', $unit->direction || 'die', $unit->x, $unit->y),
         );
+
+        # Draw unit x:y point
+        SDL::GFX::Primitives::pixel_color(
+            $self->sprite('viewport')->surface,
+            $unit->x -$self->model->camera->x,
+            $unit->y -$self->model->camera->y,
+            $self->color('editor_unit_point'),
+        );
+
+        # Draw sprite border
+        SDL::GFX::Primitives::rectangle_color(
+            $self->sprite('viewport')->surface,
+            $unit->x - $dx - $self->model->camera->x,
+            $unit->y - $dy - $self->model->camera->y,
+            $unit->x - $dx + $self->sprite($unit->id)->clip->w
+                           - $self->model->camera->x,
+            $unit->y - $dy + $self->sprite($unit->id)->clip->h
+                           - $self->model->camera->y,
+            $self->color('editor_unit_point'),
+        );
     }
 
     # Draw cursor logical coordinates
