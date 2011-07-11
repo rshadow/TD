@@ -581,25 +581,26 @@ sub _draw_units
             int $unit->health * $self->dest('unit_health')->w / $unit->t_health;
         my $width2 = $self->dest('unit_health')->w - $width1;
         my $hdx = int (
-            ($self->sprite($unit->id)->clip->w - $self->dest('unit_health')->w)
-            / 2) - $self->dest('unit_health')->w;
+            ($self->model->map->tile_width - $self->dest('unit_health')->w)
+            / 2);
         # Draw health lines
         SDL::GFX::Primitives::box_color(
             $self->sprite('viewport')->surface,
-            $unit->x - $hdx                                 - $self->model->camera->x,
+            $unit->x + $hdx                          - $self->model->camera->x,
             $unit->y                                 - $self->model->camera->y,
-            $unit->x - $hdx + $width1                       - $self->model->camera->x,
-            $unit->y + $self->dest('unit_health')->h - $self->model->camera->y,
+            $unit->x + $hdx + $width1                - $self->model->camera->x,
+            $unit->y - $self->dest('unit_health')->h - $self->model->camera->y,
             $self->color('unit_health_good')
         );
         if($width2 > 0)
         {
             SDL::GFX::Primitives::box_color(
                 $self->sprite('viewport')->surface,
-                $unit->x - $hdx + $width1                       - $self->model->camera->x,
-                $unit->y                                 - $self->model->camera->y,
-                $unit->x - $hdx + $width1 + $width2             - $self->model->camera->x,
-                $unit->y + $self->dest('unit_health')->h - $self->model->camera->y,
+                $unit->x + $hdx + $width1            - $self->model->camera->x,
+                $unit->y                             - $self->model->camera->y,
+                $unit->x + $hdx + $width1 + $width2  - $self->model->camera->x,
+                $unit->y - $self->dest('unit_health')->h
+                                                     - $self->model->camera->y,
                 $self->color('unit_health_bad')
             );
         }
@@ -727,10 +728,20 @@ sub _draw_editor
         );
 
         # Draw unit x:y point
-        SDL::GFX::Primitives::pixel_color(
+        SDL::GFX::Primitives::line_color(
+            $self->sprite('viewport')->surface,
+            $unit->x -$self->model->camera->x - 3,
+            $unit->y -$self->model->camera->y,
+            $unit->x -$self->model->camera->x + 3,
+            $unit->y -$self->model->camera->y,
+            $self->color('editor_unit_point'),
+        );
+        SDL::GFX::Primitives::line_color(
             $self->sprite('viewport')->surface,
             $unit->x -$self->model->camera->x,
-            $unit->y -$self->model->camera->y,
+            $unit->y -$self->model->camera->y - 3,
+            $unit->x -$self->model->camera->x,
+            $unit->y -$self->model->camera->y + 3,
             $self->color('editor_unit_point'),
         );
 
