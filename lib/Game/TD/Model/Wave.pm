@@ -41,6 +41,8 @@ sub new
 
     $self->_init_units;
 
+    confess 'No units' if $self->is_empty;
+
     return $self;
 }
 
@@ -164,6 +166,32 @@ sub active
     }
 
     return wantarray ?@{ $self->{active} } : $self->{active};
+}
+
+=head2 is_empty
+
+Return true if wave empty
+
+=cut
+
+sub is_empty
+{
+    my ($self) = @_;
+
+    # Quick check for paths
+    return 1 unless $self->names;
+
+    # If some units not die then return false
+    for my $name ($self->names)
+    {
+        for my $unit ( reverse $self->path($name) )
+        {
+            return 0 unless $unit->is_die;
+        }
+    }
+
+    # All units die then return true
+    return 1;
 }
 
 #=head2 unit_xy $x, $y, @units
