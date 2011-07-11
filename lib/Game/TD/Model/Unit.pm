@@ -45,7 +45,10 @@ sub new
     # Concat
     $self->{$_} = $unit{$_} for qw(speed health cost);
 
+    # Make unit id
     $self->{id} = $self->type .'_'. $self->path .'_'. $self->index;
+    # Store unit type health
+    $self->{t_health} = $self->{health};
 
     return $self;
 }
@@ -55,6 +58,7 @@ sub type    {return shift()->{type}     }
 sub path    {return shift()->{path}     }
 sub speed   {return shift()->{speed}    }
 sub health  {return shift()->{health}   }
+sub t_health{return shift()->{t_health} }
 sub cost    {return shift()->{cost}     }
 sub index   {return shift()->{index}    }
 
