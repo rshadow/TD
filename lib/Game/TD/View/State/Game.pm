@@ -273,6 +273,16 @@ sub _init_units
 #            ));
 #        }
 #    }
+    # Add health line params
+    $self->dest('unit_health', SDL::Rect->new(
+        0, 0,
+        config->param('game'=>'unit'=>'health'=>'width'),
+        config->param('game'=>'unit'=>'health'=>'height')
+    ));
+    $self->color('unit_health_good' =>
+        config->param('game'=>'unit'=>'health'=>'color_good'));
+    $self->color('unit_health_bad' =>
+        config->param('game'=>'unit'=>'health'=>'color_bad'));
 
     # Create animation for each unit
     for my $path ($self->model->wave->names)
@@ -553,16 +563,46 @@ sub _draw_units
     for my $unit ( @$active )
     {
         my $dx = int(
-            ( $self->sprite($unit->id)->clip->w - $self->model->map->tile_width)  / 2);
+            ($self->sprite($unit->id)->clip->w - $self->model->map->tile_width)
+            / 2);
         my $dy = int(
-            ( $self->sprite($unit->id)->clip->h - $self->model->map->tile_height) / 2);
-
+            ($self->sprite($unit->id)->clip->h - $self->model->map->tile_height)
+            / 2);
+        # Draw unit sprite
         $self->sprite($unit->id)->sequence($unit->direction) if
             $unit->direction and
             $self->sprite($unit->id)->sequence ne $unit->direction;
         $self->sprite($unit->id)->x( $unit->x - $dx - $self->model->camera->x );
         $self->sprite($unit->id)->y( $unit->y - $dy - $self->model->camera->y );
         $self->sprite($unit->id)->draw( $self->sprite('viewport')->surface );
+
+        # Calculate width of health and bad
+        my $width1 =
+            int $unit->health * $self->dest('unit_health')->w / $unit->t_health;
+        my $width2 = $self->dest('unit_health')->w - $width1;
+        my $hdx = int (
+            ($self->sprite($unit->id)->clip->w - $self->dest('unit_health')->w)
+            / 2) - $self->dest('unit_health')->w;
+        # Draw health lines
+        SDL::GFX::Primitives::box_color(
+            $self->sprite('viewport')->surface,
+            $unit->x - $hdx                                 - $self->model->camera->x,
+            $unit->y                                 - $self->model->camera->y,
+            $unit->x - $hdx + $width1                       - $self->model->camera->x,
+            $unit->y + $self->dest('unit_health')->h - $self->model->camera->y,
+            $self->color('unit_health_good')
+        );
+        if($width2 > 0)
+        {
+            SDL::GFX::Primitives::box_color(
+                $self->sprite('viewport')->surface,
+                $unit->x - $hdx + $width1                       - $self->model->camera->x,
+                $unit->y                                 - $self->model->camera->y,
+                $unit->x - $hdx + $width1 + $width2             - $self->model->camera->x,
+                $unit->y + $self->dest('unit_health')->h - $self->model->camera->y,
+                $self->color('unit_health_bad')
+            );
+        }
     }
 
     return 1;
