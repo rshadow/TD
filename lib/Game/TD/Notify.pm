@@ -31,8 +31,8 @@ sub notify
     $| = 1 unless $|;
 
     (@opts)
-        ? print "$message\n"
-        : printf "$message\n", @opts;
+        ? printf "$message\n", @opts
+        : print "$message\n";
 }
 
 sub debug
