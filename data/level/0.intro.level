@@ -377,7 +377,7 @@ map => [
         { type => 'grass', mod => 'semi-dry',   item => {type => 'flat', mod => 'road-clean'}, path => {path1 => { name => 'path1' }} },
         { type => 'grass', mod => 'semi-dry2'   },
         { type => 'grass', mod => 'semi-dry2'   },
-        { type => 'grass', mod => 'semi-dry'    },
+        { type => 'grass', mod => 'semi-dry',   item => {type => 'items', mod => 'brazier-lit'} },
         { type => 'grass', mod => 'semi-dry2'   },
         { type => 'grass', mod => 'semi-dry2'   },
         { type => 'grass', mod => 'semi-dry',   item => {type => 'flat', mod => 'road-clean'}, path => {path1 => { name => 'path1' }} },

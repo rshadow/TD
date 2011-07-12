@@ -220,10 +220,29 @@ sub _init_items
         for my $mod (keys %{$types{$type}})
         {
             my $name = $type.$mod;
+            my $image = config->param('map'=>$type=>$mod=>'file');
 
-            $self->sprite($name => SDLx::Sprite->new(
-                image => config->param('map'=>$type=>$mod=>'file'),
-            ));
+            # If list of images then load animated sprite.
+            # Else load static sprite.
+            if('ARRAY' eq ref $image)
+            {
+                $self->sprite($name => SDLx::Sprite::Splited->new(
+                    image           => $image,
+                    type            => 'circular',
+                    ticks_per_frame =>
+                        config->param('common'=>'fps'=>'value') / scalar(@$image),
+                ));
+                # Randomize start frame
+                $self->sprite($name)->next for 0 .. scalar(@$image);
+                # Run animation
+                $self->sprite($name)->start;
+            }
+            else
+            {
+                $self->sprite($name => SDLx::Sprite->new(
+                    image => config->param('map'=>$type=>$mod=>'file'),
+                ));
+            }
         }
     }
 
@@ -253,26 +272,6 @@ sub _init_units
 {
     my ($self) = @_;
 
-    # Load sufraces for each unit type
-#    for my $type ( keys %{ $self->model->wave->types } )
-#    {
-#        my $count = scalar
-#            @{config->param('unit'=>$type=>'animation'=>'sequences'=>'right') };
-#
-#        # Load unit sprite if not defined
-#        unless( defined $self->sprite($type) )
-#        {
-#            $self->sprite($type => SDLx::Sprite::Splited->new(
-#                image          =>
-#                    config->param('unit'=>$type=>'animation'=>'sequences'),
-#                type            =>
-#                    config->param('unit'=>$type=>'animation'=>'type') ||
-#                    'circular',
-#                ticks_per_frame =>
-#                    config->param('common'=>'fps'=>'value') / $count,
-#            ));
-#        }
-#    }
     # Add health line params
     $self->dest('unit_health', SDL::Rect->new(
         0, 0,
@@ -525,9 +524,9 @@ sub _draw_object
 
     # Always draw center of object on center of tile
     my $dx = int(
-        ($sprite->w - $self->model->map->tile_width)  / 2);
+        ($sprite->clip->w - $self->model->map->tile_width)  / 2);
     my $dy = int(
-        ($sprite->h - $self->model->map->tile_height) / 2);
+        ($sprite->clip->h - $self->model->map->tile_height) / 2);
 
     $sprite->rect(SDL::Rect->new(
         $self->model->map->tile_width  * $x - $dx - $self->model->camera->x,
@@ -793,6 +792,7 @@ sub _draw_editor
         sprintf('%s:%s', $self->cursor->x, $self->cursor->y),
     );
 
+    # Draw tower helpers
     for my $tower ($self->model->force->active)
     {
         $self->font('editor_tower')->write_xy(
@@ -801,6 +801,48 @@ sub _draw_editor
             $tower->tile->y - $self->model->camera->y + $self->font('editor_tile')->h,
             ($tower->prepare) ?sprintf('%d',$tower->prepare) :'ready',
         );
+    }
+
+    # Draw items border
+    for my $y (0 .. ($self->model->map->height - 1) )
+    {
+        for my $x (0 .. ($self->model->map->width - 1))
+        {
+            # Get item and draw it if exists
+            my $tile  = $self->model->map->tile($x,$y);
+            # Skip if item not exists
+            next unless $tile->has_item;
+            # Flat item already drawed on map in init function
+            next if $tile->item_type eq 'flat';
+
+
+            my $name = 'unknown';
+            if($tile->item_type eq 'tower')
+            {
+                $name = $tile->item_mod;
+            }
+            else
+            {
+                $name = $tile->item_type . $tile->item_mod;
+            }
+
+            my $dx = int(
+                ($self->sprite($name)->clip->w - $self->model->map->tile_width)  / 2);
+            my $dy = int(
+                ($self->sprite($name)->clip->h - $self->model->map->tile_height) / 2);
+            SDL::GFX::Primitives::rectangle_color(
+                $self->sprite('viewport')->surface,
+                $self->model->map->tile_width  * $x - $dx
+                    - $self->model->camera->x,
+                $self->model->map->tile_height * $y - $dy
+                    - $self->model->camera->y,
+                $self->model->map->tile_width  * $x - $dx
+                    + $self->sprite($name)->clip->w - $self->model->camera->x,
+                $self->model->map->tile_height * $y - $dy
+                    + $self->sprite($name)->clip->h - $self->model->camera->y,
+                $self->color('editor_unit_point'),
+            );
+        }
     }
 }
 
