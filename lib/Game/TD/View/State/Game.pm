@@ -558,8 +558,8 @@ sub _draw_units
 {
     my ($self) = @_;
 
-    my $active = $self->model->wave->active;
     # Draw active units
+    my $active = $self->model->wave->active;
     for my $unit ( @$active )
     {
         my $dx = int(
@@ -604,6 +604,33 @@ sub _draw_units
                 $self->color('unit_health_bad')
             );
         }
+    }
+
+    # Draw dying animation
+    my $died = $self->model->wave->died;
+    for my $unit ( @$died )
+    {
+        # Start 'dying' animation if not started
+        if( $self->sprite($unit->id)->sequence ne 'die' )
+        {
+            $self->sprite($unit->id)->sequence('die');
+            $self->sprite($unit->id)->max_loops(1);
+        }
+
+        # Skip if dying animation already played
+        next if $self->sprite($unit->id)->current_frame ==
+                $self->sprite($unit->id)->max_frames;
+
+        my $dx = int(
+            ($self->sprite($unit->id)->clip->w - $self->model->map->tile_width)
+            / 2);
+        my $dy = int(
+            ($self->sprite($unit->id)->clip->h - $self->model->map->tile_height)
+            / 2);
+        # Draw unit sprite
+        $self->sprite($unit->id)->x( $unit->x - $dx - $self->model->camera->x );
+        $self->sprite($unit->id)->y( $unit->y - $dy - $self->model->camera->y );
+        $self->sprite($unit->id)->draw( $self->sprite('viewport')->surface );
     }
 
     return 1;

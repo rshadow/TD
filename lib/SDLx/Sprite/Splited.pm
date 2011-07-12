@@ -236,4 +236,16 @@ sub _load_sequences
     return ($full, \%sequences, $frame_w, $frame_h);
 }
 
+=head2 max_frames
+
+Return count of frames in current sequence.
+
+=cut
+
+sub max_frames
+{
+    my ($self) = @_;
+    return scalar @{ $self->_sequence };
+}
+
 1;

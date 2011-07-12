@@ -147,6 +147,12 @@ sub update
     return %result;
 }
 
+=head2 active $ticks
+
+Get active units by after $ticks count and not died.
+
+=cut
+
 sub active
 {
     my ($self, $ticks) = @_;
@@ -166,6 +172,26 @@ sub active
     }
 
     return wantarray ?@{ $self->{active} } : $self->{active};
+}
+
+=head2 died
+
+Get already died units
+
+=cut
+
+sub died
+{
+    my ($self) = @_;
+
+    my @died;
+
+    for my $name ($self->names)
+    {
+        push @died, grep { $_->is_die } $self->path($name);
+    }
+
+    return wantarray ?@died : \@died;
 }
 
 =head2 is_empty
