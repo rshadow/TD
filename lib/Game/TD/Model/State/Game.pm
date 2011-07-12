@@ -124,14 +124,14 @@ sub update
     # Check for level health
     if( $self->health <= 0 )
     {
-        notify('You fail');
+        notify('Level "%s" failed', $self->title);
         $self->timer('units')->stop;
         return 0;
     }
     # Check for complete level
     if( $self->wave->is_empty )
     {
-        notify('Level complete');
+        notify('Level "%s" complete', $self->title);
         return 0;
     }
 
