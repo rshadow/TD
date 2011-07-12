@@ -11,4 +11,8 @@ test:
 
 #Need PAR Packager
 exe:
-	pp --icon data/img/icon.png -o td.exe -I lib/ td.pl
+	pp --verbose --compile       \
+		--compress=9             \
+		--icon data/img/icon.png \
+		--output td.exe          \
+		td.pl
