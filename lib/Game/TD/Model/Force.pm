@@ -132,7 +132,7 @@ sub update
     for my $tower ($self->active)
     {
         # Skip if tower praparing for shot
-        next if $tower->prepare and $tower->preparing($self->dt * 1000);
+        next if $tower->prepare and $tower->preparing($self->dt * 1000 * $step);
 
         for my $index ( 0 .. @$units - 1)
         {

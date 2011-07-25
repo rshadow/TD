@@ -112,7 +112,7 @@ sub update
     # Update forces
 #    my $tower_ticks = $self->timer('tower')->get_ticks;
     $self->force->update(
-        ($step * $self->dt),
+        $step,
         $self->player,
         [$self->wave->active($unit_ticks)]
     );
