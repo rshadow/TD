@@ -206,14 +206,37 @@ sub event
             $self->model->camera->stop('right');
         }
     }
-#    elsif($type == SDL_MOUSEBUTTONDOWN)
-#    {
-#        if( $event->button_button == SDL_BUTTON_LEFT )
-#        {
-#            $sequence = 'down'
-#                if $self->is_over($event->button_x, $event->button_y);
-#        }
-#    }
+    elsif($type == SDL_MOUSEBUTTONDOWN)
+    {
+        # Get mouse button
+        my $button  = $event->button_button;
+
+        # Mouse wheel
+        if( $button == SDL_BUTTON_WHEELUP )
+        {
+            $self->model->camera->move('up');
+            # Force one step update
+            $self->model->camera->update;
+        }
+        elsif( $button == SDL_BUTTON_WHEELDOWN )
+        {
+            $self->model->camera->move('down');
+            # Force one step update
+            $self->model->camera->update;
+        }
+        elsif( $button == SDL_BUTTON_X1 )
+        {
+            $self->model->camera->move('left');
+            # Force one step update
+            $self->model->camera->update;
+        }
+        elsif( $button == SDL_BUTTON_X2 )
+        {
+            $self->model->camera->move('right');
+            # Force one step update
+            $self->model->camera->update;
+        }
+    }
     elsif($type == SDL_MOUSEBUTTONUP)
     {
         # Get mouse position and screen params
@@ -261,6 +284,24 @@ sub event
             $self->cursor->tower('default');
             $self->cursor->state('default');
         }
+        # Mouse wheel
+        elsif( $button == SDL_BUTTON_WHEELUP )
+        {
+            $self->model->camera->stop('up');
+        }
+        elsif( $button == SDL_BUTTON_WHEELDOWN )
+        {
+            $self->model->camera->stop('down');
+        }
+        elsif( $button == SDL_BUTTON_X1 )
+        {
+            $self->model->camera->stop('left');
+        }
+        elsif( $button == SDL_BUTTON_X2 )
+        {
+            $self->model->camera->stop('rigth');
+        }
+
     }
 
     # If panel visible then send event for panel buttons

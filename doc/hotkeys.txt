@@ -1,8 +1,11 @@
-<Esc> exit from game
-<W> or <Up arrow> move camera up
-<A> or <Left arrow> move camera left
-<S> or <Down arrow> move camera down
-<D> or <Right arrow> move camera right
-<P> or <Puse> pause game
-<Ctrl> + F toggle fullscreen mode
-<Ctrl> in game enable multiply towers build 
+KEYS											ACTION
+
+<Esc> 											exit from game
+<W> or <Up arrow> 	 or <Mouse wheel up> 		move camera up
+<A> or <Left arrow>  or <Mouse wheel left> 		move camera left
+<S> or <Down arrow>  or <Mouse wheel down> 		move camera down
+<D> or <Right arrow> or <Mouse wheel right> 	move camera right
+<P> or <Pause> 									pause game
+<Ctrl> + F 										toggle fullscreen mode
+<Ctrl> 											in game enable multiply towers
+												build 
