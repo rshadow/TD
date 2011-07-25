@@ -35,12 +35,16 @@ sub new
 {
     my ($class, %opts) = @_;
 
+    croak 'Missing required param "dt"'      unless defined $opts{dt};
+
     my $self = bless \%opts, $class;
 
     $self->{types} = config->param('tower'=>'towers');
 
     return $self;
 }
+
+sub dt  { return shift()->{dt};   }
 
 =head2 types $type
 
@@ -121,14 +125,14 @@ sub attr
 
 sub update
 {
-    my ($self, $t, $player, $units) = @_;
+    my ($self, $step, $player, $units) = @_;
 
     return unless $units;
 
     for my $tower ($self->active)
     {
         # Skip if tower praparing for shot
-        next if $tower->prepare and $tower->preparing($t);
+        next if $tower->prepare and $tower->preparing($self->dt * 1000);
 
         for my $index ( 0 .. @$units - 1)
         {

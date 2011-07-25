@@ -61,7 +61,7 @@ sub new
     ));
 
     # Create player`s force pull
-    $self->force(Game::TD::Model::Force->new);
+    $self->force(Game::TD::Model::Force->new(dt => $self->dt));
 
     # Create camera
     $self->camera(Game::TD::Model::Camera->new( map => $self->map ));
@@ -107,12 +107,12 @@ sub update
 
     # Update units
     my $unit_ticks = $self->timer('units')->get_ticks;
-    my %result = $self->wave->update( $unit_ticks );
+    my %result = $self->wave->update( $unit_ticks, $step );
 
     # Update forces
 #    my $tower_ticks = $self->timer('tower')->get_ticks;
     $self->force->update(
-        $t,
+        ($step * $self->dt),
         $self->player,
         [$self->wave->active($unit_ticks)]
     );
