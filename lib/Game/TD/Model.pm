@@ -56,6 +56,29 @@ sub timers
     return wantarray ?%{$self->{timer}} : $self->{timer};
 }
 
+=head2 result $name, $value
+
+Accumulate result values. When you get this hash it`s destroy.
+
+=cut
+
+sub result
+{
+    my ($self, $name, $value) = @_;
+
+    if(defined $name and defined $value)
+    {
+        $self->{result}{$name} = $value;
+        return $self->{result}{$name};
+    }
+    elsif(defined $name)
+    {
+        return $self->{result}{$name};
+    }
+
+    return delete $self->{result};
+}
+
 sub DESTROY
 {
     my $self = shift;
