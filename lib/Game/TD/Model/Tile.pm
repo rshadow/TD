@@ -97,7 +97,7 @@ sub item_add
 {
     my ($self, $type, $mod) = @_;
 
-    die sprintf 'Tile %d:%d already have item', $self->m_x, $self->m_y
+    confess sprintf 'Tile %d:%d already have item', $self->m_x, $self->m_y
          if exists $self->{item};
 
     $self->{item}{type} = $type;
