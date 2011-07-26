@@ -226,6 +226,7 @@ sub DESTROY
     undef $self->{font}{$_}     for keys %{ $self->{font}   };
     undef $self->{sprite}{$_}   for keys %{ $self->{sprite} };
     undef $self->{sound}{$_}    for keys %{ $self->{sound}  };
+    undef $self->{color}{$_}    for keys %{ $self->{color}  };
     undef $self->{model};
     undef $self->{app};
 }
