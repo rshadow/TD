@@ -48,7 +48,7 @@ sub new
 
     $self->_init_viewport;
     $self->_init_background;
-    $self->_init_sleep;
+    $self->_init_messages;
     $self->_init_map;
     $self->_init_items;
     $self->_init_units;
@@ -84,16 +84,13 @@ sub prepare
     $self->_draw_cursor;
 
     # Draw text and buttons on panel
-    $self->_draw_panel if $self->panel->visible;
+    $self->_draw_panel;
 
     # Draw helpers text
-    $self->_draw_editor if config->param('editor'=>'enable');
+    $self->_draw_editor;
 
-    # Draw sleep in center of viewport
-    $self->_draw_sleep if $self->model->left('sleep');
-    # Draw post in center of viewport
-    $self->_draw_post  if $self->model->result('finish') and
-                          $self->model->left('post');
+    # Draw messages
+    $self->_draw_messages;
 
     return 1;
 }
@@ -359,7 +356,7 @@ sub _init_units
     }
 }
 
-sub _init_sleep
+sub _init_messages
 {
     my ($self) = @_;
 
@@ -378,9 +375,9 @@ sub _init_sleep
     ));
 
     $self->font('post' => SDLx::Text->new(
-        font    => config->param($self->conf=>'sleep'=>'font'),
-        size    => config->param($self->conf=>'sleep'=>'size'),
-        color   => config->param($self->conf=>'sleep'=>'color'),
+        font    => config->param($self->conf=>'post'=>'font'),
+        size    => config->param($self->conf=>'post'=>'size'),
+        color   => config->param($self->conf=>'post'=>'color'),
         mode    => 'utf8',
         text    => 'Unknow',
     ));
@@ -655,6 +652,8 @@ sub _draw_panel
 {
     my ($self) = @_;
 
+    return 1 unless $self->panel->visible;
+
     $self->sprite('panel_background')->draw($self->sprite('panel')->surface);
 
 
@@ -731,37 +730,38 @@ sub _draw_cursor
     return 1;
 }
 
-sub _draw_sleep
+sub _draw_messages
 {
     my ($self) = @_;
 
-    my $text = int($self->model->left('sleep') / 1000);
-    $text = 'Go!' if $text < 1;
+    # Draw sleep in center of viewport
+    if( $self->model->left('sleep') )
+    {
+        my $text = int($self->model->left('sleep') / 1000);
+        $text = 'Go!' if $text < 1;
 
-    $self->font('sleep')->text($text) if $text ne $self->font('sleep')->text;
-    $self->font('sleep')->write_xy(
-        $self->sprite('viewport')->surface,
-        $self->dest('sleep')->x - int($self->font('sleep')->w/2),
-        $self->dest('sleep')->y - int($self->font('sleep')->h/2),
-        $text
-    );
+        $self->font('sleep')->text($text) if $text ne $self->font('sleep')->text;
+        $self->font('sleep')->write_xy(
+            $self->sprite('viewport')->surface,
+            $self->dest('sleep')->x - int($self->font('sleep')->w/2),
+            $self->dest('sleep')->y - int($self->font('sleep')->h/2),
+            $text
+        );
+    }
 
-    return 1;
-}
+    # Draw post in center of viewport
+    if( $self->model->result('finish') and $self->model->left('post') )
+    {
+        my $text = ucfirst $self->model->result('finish');
 
-sub _draw_post
-{
-    my ($self) = @_;
-
-    my $text = ucfirst $self->model->result('finish');
-
-    $self->font('post')->text($text) if $text ne $self->font('post')->text;
-    $self->font('post')->write_xy(
-        $self->sprite('viewport')->surface,
-        $self->dest('post')->x - int($self->font('post')->w/2),
-        $self->dest('post')->y - int($self->font('post')->h/2),
-        $text
-    );
+        $self->font('post')->text($text) if $text ne $self->font('post')->text;
+        $self->font('post')->write_xy(
+            $self->sprite('viewport')->surface,
+            $self->dest('post')->x - int($self->font('post')->w/2),
+            $self->dest('post')->y - int($self->font('post')->h/2),
+            $text
+        );
+    }
 
     return 1;
 }
@@ -769,6 +769,8 @@ sub _draw_post
 sub _draw_editor
 {
     my ($self) = @_;
+
+    return 1 unless config->param('editor'=>'enable');
 
     my $active = $self->model->wave->active;
     # Draw active units info text
