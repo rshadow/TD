@@ -47,13 +47,20 @@ sub new
         glob sprintf '%s/%d.*.level', config->dir('level'), $self->num;
     my %level = do $file;
     die $@ if $@;
+    # Check params
+    for my $param (qw(name title sleep post health cash wave map))
+    {
+        croak sprintf 'Missing "%s" parameter in level "%s"',
+            $param, $file
+                unless defined $level{$param};
+    }
+    # Concat
+    $self->{$_} = $level{$_} for keys %level;
 
     # Create map
-    croak 'Missing "map" parameter in level file' unless defined $level{map};
     $self->map( Game::TD::Model::Map->new(map => delete $level{map}) );
 
     # Create units wave
-    croak 'Missing "wave" parameter in level file' unless defined $level{wave};
     $self->wave( Game::TD::Model::Wave->new(
         wave    => delete $level{wave},
         map     => $self->map,
@@ -66,16 +73,16 @@ sub new
     # Create camera
     $self->camera(Game::TD::Model::Camera->new( map => $self->map ));
 
-    # Concat
-    $self->{$_} = $level{$_} for keys %level;
-
     # Add money
     $self->player->money($self->player->money + $self->cash);
 
-    # Sleep timer
+    # Level start sleep timer
     $self->timer('sleep'=>'new');
-    $self->left( $self->sleep - $self->timer('sleep')->get_ticks );
+    $self->left('sleep' => $self->sleep - $self->timer('sleep')->get_ticks);
     $self->timer('sleep')->start;
+    # Level end sleep timer
+    $self->timer('post'=>'new');
+    $self->left('post' => $self->post - $self->timer('post')->get_ticks);
 
     # Units timer
     $self->timer('units'=>'new');
@@ -92,22 +99,39 @@ sub update
     # Update camera
     $self->camera->update;
 
-    # Sleep timer
-    if( $self->left)
+    # Start level sleep timer
+    if( $self->left('sleep') )
     {
-        $self->left( $self->sleep - $self->timer('sleep')->get_ticks );
+        $self->left('sleep' => $self->sleep - $self->timer('sleep')->get_ticks);
         # Stop sleep time and start units timer
-        unless( $self->left )
+        unless( $self->left('sleep') )
         {
             $self->timer('sleep')->stop;
             $self->timer('units')->start;
         }
         return 1;
     }
+    # Post message timer
+    elsif( $self->left('post') and $self->result('finish') )
+    {
+        $self->left('post' => $self->post - $self->timer('post')->get_ticks);
+        # Stop post timer and exit from game state
+        unless( $self->left('post') )
+        {
+            $self->timer('post')->stop;
+            return 0;
+        }
+
+        # Just update units ... they run
+        $self->wave->update( $self->timer('units')->get_ticks, $step );
+        return 1;
+    }
 
     # Update units
     my $unit_ticks = $self->timer('units')->get_ticks;
     my %result = $self->wave->update( $unit_ticks, $step );
+    # Make damage if exists
+    $self->{health} -= $result{damage} if exists $result{damage};
 
     # Update forces
 #    my $tower_ticks = $self->timer('tower')->get_ticks;
@@ -117,22 +141,23 @@ sub update
         [$self->wave->active($unit_ticks)]
     );
 
-    # Make damage if exists
-    $self->{health} -= $result{damage} if exists $result{damage};
-
-
     # Check for level health
     if( $self->health <= 0 )
     {
-        notify('Level "%s" failed', $self->title);
-        $self->timer('units')->stop;
-        return 0;
+        $self->result('finish' => 'failed');
     }
     # Check for complete level
-    if( $self->wave->is_empty )
+    elsif( $self->wave->is_empty )
     {
-        notify('Level "%s" complete', $self->title);
-        return 0;
+        $self->timer('units')->stop;
+        $self->result('finish' => 'complete');
+    }
+
+    # Notify and start post message timer
+    if( $self->result('finish') )
+    {
+        notify('Level "%s" is %s', $self->title, $self->result('finish'));
+        $self->timer('post')->start;
     }
 
     return 1;
@@ -198,6 +223,18 @@ sub sleep
     return $self->{sleep};
 }
 
+=head2 post
+
+Return level post complete pause
+
+=cut
+
+sub post
+{
+    my ($self) = @_;
+    return $self->{post};
+}
+
 =head2 left
 
 Get/Set counter for game start. See <i>Game::TD::Model::Level::sleep</i>
@@ -207,12 +244,14 @@ function.
 
 sub left
 {
-    my ($self, $value) = @_;
+    my ($self, $name, $value) = @_;
+
+    croak 'Missing required "name" parameter' unless defined $name;
     if( defined $value )
     {
-        $self->{left} = ($value > 0) ?$value : 0;
+        $self->{left}{$name} = ($value > 0) ?$value : 0;
     }
-    return $self->{left};
+    return $self->{left}{$name};
 }
 
 =head2 health

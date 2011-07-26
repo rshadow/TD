@@ -90,7 +90,10 @@ sub prepare
     $self->_draw_editor if config->param('editor'=>'enable');
 
     # Draw sleep in center of viewport
-    $self->_draw_sleep if $self->model->left;
+    $self->_draw_sleep if $self->model->left('sleep');
+    # Draw post in center of viewport
+    $self->_draw_post  if $self->model->result('finish') and
+                          $self->model->left('post');
 
     return 1;
 }
@@ -361,14 +364,27 @@ sub _init_sleep
     my ($self) = @_;
 
     # Sleep font
-    $self->font(sleep => SDLx::Text->new(
+    $self->font('sleep' => SDLx::Text->new(
         font    => config->param($self->conf=>'sleep'=>'font'),
         size    => config->param($self->conf=>'sleep'=>'size'),
         color   => config->param($self->conf=>'sleep'=>'color'),
         mode    => 'utf8',
-        text    => int($self->model->left / 1000),
+        text    => int($self->model->left('sleep') / 1000),
     ));
-    $self->dest(sleep => SDL::Rect->new(
+    $self->dest('sleep' => SDL::Rect->new(
+        $self->model->camera->left + int($self->model->camera->w / 2),
+        $self->model->camera->top  + int($self->model->camera->h / 2),
+        0 ,0
+    ));
+
+    $self->font('post' => SDLx::Text->new(
+        font    => config->param($self->conf=>'sleep'=>'font'),
+        size    => config->param($self->conf=>'sleep'=>'size'),
+        color   => config->param($self->conf=>'sleep'=>'color'),
+        mode    => 'utf8',
+        text    => 'Unknow',
+    ));
+    $self->dest('post' => SDL::Rect->new(
         $self->model->camera->left + int($self->model->camera->w / 2),
         $self->model->camera->top  + int($self->model->camera->h / 2),
         0 ,0
@@ -719,7 +735,7 @@ sub _draw_sleep
 {
     my ($self) = @_;
 
-    my $text = int($self->model->left / 1000);
+    my $text = int($self->model->left('sleep') / 1000);
     $text = 'Go!' if $text < 1;
 
     $self->font('sleep')->text($text) if $text ne $self->font('sleep')->text;
@@ -727,6 +743,23 @@ sub _draw_sleep
         $self->sprite('viewport')->surface,
         $self->dest('sleep')->x - int($self->font('sleep')->w/2),
         $self->dest('sleep')->y - int($self->font('sleep')->h/2),
+        $text
+    );
+
+    return 1;
+}
+
+sub _draw_post
+{
+    my ($self) = @_;
+
+    my $text = ucfirst $self->model->result('finish');
+
+    $self->font('post')->text($text) if $text ne $self->font('post')->text;
+    $self->font('post')->write_xy(
+        $self->sprite('viewport')->surface,
+        $self->dest('post')->x - int($self->font('post')->w/2),
+        $self->dest('post')->y - int($self->font('post')->h/2),
         $text
     );
 
