@@ -721,7 +721,7 @@ sub _draw_panel
     SDL::GFX::Primitives::box_color(
         $self->sprite('panel')->surface,
         $self->dest('bar')->x,
-        $self->dest('bar')->y + $heigth_good,
+        $self->dest('bar')->y + (($heigth_good) ?$heigth_good+1 :0),
         $self->dest('bar')->w,
         $self->dest('bar')->y + $self->dest('bar')->h,
         $self->color('bar_bad')
