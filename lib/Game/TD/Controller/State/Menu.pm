@@ -8,6 +8,7 @@ use base qw(Game::TD::Controller);
 use SDL::Event;
 
 use Game::TD::Config;
+use Game::TD::Notify;
 use Game::TD::Model::State::Menu;
 use Game::TD::View::State::Menu;
 

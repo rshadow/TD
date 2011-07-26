@@ -9,6 +9,7 @@ use Carp;
 use SDL::Event;
 
 use Game::TD::Config;
+use Game::TD::Notify;
 use Game::TD::Model::State::Game;
 use Game::TD::Model::Panel;
 use Game::TD::Model::Cursor;
@@ -94,7 +95,13 @@ sub update
     return \%result if $self->is_pause;
 
     my $process = $self->model->update($step, $t);
-    $result{state} = 'score' unless $process;
+
+    unless( $process )
+    {
+        notify('Level "%s" is %s',
+            $self->model->title, $self->model->result('finish'));
+        $result{state} = 'score';
+    }
 
     $self->_update_buttons;
 

@@ -9,6 +9,7 @@ use Carp;
 use SDL::Event;
 
 use Game::TD::Config;
+use Game::TD::Notify;
 use Game::TD::Model::State::Board;
 use Game::TD::View::State::Board;
 

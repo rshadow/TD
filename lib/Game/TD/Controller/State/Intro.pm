@@ -7,6 +7,7 @@ use base qw(Game::TD::Controller);
 
 use SDL::Event;
 
+use Game::TD::Notify;
 use Game::TD::Model::State::Intro;
 use Game::TD::View::State::Intro;
 
@@ -42,6 +43,8 @@ sub new
         app     => $self->app,
         model   => $self->model
     ));
+
+    notify('LostMagic has you');
 
     return $self;
 }

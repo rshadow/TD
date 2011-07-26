@@ -153,10 +153,9 @@ sub update
         $self->result('finish' => 'complete');
     }
 
-    # Notify and start post message timer
+    # Start post message timer
     if( $self->result('finish') )
     {
-        notify('Level "%s" is %s', $self->title, $self->result('finish'));
         $self->timer('post')->start;
     }
 

@@ -5,14 +5,12 @@ use utf8;
 package Game::TD::Config;
 
 use base qw(Exporter);
-our @EXPORT = qw(config Dumper notify debug);
+our @EXPORT = qw(config Dumper);
 
 use Carp;
 use File::Basename;
 use File::Spec;
 use Data::Dumper;
-
-use Game::TD::Notify;
 
 =head1 NAME
 
