@@ -161,7 +161,7 @@ sub font
 {
     my ($self, $name, $value) = @_;
 
-    confess 'Name required'             unless defined $name;
+    confess 'Name required'         unless defined $name;
     $self->{font}{$name} = $value   if defined $value;
     return $self->{font}{$name};
 }
