@@ -36,9 +36,9 @@ sub new
 {
     my ($class, %opts) = @_;
 
-    croak 'Missing required param "num"'    unless defined $opts{num};
-    croak 'Missing required param "player"' unless defined $opts{player};
-    croak 'Missing required param "dt"'     unless defined $opts{dt};
+    confess 'Missing required param "num"'      unless defined $opts{num};
+    confess 'Missing required param "player"'   unless defined $opts{player};
+    confess 'Missing required param "dt"'       unless defined $opts{dt};
 
     my $self = $class->SUPER::new(%opts);
 
@@ -56,6 +56,9 @@ sub new
     }
     # Concat
     $self->{$_} = $level{$_} for keys %level;
+
+    # Store unit level health
+    $self->{t_health} = $self->health;
 
     # Create map
     $self->map( Game::TD::Model::Map->new(map => delete $level{map}) );
@@ -131,7 +134,7 @@ sub update
     my $unit_ticks = $self->timer('units')->get_ticks;
     my %result = $self->wave->update( $unit_ticks, $step );
     # Make damage if exists
-    $self->{health} -= $result{damage} if exists $result{damage};
+    $self->damage( $result{damage} ) if exists $result{damage};
 
     # Update forces
 #    my $tower_ticks = $self->timer('tower')->get_ticks;
@@ -168,7 +171,7 @@ Return player storage
 
 =cut
 
-sub player    { return shift()->{player};   }
+sub player   { return shift()->{player};    }
 
 =head2 num
 
@@ -176,9 +179,9 @@ Return level board position
 
 =cut
 
-sub num       { return shift()->{num};   }
+sub num      { return shift()->{num};       }
 
-sub dt        { return shift()->{dt};   }
+sub dt       { return shift()->{dt};        }
 
 =head2 name
 
@@ -186,13 +189,7 @@ Return level internal name
 
 =cut
 
-sub name
-{
-    my ($self) = @_;
-    die 'Missing "name" parameter in level file'
-        unless defined $self->{name};
-    return $self->{name};
-}
+sub name    { return shift()->{name};       }
 
 =head2 title
 
@@ -200,13 +197,7 @@ Return level title
 
 =cut
 
-sub title
-{
-    my ($self) = @_;
-    die 'Missing "title" parameter in level file'
-        unless defined $self->{title};
-    return $self->{title};
-}
+sub title   { return shift()->{title};      }
 
 =head2 sleep
 
@@ -214,13 +205,7 @@ Return level sleep pause before units run
 
 =cut
 
-sub sleep
-{
-    my ($self) = @_;
-    die 'Missing "sleep" parameter in level file'
-        unless defined $self->{sleep};
-    return $self->{sleep};
-}
+sub sleep   { return shift()->{sleep};      }
 
 =head2 post
 
@@ -228,44 +213,23 @@ Return level post complete pause
 
 =cut
 
-sub post
-{
-    my ($self) = @_;
-    return $self->{post};
-}
-
-=head2 left
-
-Get/Set counter for game start. See <i>Game::TD::Model::Level::sleep</i>
-function.
-
-=cut
-
-sub left
-{
-    my ($self, $name, $value) = @_;
-
-    croak 'Missing required "name" parameter' unless defined $name;
-    if( defined $value )
-    {
-        $self->{left}{$name} = ($value > 0) ?$value : 0;
-    }
-    return $self->{left}{$name};
-}
+sub post    { return shift()->{post};       }
 
 =head2 health
 
-Return level health
+Return current level health
 
 =cut
 
-sub health
-{
-    my ($self) = @_;
-    die 'Missing "health" parameter in level file'
-        unless defined $self->{health};
-    return $self->{health};
-}
+sub health  { return shift()->{health};     }
+
+=head2 t_health
+
+Return initially level health
+
+=cut
+
+sub t_health{ return shift()->{t_health};   }
 
 =head2 cash
 
@@ -273,13 +237,7 @@ Return level cash
 
 =cut
 
-sub cash
-{
-    my ($self) = @_;
-    die 'Missing "cash" parameter in level file'
-        unless defined $self->{cash};
-    return $self->{cash};
-}
+sub cash    { return shift()->{health};     }
 
 =head2 wave $wave
 
@@ -331,6 +289,47 @@ sub camera
     my ($self, $camera) = @_;
     $self->{camera} = $camera if defined $camera;
     return $self->{camera};
+}
+
+=head2 damage $damage
+
+Make level damage from unit
+
+=cut
+
+sub damage
+{
+    my ($self, $damage) = @_;
+
+    if($self->health > $damage)
+    {
+       $self->{health} -= $damage;
+    }
+    else
+    {
+        $self->{health} = 0;
+    }
+
+    return $self->{health};
+}
+
+=head2 left
+
+Get/Set counter for game start. See <i>Game::TD::Model::Level::sleep</i>
+function.
+
+=cut
+
+sub left
+{
+    my ($self, $name, $value) = @_;
+
+    confess 'Missing required "name" parameter' unless defined $name;
+    if( defined $value )
+    {
+        $self->{left}{$name} = ($value > 0) ?$value : 0;
+    }
+    return $self->{left}{$name};
 }
 
 1;

@@ -166,8 +166,13 @@ sub hit
 {
     my ($self, $damage) = @_;
 
-    ($self->health > $damage)
-        ? $self->{health} -= $damage
-        : $self->die('killed');
+    if($self->health > $damage)
+    {
+        $self->{health} -= $damage;
+    }
+    else
+    {
+        $self->die('killed');
+    }
 }
 1;
