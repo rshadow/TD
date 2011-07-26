@@ -789,7 +789,12 @@ sub _draw_messages
     # Draw post in center of viewport
     if( $self->model->result('finish') and $self->model->left('post') )
     {
-        my $text = ucfirst $self->model->result('finish');
+        my $text =
+            ( $self->model->result('finish') eq 'complete' )
+                ? config->param($self->conf=>'post'=>'text_c')  :
+            ( $self->model->result('finish') eq 'failed' )
+                ? config->param($self->conf=>'post'=>'text_f')
+                : confess 'Can`t set post message';
 
         $self->font('post')->text($text) if $text ne $self->font('post')->text;
         $self->font('post')->write_xy(
