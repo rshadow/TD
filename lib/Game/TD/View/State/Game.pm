@@ -498,6 +498,20 @@ sub _init_panel
         config->param($self->conf=>'money'=>'ftop'),
         0 ,0
     ));
+
+    # Progress bar
+    $self->dest('bar' => SDL::Rect->new(
+        config->param($self->conf=>'panel'=>'bar'=>'left'),
+        config->param($self->conf=>'panel'=>'bar'=>'top'),
+        config->param($self->conf=>'panel'=>'bar'=>'width'),
+        $self->panel->rect->h -
+        config->param($self->conf=>'panel'=>'bar'=>'top') -
+        config->param($self->conf=>'panel'=>'bar'=>'bottom')
+    ));
+    $self->color('bar_good' =>
+        config->param($self->conf=>'panel'=>'bar'=>'color_good'));
+    $self->color('bar_bad' =>
+        config->param($self->conf=>'panel'=>'bar'=>'color_bad'));
 }
 
 sub _init_towers
@@ -689,6 +703,29 @@ sub _draw_panel
         $self->dest('money')->x,
         $self->dest('money')->y,
     );
+
+    # Draw bar
+    my $heigth_good = int( $self->model->wave->counter('damage','%') *
+        $self->dest('bar')->h / 100 );
+    my $heigth_bad = $self->dest('bar')->h - $heigth_good;
+    # Draw completed part
+    SDL::GFX::Primitives::box_color(
+        $self->sprite('panel')->surface,
+        $self->dest('bar')->x,
+        $self->dest('bar')->y,
+        $self->dest('bar')->w,
+        $self->dest('bar')->y + $heigth_good,
+        $self->color('bar_good')
+    ) if $heigth_good > 0;
+    # Draw units part
+    SDL::GFX::Primitives::box_color(
+        $self->sprite('panel')->surface,
+        $self->dest('bar')->x,
+        $self->dest('bar')->y + $heigth_good,
+        $self->dest('bar')->w,
+        $self->dest('bar')->y + $self->dest('bar')->h,
+        $self->color('bar_bad')
+    ) if $heigth_bad > 0;
 
     return 1;
 }

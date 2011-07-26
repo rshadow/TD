@@ -188,7 +188,7 @@ sub dest
 {
     my ($self, $name, $value) = @_;
 
-    die 'Name required'             unless defined $name;
+    confess 'Name required'         unless defined $name;
     $self->{dest}{$name} = $value   if defined $value;
     return $self->{dest}{$name};
 }

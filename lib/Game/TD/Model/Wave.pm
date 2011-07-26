@@ -7,6 +7,8 @@ package Game::TD::Model::Wave;
 #our @EXPORT = qw();
 
 use Carp;
+use List::Util qw(sum);
+use List::MoreUtils qw(any);
 use Game::TD::Model::Unit;
 
 =head1 Game::TD::Model::Wave
@@ -245,6 +247,105 @@ sub types
     my ($self, $type) = @_;
     $self->{types}{$type}++ if defined $type;
     return wantarray ? %{$self->{types}} : $self->{types};
+}
+
+=head2 counter $name, $presentation
+
+Return some counter by $name in specified $presentation:
+
+=over
+
+=item total
+
+Total count of all units
+
+=item died
+
+Count of died units
+
+=item alive
+
+Count of live units
+
+=item health
+
+Sum of initially health (t_health) for all units
+
+=item damage
+
+Total damage for all units
+
+=item live
+
+Remain health for all units
+
+=back
+
+=cut
+
+sub counter
+{
+    my ($self, $name, $presentation) = @_;
+
+    confess 'Missing required parameter "name"' unless defined $name;
+    $presentation //= 'int';
+
+    my $result = 0;
+
+    # Count
+    if($name eq 'total')
+    {
+        $result += scalar @{$self->path($_)} for $self->names;
+    }
+    elsif($name eq 'died')
+    {
+        $result += scalar( grep({$_->is_die} $self->path($_)) )
+            for $self->names;
+    }
+    elsif($name eq 'alive')
+    {
+        $result += scalar( grep({!$_->is_die} $self->path($_)) )
+            for $self->names;
+    }
+    elsif($name eq 'health')
+    {
+        $result += sum( map({$_->t_health} $self->path($_)) )
+            for $self->names;
+    }
+    elsif($name eq 'damage')
+    {
+        $result += sum( map({$_->t_health - $_->health} $self->path($_)) )
+            for $self->names;
+    }
+    elsif($name eq 'live')
+    {
+        $result += sum( map({$_->health} $self->path($_)) )
+            for $self->names;
+    }
+    else
+    {
+        confess sprintf 'Can`t find "%s" counter';
+    }
+
+    # Update presintation
+    if($presentation eq 'int')
+    {
+        ;
+    }
+    elsif($presentation eq '%')
+    {
+        my $total =
+            (any {$name eq $_} qw(total died alive))
+                ? $self->counter('total',  'int')
+                : $self->counter('health', 'int');
+        $result = int( $result * 100 / $total );
+    }
+    else
+    {
+        confess sprintf 'Can`t find "%s" presentation';
+    }
+
+    return $result;
 }
 
 1;
