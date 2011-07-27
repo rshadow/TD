@@ -164,6 +164,25 @@ sub is_over
     return 0;
 }
 
+=head2 is_over_rect $x, $y
+
+Check if $rect has intersection on camera
+
+=cut
+
+sub is_over_rect
+{
+    my ($self, $rect) = @_;
+
+    return 1 if
+        $self->is_over($rect->x,                  $rect->y)                  or
+        $self->is_over($rect->x + $self->rect->w, $rect->y)                  or
+        $self->is_over($rect->x,                  $rect->y + $self->rect->h) or
+        $self->is_over($rect->x + $self->rect->w, $rect->y + $self->rect->h);
+
+    return 0;
+}
+
 =head2 xy2map $x, $y
 
 Get logical x and y on map for coordinates $x,$y. Function make correction for
