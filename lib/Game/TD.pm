@@ -32,6 +32,32 @@ sub new
 
     notify 'Init';
 
+    # Set profilling
+    if( config->param('player'=>'profile') )
+    {
+        notify 'Profiling enabled';
+
+        # Set profiling enviroment
+        $ENV{NYTPROF} = sprintf 'trace=%d:start=%s:file=%s:log=%s',
+            2,
+            'no',
+            config->dir('profile').'/nytprof.out',
+            config->dir('profile').'/nytprof.log';
+
+        # Load module
+        eval "require Devel::NYTProf";
+        die 'Package Devel::NYTProf not found' if $@;
+
+        # Enable profiling
+        DB::enable_profile(config->dir('profile').'/nytprof.out');
+    }
+
+    # Set locale
+    Game::TD::Locale->po(
+        locale          => config->param('player'=>'locale'),
+        dir             => config->dir('po'),
+    );
+
     # Create window
     $self->app( new SDLx::App (
         width           => config->param('common'=>'window'=>'width'),
@@ -51,12 +77,6 @@ sub new
         min_t           => 1 / config->param('common'=>'fps'=>'value'),
 #        delay           => 10,
     ));
-
-    # Set locale
-    Game::TD::Locale->po(
-        locale          => config->param('player'=>'locale'),
-        dir             => config->dir('po'),
-    );
 
     # Create game core
     $self->core( Game::TD::Core->new(app => $self->app) );

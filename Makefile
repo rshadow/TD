@@ -1,5 +1,5 @@
 
-.PHONY: run test exe i18n
+.PHONY: run test exe i18n nytprof
 
 LANGS	:=	$(shell find ./po -type f -name '*.po')
 
@@ -41,3 +41,9 @@ i18n:
 			--sort-by-file			\
 			$$f po/TEMPLATE.pot;	\
 	done;
+
+nytprof:
+	nytprofhtml							\
+		--file ./nytprof/nytprof.out	\
+		--out ./nytprof/
+	x-www-browser ./nytprof/index.html

@@ -65,6 +65,8 @@ sub new
     $opts{dir}{level}       = base . '/data/level';
 #    $opts{dir}{layout}      = $opts{dir}{base} . '/data/layout';
 
+    $opts{dir}{profile}     = base . '/nytprof';
+
 #    $opts{dir}{intro}       = $opts{dir}{img} . '/intro';
 #    $opts{dir}{game}        = $opts{dir}{img} . '/game';
 #    $opts{dir}{level}       = $opts{dir}{img} . '/level';
