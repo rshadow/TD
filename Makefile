@@ -1,5 +1,5 @@
 
-.PHONY: run test exe i18n nytprof
+.PHONY: run test exe i18n nytprof clean
 
 LANGS	:=	$(shell find ./po -type f -name '*.po')
 
@@ -47,3 +47,6 @@ nytprof:
 		--file ./nytprof/nytprof.out	\
 		--out ./nytprof/
 	x-www-browser ./nytprof/index.html
+	
+clean:
+	rm -fr ./nytprof/*
