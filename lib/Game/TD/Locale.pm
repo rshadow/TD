@@ -12,14 +12,9 @@ package Game::TD::Locale;
 use base qw(Exporter);
 
 use Locale::Language;
-use POSIX;
-
 use Locale::PO;
 use Encode qw(is_utf8 decode);
 use Carp;
-
-
-use Game::TD::Config;
 
 our @EXPORT_OK = qw(po gettext);
 
@@ -33,9 +28,10 @@ Translate string
 
 sub po
 {
+    my ($class, %opts) = @_;
     # Chache po object
     return $po if $po;
-    return $po = Game::TD::Locale->new(@_);
+    return $po = $class->new(%opts);
 }
 
 =head2 new
@@ -48,10 +44,13 @@ sub new
 
     # Set default
     my ($current) = $ENV{LANG} =~ m/^([a-z]+)/;
-    $opts{locale} ||= config->param('player'=>'locale') || $current;
+    $opts{locale} //= lc($current) || 'en';
+
+    # Set default dir
+    $opts{dir}    //= 'po';
 
     # Get available translations
-    my @langs = map {$_->{code}} available();
+    my @langs = map {$_->{code}} available($opts{dir});
     warn 'No translation files' unless @langs;
 
     # Check for pod file and drop to default if not exists
@@ -83,7 +82,7 @@ sub locale
     # Set and reload if new locale set
     $self->{locale} = $locale || 'en';
     $self->{data}     = Locale::PO->load_file_ashash(
-        sprintf '%s/%s.po', config->dir('po'), $self->{locale});
+        sprintf '%s/%s.po', $self->{dir}, $self->{locale});
 
     return $self->{locale};
 }
@@ -134,12 +133,12 @@ Get available translations
 
 sub available
 {
-    use Locale::Language;
+    my ($dir) = @_;
 
     # Get available translations
     return
         map { { code => $_, name => code2language $_} }
-        map { m|/(\w*?).po$| } glob sprintf '%s/*.po', config->dir('po');
+        map { m|/(\w*?).po$| } glob sprintf '%s/*.po', $dir;
 }
 
 1;

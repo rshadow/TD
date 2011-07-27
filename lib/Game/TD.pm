@@ -14,6 +14,7 @@ use SDLx::App;
 use SDLx::FPS;
 
 use Game::TD::Config;
+use Game::TD::Locale;
 use Game::TD::Notify;
 use Game::TD::Core;
 
@@ -50,6 +51,12 @@ sub new
         min_t           => 1 / config->param('common'=>'fps'=>'value'),
 #        delay           => 10,
     ));
+
+    # Set locale
+    Game::TD::Locale->po(
+        locale          => config->param('player'=>'locale'),
+        dir             => config->dir('po'),
+    );
 
     # Create game core
     $self->core( Game::TD::Core->new(app => $self->app) );
