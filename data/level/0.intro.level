@@ -1,9 +1,9 @@
-name    => 'intro',             # Internal name
-title   => 'Game tutorial',     # Title
-sleep   => 4000,                # Time to units run
-post    => 4000,                # Time after level complete
-health  => 200,                 # Max damage
-cash    => 500,                 # Initial player cache
+name    => 'intro',                     # Internal name
+title   => gettext('Game tutorial'),    # Title
+sleep   => 4000,                        # Time to units run
+post    => 4000,                        # Time after level complete
+health  => 200,                         # Max damage
+cash    => 500,                         # Initial player cache
 
 wave => {
     # Path 0

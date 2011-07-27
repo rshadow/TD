@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: td\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-07-27 11:24+0400\n"
+"POT-Creation-Date: 2011-07-27 15:15+0400\n"
 "PO-Revision-Date: 2011-07-27 11:01+0400\n"
 "Last-Translator: Roman V. Nikolaev <rshadow@rambler.ru>\n"
 "Language: Russian\n"
@@ -91,6 +91,12 @@ msgstr "Счет"
 #: data/conf/menu.conf:46
 msgid "Exit"
 msgstr "Выход"
+
+#. sec.
+#. Internal name
+#: data/level/0.intro.level:2
+msgid "Game tutorial"
+msgstr "Введение"
 
 #: lib/Game/TD/View/State/Game.pm:383
 msgid "Unknow"

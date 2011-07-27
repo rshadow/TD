@@ -332,4 +332,13 @@ sub left
     return $self->{left}{$name};
 }
 
+
+=head2 gettext
+
+Stub. Do nothing. In config used for help xgettext find a strings.
+
+=cut
+
+sub gettext {return @_}
+
 1;
