@@ -1,5 +1,7 @@
 
-.PHONY: run test exe
+.PHONY: run test exe i18n
+
+LANGS	:=	$(shell find ./po -type f -name '*.po')
 
 run:
 	@perl ./td.pl
@@ -16,3 +18,23 @@ exe:
 		--icon data/img/icon.png \
 		--output td.exe          \
 		td.pl
+
+i18n:
+	find ./lib ./data/conf -type f |	\
+	xargs								\
+	xgettext 							\
+		--language=Perl					\
+		--add-comments					\
+		--sort-by-file					\
+		--output-dir=po					\
+		--output=TEMPLATE.pot			\
+		--force-po						\
+		-
+	for f in $(LANGS); do				\
+		msgmerge						\
+			--update					\
+			--backup=off				\
+			--force-po					\
+			--sort-by-file				\
+			$$f po/TEMPLATE.pot;		\
+	done;

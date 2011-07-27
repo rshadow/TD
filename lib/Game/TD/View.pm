@@ -12,6 +12,7 @@ use SDLx::Sound;
 use SDLx::Text;
 
 use Game::TD::Config;
+use Game::TD::Locale qw(gettext);
 
 =head1 Game::TD::View
 

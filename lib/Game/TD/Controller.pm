@@ -8,6 +8,7 @@ use Carp;
 use SDL;
 use SDL::Event;
 use Game::TD::Config;
+use Game::TD::Locale qw(gettext);
 
 use SDLx::Text;
 use SDLx::Widget::Button;
@@ -170,7 +171,7 @@ sub button
                 @{config->param($conf=>'buttons'=>$name=>'rect')} );
         $opts{sequences} = config->param($conf=>'buttons'=>$name=>'sequences');
 
-        my $text  = config->param($conf=>'buttons'=>$name=>'text') || '';
+        my $text = gettext(config->param($conf=>'buttons'=>$name=>'text')||'');
         if(length $text )
         {
             $opts{text}  = SDLx::Text->new(

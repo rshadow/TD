@@ -132,4 +132,11 @@ sub param
     return $result;
 }
 
+=head2 gettext
+
+Stub. Do nothing. In config used for help xgettext find a strings.
+
+=cut
+
+sub gettext {return @_}
 1;

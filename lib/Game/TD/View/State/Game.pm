@@ -17,6 +17,7 @@ use SDL::GFX::Rotozoom;
 use SDL::GFX::Primitives;
 
 use Game::TD::Config;
+use Game::TD::Locale qw(gettext);
 
 =head1 NAME
 
@@ -379,7 +380,7 @@ sub _init_messages
         size    => config->param($self->conf=>'post'=>'size'),
         color   => config->param($self->conf=>'post'=>'color'),
         mode    => 'utf8',
-        text    => 'Unknow',
+        text    => gettext('Unknow'),
     ));
     $self->dest('post' => SDL::Rect->new(
         $self->model->camera->left + int($self->model->camera->w / 2),
@@ -462,7 +463,7 @@ sub _init_panel
         size    => config->param($self->conf=>'title'=>'size'),
         color   => config->param($self->conf=>'title'=>'color'),
         mode    => 'utf8',
-        text    => $self->model->title,
+        text    => gettext($self->model->title),
     ));
     $self->dest(title => SDL::Rect->new(
         config->param($self->conf=>'title'=>'fleft'),
@@ -682,7 +683,7 @@ sub _draw_panel
 
     # Draw health counter
     my $health = sprintf '%s %s',
-        config->param($self->conf=>'health'=>'text') || '',
+        gettext(config->param($self->conf=>'health'=>'text') || ''),
         $self->model->health;
     $self->font('health')->text($health)
         if $health ne $self->font('health')->text;
@@ -694,8 +695,8 @@ sub _draw_panel
 
     # Draw money
     my $money = sprintf '%s %s',
-            config->param($self->conf=>'money'=>'text') || '',
-            $self->model->player->money;
+        gettext(config->param($self->conf=>'money'=>'text') || ''),
+        $self->model->player->money;
     $self->font('money')->text($money)
         if $money ne $self->font('money')->text;
     $self->font('money')->write_xy(
@@ -775,7 +776,8 @@ sub _draw_messages
     if( $self->model->left('sleep') )
     {
         my $text = int($self->model->left('sleep') / 1000);
-        $text = 'Go!' if $text < 1;
+        $text = gettext(config->param($self->conf=>'sleep'=>'text_s') || '')
+            if $text < 1;
 
         $self->font('sleep')->text($text) if $text ne $self->font('sleep')->text;
         $self->font('sleep')->write_xy(
@@ -791,9 +793,9 @@ sub _draw_messages
     {
         my $text =
             ( $self->model->result('finish') eq 'complete' )
-                ? config->param($self->conf=>'post'=>'text_c')  :
+                ? gettext(config->param($self->conf=>'post'=>'text_c') || '')  :
             ( $self->model->result('finish') eq 'failed' )
-                ? config->param($self->conf=>'post'=>'text_f')
+                ? gettext(config->param($self->conf=>'post'=>'text_f') || '')
                 : confess 'Can`t set post message';
 
         $self->font('post')->text($text) if $text ne $self->font('post')->text;
