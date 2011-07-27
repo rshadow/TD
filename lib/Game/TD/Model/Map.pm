@@ -218,6 +218,12 @@ Get map height in pixel
 
 sub tile_map_height  {return shift()->{tile_map_height}}
 
+=head2 tile $x, $y
+
+Return tile by $x:$y coordinates
+
+=cut
+
 sub tile
 {
     my ($self, $x, $y) = @_;
